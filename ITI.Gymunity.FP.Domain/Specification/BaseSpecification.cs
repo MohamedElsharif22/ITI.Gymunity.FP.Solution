@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Domain.Entities;
+﻿using ITI.Gymunity.FP.Domain.Models;
 using Microsoft.EntityFrameworkCore.Query;
 using System;
 using System.Collections.Generic;

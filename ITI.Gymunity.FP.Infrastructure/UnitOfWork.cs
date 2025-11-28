@@ -1,5 +1,5 @@
 ﻿using ITI.Gymunity.FP.Domain;
-using ITI.Gymunity.FP.Domain.Entities;
+using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 using ITI.Gymunity.FP.Infrastructure._Data;
 using ITI.Gymunity.FP.Infrastructure.Repositories;

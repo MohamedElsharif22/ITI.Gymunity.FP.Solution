@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Domain.Entities.Identity;
+﻿using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -29,7 +29,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
                 await _appDbContext.Database.MigrateAsync();
 
                 var _roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-                var _userManeger = services.GetRequiredService<UserManager<ApplicationUser>>();
+                var _userManeger = services.GetRequiredService<UserManager<AppUser>>();
                 var _context = services.GetRequiredService<AppDbContext>();
 
                 await AppContextSeed.SeedIdentityDataAsync(_userManeger, _roleManager);

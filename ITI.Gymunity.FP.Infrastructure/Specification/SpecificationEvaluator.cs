@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Domain.Entities;
+﻿using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Specification;
 using Microsoft.EntityFrameworkCore;
 using System;
