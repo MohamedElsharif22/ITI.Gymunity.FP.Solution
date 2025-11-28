@@ -1,5 +1,9 @@
-﻿using ITI.Gymunity.FP.Domain.Entities;
-using ITI.Gymunity.FP.Domain.Entities.Identity;
+﻿using ITI.Gymunity.FP.Domain.Models;
+using ITI.Gymunity.FP.Domain.Models.Client;
+using ITI.Gymunity.FP.Domain.Models.Identity;
+using ITI.Gymunity.FP.Domain.Models.Messaging;
+using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
+using ITI.Gymunity.FP.Domain.Models.Trainer;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -12,19 +16,48 @@ using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Infrastructure._Data
 {
-    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<ApplicationUser>(options)
+    public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<AppUser>(options)
     {
-        // Add DbSet properties for your entities here
+        // DbSet properties for entities
+        #region DbSets
+
+        // User & Profiles
+        public DbSet<TrainerProfile> TrainerProfiles { get; set; }
+        public DbSet<ClientProfile> ClientProfiles { get; set; }
+
+        // Programs
+        public DbSet<Program> Programs { get; set; }
+        public DbSet<ProgramWeek> ProgramWeeks { get; set; }
+        public DbSet<ProgramDay> ProgramDays { get; set; }
+        public DbSet<ProgramDayExercise> ProgramDayExercises { get; set; }
+        public DbSet<Exercise> Exercises { get; set; }
+
+        // Packages & Subscriptions
+        public DbSet<Package> Packages { get; set; }
+        public DbSet<PackageProgram> PackagePrograms { get; set; }
+        public DbSet<Subscription> Subscriptions { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+
+        // Client Logs
+        public DbSet<WorkoutLog> WorkoutLogs { get; set; }
+        public DbSet<BodyStatLog> BodyStatLogs { get; set; }
+
+        // Messaging
+        public DbSet<MessageThread> MessageThreads { get; set; }
+        public DbSet<Message> Messages { get; set; }
+
+        #endregion
 
         // Configure the model
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-
             base.OnModelCreating(modelBuilder);
 
-            SetGlobalQueryFilter<BaseEntity>(modelBuilder, e => !e.IsDeleted);
-
+            // Apply all configurations from the Configurations folder BEFORE setting global filters
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+
+            // Set global query filter for soft deletes on BaseEntity derivatives
+            SetGlobalQueryFilter<BaseEntity>(modelBuilder, e => !e.IsDeleted);
 
             AppContextSeed.SeedDatabase(modelBuilder);
         }
@@ -53,17 +86,25 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
             return base.SaveChangesAsync(cancellationToken);
         }
 
-        private void SetGlobalQueryFilter<TBase>(ModelBuilder modelBuilder, Expression<Func<TBase, bool>> filter)
+        private void SetGlobalQueryFilter<TBase>(ModelBuilder modelBuilder, Expression<Func<TBase, bool>> filter) where TBase : class
         {
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
-                if (typeof(TBase).IsAssignableFrom(entityType.ClrType))
+                // Only apply filter to types that inherit from TBase
+                if (typeof(TBase).IsAssignableFrom(entityType.ClrType) && entityType.ClrType != typeof(TBase))
                 {
-                    var parameter = Expression.Parameter(entityType.ClrType);
-                    var body = ReplacingExpressionVisitor.Replace(filter.Parameters[0], parameter, filter.Body);
-                    var lambda = Expression.Lambda(body, parameter);
+                    try
+                    {
+                        var parameter = Expression.Parameter(entityType.ClrType);
+                        var body = ReplacingExpressionVisitor.Replace(filter.Parameters[0], parameter, filter.Body);
+                        var lambda = Expression.Lambda(body, parameter);
 
-                    entityType.SetQueryFilter(lambda);
+                        entityType.SetQueryFilter(lambda);
+                    }
+                    catch
+                    {
+                        // Skip if filter cannot be applied to this entity type
+                    }
                 }
             }
         }

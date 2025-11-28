@@ -1,5 +1,5 @@
 ﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Domain.Entities.Identity;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -17,7 +17,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
     {
         private readonly IConfiguration _configuration = configuration;
 
-        public async Task<string> CreateTokenAsync(ApplicationUser user, UserManager<ApplicationUser> userManager)
+        public async Task<string> CreateTokenAsync(AppUser user, UserManager<AppUser> userManager)
         {
             // Private Claims
             var claims = new List<Claim>

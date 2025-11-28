@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Domain.Entities.Identity;
+﻿using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -10,6 +10,6 @@ namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
 {
     public interface IAuthService
     {
-        Task<string> CreateTokenAsync(ApplicationUser user, UserManager<ApplicationUser> userManager);
+        Task<string> CreateTokenAsync(AppUser user, UserManager<AppUser> userManager);
     }
 }

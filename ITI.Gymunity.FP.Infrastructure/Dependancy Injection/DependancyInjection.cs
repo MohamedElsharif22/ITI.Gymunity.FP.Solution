@@ -1,6 +1,6 @@
 ﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Domain;
-using ITI.Gymunity.FP.Domain.Entities.Identity;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Infrastructure;
 using ITI.Gymunity.FP.Infrastructure._Data;
 using ITI.Gymunity.FP.Infrastructure.ExternalServices;
@@ -56,7 +56,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection"));
             });
 
-            services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            services.AddIdentity<AppUser, IdentityRole>(options =>
             {
                 options.User.RequireUniqueEmail = true;
             }).AddEntityFrameworkStores<AppDbContext>();
