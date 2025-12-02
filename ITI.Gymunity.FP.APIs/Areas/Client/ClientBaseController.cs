@@ -7,7 +7,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
     [Route("api/client/[controller]")]
     [ApiController]
     [Authorize(Roles = "Client")]
-    public abstract class ClientBaseController : ControllerBase
+    public class ClientBaseController : ControllerBase
     {
     }
 }
