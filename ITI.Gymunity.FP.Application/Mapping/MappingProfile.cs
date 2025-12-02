@@ -1,4 +1,6 @@
 ﻿using AutoMapper;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Domain.Models.Trainer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +14,8 @@ namespace ITI.Gymunity.FP.Application.Mapping
         public MappingProfile()
         {
             // Create your mappings here
+            CreateMap<TrainerProfile, TrainerProfileResponse>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(tp => tp.User.UserName));
         }
     }
 }
