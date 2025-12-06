@@ -1,12 +1,4 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Trainer;
-<<<<<<< HEAD
-=======
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
->>>>>>> main
 
 namespace ITI.Gymunity.FP.Domain.RepositoiesContracts
 {
@@ -16,8 +8,4 @@ namespace ITI.Gymunity.FP.Domain.RepositoiesContracts
         Task<bool> HandleExistsAsync(string handle);
         Task<IReadOnlyList<TrainerProfile>> GetTopRatedTrainersAsync(int count);
     }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> main
