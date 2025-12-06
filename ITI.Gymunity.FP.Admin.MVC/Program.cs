@@ -1,3 +1,6 @@
+using ITI.Gymunity.FP.Application.Dependancy_Injection;
+using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
+
 namespace ITI.Gymunity.FP.Admin.MVC
 {
     public class Program
@@ -8,6 +11,16 @@ namespace ITI.Gymunity.FP.Admin.MVC
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddAuthentication("CookieAuth")
+                .AddCookie("CookieAuth", config =>
+                {
+                    config.Cookie.Name = "Gymunity.Admin.Cookie";
+                    config.LoginPath = "/Auth/Login";
+                });
+            builder.Services.AddDbContextServices(builder.Configuration);
+            builder.Services.AddApplicationServices();
+            builder.Services.AddInfrastructureServices();
 
             var app = builder.Build();
 
@@ -20,14 +33,15 @@ namespace ITI.Gymunity.FP.Admin.MVC
             }
 
             app.UseHttpsRedirection();
+            app.MapStaticAssets();
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
-            app.MapStaticAssets();
             app.MapControllerRoute(
                 name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}")
+                pattern: "{controller=Auth}/{action=Login}/{id?}")
                 .WithStaticAssets();
 
             app.Run();

@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\ITI.Gymunity.FP.Infrastructure\ITI.Gymunity.FP.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>
