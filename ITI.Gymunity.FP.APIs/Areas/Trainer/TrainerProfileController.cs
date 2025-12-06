@@ -10,21 +10,14 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
     {
         private readonly TrainerProfileService _trainerProfileService = trainerProfileService;
 
-<<<<<<< HEAD
         // GET: api/trainer/trainerprofile/getallprofiles
-        [HttpGet("GetAllProfiles")]
+        [HttpGet("AllProfiles")]
         [ProducesResponseType(typeof(IEnumerable<TrainerProfileListResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-=======
-        [HttpGet("GetAllProfiles")]
-        [ProducesResponseType(typeof(IEnumerable<TrainerProfileResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status204NoContent)]
->>>>>>> main
         public async Task<IActionResult> GetAllProfiles()
         {
             var profiles = await _trainerProfileService.GetAllProfiles();
 
-<<<<<<< HEAD
             if (!profiles.Any())
                 return NotFound(new ApiResponse(404, "No trainer profiles found."));
 
@@ -32,7 +25,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
 
         // GET: api/trainer/trainerprofile/getbyuserid/{userId}
-        [HttpGet("GetByUserId/{userId}")]
+        [HttpGet("UserId/{userId}")]
         // [Authorize] // Uncomment when authentication is ready
         [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -52,7 +45,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
 
         // GET: api/trainer/trainerprofile/getbyid/{id}
-        [HttpGet("GetById/{id}")]
+        [HttpGet("Id/{id}")]
         [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id)
@@ -66,7 +59,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
 
         // POST: api/trainer/trainerprofile/create
-        [HttpPost("Create")]
+        [HttpPost("")]
         // [Authorize] // Uncomment when authentication is ready
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status201Created)]
@@ -90,7 +83,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
 
         // PUT: api/trainer/trainerprofile/update/{id}
-        [HttpPut("Update/{id}")]
+        [HttpPut("{id}")]
         // [Authorize] // Uncomment when authentication is ready
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status200OK)]
@@ -116,7 +109,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
 
         // DELETE: api/trainer/trainerprofile/delete/{id}
-        [HttpDelete("Delete/{id}")]
+        [HttpDelete("{id}")]
         // [Authorize] // Uncomment when authentication is ready
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -137,7 +130,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
 
         // PUT: api/trainer/trainerprofile/updatestatus/{id}
-        [HttpPut("UpdateStatus/{id}")]
+        [HttpPut("Status/{id}")]
         // [Authorize] // Uncomment when authentication is ready
         [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status200OK)]
@@ -163,7 +156,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
 
         // DELETE: api/trainer/trainerprofile/deletestatus/{id}
-        [HttpDelete("DeleteStatus/{id}")]
+        [HttpDelete("Status/{id}")]
         // [Authorize] // Uncomment when authentication is ready
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
@@ -184,13 +177,3 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
     }
 }
-=======
-            if(!profiles.Any())
-                return new ObjectResult(new ApiResponse(400, "No trainer profiles found."));
-
-            return new OkObjectResult(profiles);
-        }
-
-    }
-}
->>>>>>> main

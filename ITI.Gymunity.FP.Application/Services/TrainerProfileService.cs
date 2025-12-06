@@ -1,14 +1,11 @@
 ﻿using AutoMapper;
-<<<<<<< HEAD
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
-=======
->>>>>>> main
+
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Specefications;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
-<<<<<<< HEAD
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -22,28 +19,11 @@ namespace ITI.Gymunity.FP.Application.Services
         private readonly IFileUploadService _fileUploadService = fileUploadService;
 
         public async Task<IEnumerable<TrainerProfileListResponse>> GetAllProfiles()
-=======
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace ITI.Gymunity.FP.Application.Services
-{
-    public class TrainerProfileService(IUnitOfWork unitOfWork, IMapper mapper)
-    {
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
-
-        public async Task<IEnumerable<TrainerProfileResponse>> GetAllProfiles()
->>>>>>> main
         {
             var profileSpecs = new TrainerWithUsersAndProgramsSpecs();
 
             var trainerProfiles = (await _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>()
                                                    .GetAllWithSpecsAsync(profileSpecs))
-<<<<<<< HEAD
                                                    .Where(tp => !tp.IsDeleted)
                                                    .Select(tp => _mapper.Map<TrainerProfileListResponse>(tp));
 
@@ -234,13 +214,3 @@ namespace ITI.Gymunity.FP.Application.Services
         }
     }
 }
-=======
-                                                   .Select(tp => _mapper.Map<TrainerProfileResponse>(tp));
-
-            return trainerProfiles;
-
-        }
-
-    }
-}
->>>>>>> main
