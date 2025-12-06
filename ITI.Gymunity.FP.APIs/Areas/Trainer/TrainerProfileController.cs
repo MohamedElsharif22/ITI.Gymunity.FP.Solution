@@ -10,14 +10,21 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
     {
         private readonly TrainerProfileService _trainerProfileService = trainerProfileService;
 
+<<<<<<< HEAD
         // GET: api/trainer/trainerprofile/getallprofiles
         [HttpGet("GetAllProfiles")]
         [ProducesResponseType(typeof(IEnumerable<TrainerProfileListResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+=======
+        [HttpGet("GetAllProfiles")]
+        [ProducesResponseType(typeof(IEnumerable<TrainerProfileResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status204NoContent)]
+>>>>>>> main
         public async Task<IActionResult> GetAllProfiles()
         {
             var profiles = await _trainerProfileService.GetAllProfiles();
 
+<<<<<<< HEAD
             if (!profiles.Any())
                 return NotFound(new ApiResponse(404, "No trainer profiles found."));
 
@@ -177,3 +184,13 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         }
     }
 }
+=======
+            if(!profiles.Any())
+                return new ObjectResult(new ApiResponse(400, "No trainer profiles found."));
+
+            return new OkObjectResult(profiles);
+        }
+
+    }
+}
+>>>>>>> main

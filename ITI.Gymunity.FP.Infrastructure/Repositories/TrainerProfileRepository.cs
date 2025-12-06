@@ -2,6 +2,14 @@
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 using ITI.Gymunity.FP.Infrastructure._Data;
 using Microsoft.EntityFrameworkCore;
+<<<<<<< HEAD
+=======
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+>>>>>>> main
 
 namespace ITI.Gymunity.FP.Infrastructure.Repositories
 {
@@ -28,4 +36,8 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
                 .AnyAsync(tp => tp.Handle == handle);
         }
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> main
