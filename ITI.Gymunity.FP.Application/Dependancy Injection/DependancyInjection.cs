@@ -16,7 +16,8 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             // Register your application services here => سجل ال Services الخاصة بالتطبيق هنا
 
             // Auto Mapper Configurations
-            services.AddAutoMapper((opt) => { }, typeof(MappingProfile).Assembly);
+            services.AddAutoMapper((opt) => { },typeof(MappingProfile).Assembly);
+
             services.AddScoped<TrainerProfileService>();
 
             return services;

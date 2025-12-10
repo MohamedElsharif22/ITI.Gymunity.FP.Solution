@@ -73,6 +73,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ITrainerProfileRepository, TrainerProfileRepository>();
 
+            services.AddScoped<ITrainerProfileRepository, TrainerProfileRepository>();
 
             // Register External Services
             services.AddScoped<IEmailService, EmailService>();
