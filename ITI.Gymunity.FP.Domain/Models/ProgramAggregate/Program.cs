@@ -1,11 +1,6 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Domain.Models.ProgramAggregate
 {
@@ -17,9 +12,10 @@ namespace ITI.Gymunity.FP.Domain.Models.ProgramAggregate
         public ProgramType Type { get; set; } // Workout, Nutrition, Hybrid, Challenge
         public int DurationWeeks { get; set; }
         public decimal? Price { get; set; } // null = only via subscription
-        public bool IsPublic { get; set; } = true;
+        public bool IsPublic { get; set; } = true; // ⭐ New
+        public bool IsActive { get; set; } = false; // ⭐ New
+        public string? ImageUrl { get; set; } // ⭐ New (renamed from ThumbnailUrl)
         public int? MaxClients { get; set; }
-        public string? ThumbnailUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 

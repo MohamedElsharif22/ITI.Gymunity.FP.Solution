@@ -43,8 +43,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
 
             builder.Property(p => p.MaxClients);
 
-            builder.Property(p => p.ThumbnailUrl)
-                .HasMaxLength(500);
+            //builder.Property(p => p.ThumbnailUrl)
+            //    .HasMaxLength(500);
 
             builder.Property(p => p.CreatedAt)
                 .IsRequired();
