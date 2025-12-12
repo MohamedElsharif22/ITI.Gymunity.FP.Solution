@@ -17,7 +17,7 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
 
             // Auto Mapper Configurations
             services.AddAutoMapper((opt) => { },typeof(MappingProfile).Assembly);
-
+            services.AddScoped<AccountService>();
             services.AddScoped<TrainerProfileService>();
 
             return services;
