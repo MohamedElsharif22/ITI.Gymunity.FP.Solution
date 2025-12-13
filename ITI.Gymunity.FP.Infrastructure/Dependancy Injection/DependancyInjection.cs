@@ -2,10 +2,12 @@
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
+using ITI.Gymunity.FP.Domain.RepositoiesContracts.ClientRepositories;
 using ITI.Gymunity.FP.Infrastructure;
 using ITI.Gymunity.FP.Infrastructure._Data;
 using ITI.Gymunity.FP.Infrastructure.ExternalServices;
 using ITI.Gymunity.FP.Infrastructure.Repositories;
+using ITI.Gymunity.FP.Infrastructure.Repositories.ClientRepositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +74,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             // Register Repositories 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ITrainerProfileRepository, TrainerProfileRepository>();
+            services.AddScoped<IClientProfileRepository, ClientProfileRepository>();
 
 
             // Register External Services
