@@ -23,6 +23,10 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
         public int TotalClients { get; set; } = 0;
         public int YearsExperience { get; set; }
 
+        // New Properties for Status
+        public string? StatusImageUrl { get; set; }
+        public string? StatusDescription { get; set; }
+
         // Navigation
         public AppUser User { get; set; } = null!;
         public ICollection<Program> Programs { get; set; } = [];

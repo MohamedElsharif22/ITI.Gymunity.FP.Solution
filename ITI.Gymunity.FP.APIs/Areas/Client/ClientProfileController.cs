@@ -39,6 +39,24 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             return Ok(profile);
         }
 
+        [HttpPost]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult> CreateClientProfile(ClientProfileRequest request)
+        {
+            var userId = GetUserId();
+            if (userId == null)
+                return Unauthorized();
+
+            var result = await _clientProfileService.CreateClientProfileAsync(userId, request);
+
+            if (result == null)
+                return BadRequest(new ApiResponse(StatusCodes.Status400BadRequest, "Unable to create Profile"));
+            return Ok(new ApiResponse(200, "Success"));
+
+        }
+
 
         [HttpPut("profile")]
         [ProducesResponseType(typeof(ClientProfileResponse), StatusCodes.Status200OK)]

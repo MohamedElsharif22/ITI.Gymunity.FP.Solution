@@ -42,22 +42,26 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             return _mapper.Map<ClientProfileResponse>(clientProfile);
         }
-        public async Task<ClientProfileResponse?> CreateClientProfileAsync(ClientProfileRequest request)
+
+
+        public async Task<ClientProfileResponse?> CreateClientProfileAsync(string userId, ClientProfileRequest request)
         {
-            var spec = new ClientWithUserSpecs(c => c.UserId == request.userId);
+            var spec = new ClientWithUserSpecs(c => c.UserId == userId);
 
             var existingProfile = await _unitOfWork.Repository<ClientProfile, IClientProfileRepository>()
                 .GetWithSpecsAsync(spec);
 
             if (existingProfile != null)
+                return _mapper.Map<ClientProfileResponse>(existingProfile);
+
+
+            var currentUser = await _userManager.FindByIdAsync(userId);
+            if (currentUser == null)
                 return null;
 
             var clientProfile = _mapper.Map<ClientProfile>(request);
-
-            var currentUser = await _userManager.FindByIdAsync(request.userId);
-            if (currentUser != null)
-                return null;
-
+            clientProfile.UserId = userId;
+            clientProfile.CreatedAt = DateTime.UtcNow;
 
             _unitOfWork.Repository<ClientProfile, IClientProfileRepository>().Add(clientProfile);
 

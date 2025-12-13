@@ -4,12 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Domain.Models.Enums
+namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
 {
-    public enum UserRole : byte
+    public interface IPaymentService
     {
-        Client = 1,
-        Trainer,
-        Admin
     }
 }
