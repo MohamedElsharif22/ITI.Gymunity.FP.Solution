@@ -29,5 +29,46 @@ namespace ITI.Gymunity.FP.Application.Services
 
         }
 
+
+        public async Task<TrainerProfileResponse?> GetProfileById(int id)
+        {
+            var spec = new TrainerProfileByIdSpecs(id);
+
+            var trainer = await _unitOfWork
+                                .Repository<TrainerProfile, ITrainerProfileRepository>()
+                                .GetWithSpecsAsync(spec);
+
+            if (trainer is null)
+                return null;
+
+            return _mapper.Map<TrainerProfileResponse>(trainer);
+        }
+
+        public async Task<TrainerProfileResponse?> CreateProfileAsync(CreateTrainerProfileRequest request)
+        {
+            var repo = _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>();
+
+            // 1) Check if handle exists
+            var handleExists = await repo.HandleExistsAsync(request.Handle);
+            if (handleExists)
+                throw new Exception("Handle already exists.");
+
+            // 2) Create entity
+            var entity = _mapper.Map<TrainerProfile>(request);
+
+            // 3) Default values
+            entity.IsVerified = false;
+            entity.RatingAverage = 0;
+            entity.TotalClients = 0;
+
+            // 4) Save
+            repo.Add(entity);
+            await _unitOfWork.CompleteAsync();
+
+            // 5) Return mapped response
+            return _mapper.Map<TrainerProfileResponse>(entity);
+        }
+
+
     }
 }

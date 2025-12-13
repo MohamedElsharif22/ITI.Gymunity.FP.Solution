@@ -7,7 +7,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
     [Route("api/trainer/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Trainer")]
+    //[Authorize(Roles = "Trainer")]
     public class TrainerBaseController : ControllerBase
     {
     }
