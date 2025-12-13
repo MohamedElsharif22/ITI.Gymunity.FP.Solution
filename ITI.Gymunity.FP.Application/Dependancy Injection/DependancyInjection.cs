@@ -1,5 +1,6 @@
 ﻿using ITI.Gymunity.FP.Application.Mapping;
 using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Application.Services.ClientServices;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             // Auto Mapper Configurations
             services.AddAutoMapper((opt) => { }, typeof(MappingProfile).Assembly);
             services.AddScoped<TrainerProfileService>();
+            services.AddScoped<ClientProfileService>();
 
             return services;
         }
