@@ -20,6 +20,30 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             services.AddScoped<AccountService>();
             services.AddScoped<TrainerProfileService>();
 
+
+            //amr start
+           
+            // Home Client
+            services.AddScoped<IHomeClientService, HomeClientService>();
+
+            // Day - Week - Program services
+            services.AddScoped<IDayExerciseService, DayExerciseService>();
+            services.AddScoped<IDayService, DayService>();
+            services.AddScoped<IWeekService, WeekService>();
+            services.AddScoped<IProgramService, ProgramService>();
+            services.AddScoped<IProgramManagerService, ProgramManagerService>();
+
+            // Exercise Library
+            services.AddScoped<IExerciseLibraryService, ExerciseLibraryService>();
+
+            // Chat
+            services.AddScoped<IChatService, ChatService>();
+
+            //amr end
+
+           
+
+
             return services;
         }
     }
