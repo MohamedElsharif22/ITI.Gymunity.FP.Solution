@@ -1,5 +1,4 @@
 ﻿using ITI.Gymunity.FP.Application.DTOs.Account;
-using ITI.Gymunity.FP.Application.DTOs.Account;
 using System;
 using System.Collections.Generic;
 using System.Linq;
