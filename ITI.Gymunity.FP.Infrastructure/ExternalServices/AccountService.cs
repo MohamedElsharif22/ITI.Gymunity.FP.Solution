@@ -1,5 +1,7 @@
 ﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.Account;
+using ITI.Gymunity.FP.Application.DTOs.Account;
+using ITI.Gymunity.FP.Application.Mapping;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -9,17 +11,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.Services
+namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 {
-    public class AccountService(UserManager<AppUser> userManager, 
+    public class AccountService(UserManager<AppUser> userManager,
+        SignInManager<AppUser> signInManager,
         IFileUploadService fileUploadService,
-        IAuthService authService)
+        IAuthService authService) : IAccountService
     {
         private readonly UserManager<AppUser> _userManager = userManager;
+        private readonly SignInManager<AppUser> _signInManager = signInManager;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
         private readonly IAuthService _authService = authService;
 
-        public async Task<UserResponse> RegisterUserAsync(RegisterRequest request)
+        public async Task<UserResponse> LoginAsync(LoginRequest request)
+        {
+            var user = await _userManager.FindByEmailAsync(request.EmailOrUserName)
+                       ?? await _userManager.FindByNameAsync(request.EmailOrUserName);
+
+            if (user is null)
+                throw new Exception("Invalid email/username or password.");
+
+            var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
+
+            if (!result.Succeeded)
+                throw new Exception("Invalid email/username or password.");
+
+            var token =  await _authService.CreateTokenAsync(user, _userManager);
+            return user.ToUserResponse(token);
+        }
+
+        public async Task<UserResponse> RegisterAsync(RegisterRequest request)
         {
             if (!await IsEmailUniqueAsync(request.Email))
             {
@@ -55,14 +76,7 @@ namespace ITI.Gymunity.FP.Application.Services
 
             await _userManager.AddToRoleAsync(user, ((UserRole) request.Role).ToString());
             var token = await _authService.CreateTokenAsync(user, _userManager);
-            return new UserResponse
-            {
-                Name = user.FullName,
-                UserName = user.UserName,
-                Email = user.Email,
-                Role = user.Role.ToString(),
-                Token = token
-            };
+            return user.ToUserResponse(token);
         }
 
         private async Task<bool> IsHandelUniqueAsync(string handel)
@@ -76,5 +90,7 @@ namespace ITI.Gymunity.FP.Application.Services
             var user = await _userManager.FindByEmailAsync(email);
             return user is null;
         }
+
+        
     }
 }
