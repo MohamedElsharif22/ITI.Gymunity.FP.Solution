@@ -3,17 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 {
-    public class CreateTrainerProfileRequest
+    public class UpdateTrainerProfileRequest
     {
-        [Required]
-        public string UserId { get; set; } = null!;
-
-        [Required]
         [StringLength(50)]
-        public string Handle { get; set; } = null!;
+        public string? Handle { get; set; }
 
         [StringLength(500)]
-        public string Bio { get; set; } = string.Empty;
+        public string? Bio { get; set; }
 
         public IFormFile? CoverImage { get; set; }
 
@@ -24,6 +20,6 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
         public string? BrandingColors { get; set; }
 
         [Range(0, 50)]
-        public int YearsExperience { get; set; }
+        public int? YearsExperience { get; set; }
     }
 }

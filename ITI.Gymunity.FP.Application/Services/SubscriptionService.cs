@@ -1,63 +1,200 @@
-﻿using AutoMapper;
+﻿// Application/Services/SubscriptionService.cs
+
+using AutoMapper;
+using ITI.Gymunity.FP.Application.Common;
 using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
+using ITI.Gymunity.FP.Application.Specefications.Subscription;
+using ITI.Gymunity.FP.Application.Specefications.Trainer;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
+using ITI.Gymunity.FP.Domain.Models.Trainer;
 
-public class SubscriptionService
+namespace ITI.Gymunity.FP.Application.Services
 {
-    private readonly IUnitOfWork _unitOfWork;
-    private readonly IMapper _mapper;
-
-    public SubscriptionService(IUnitOfWork unitOfWork, IMapper mapper)
+    public class SubscriptionService
     {
-        _unitOfWork = unitOfWork;
-        _mapper = mapper;
-    }
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-    // 🔵 Subscribe
-    public async Task<SubscriptionResponse> SubscribeAsync(string clientId, SubscribePackageRequest request)
-    {
-        var subscription = new Subscription
+        public SubscriptionService(IUnitOfWork unitOfWork, IMapper mapper)
         {
-            ClientId = clientId,
-            PackageId = request.PackageId,
-            AmountPaid = 0, // placeholder
-            CurrentPeriodEnd = DateTime.UtcNow.AddMonths(1)
-        };
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+        }
 
-        _unitOfWork.Repository<Subscription>().Add(subscription);
-        await _unitOfWork.CompleteAsync();
+        /// <summary>
+        /// Subscribe to a trainer's package
+        /// </summary>
+        public async Task<ServiceResult<SubscriptionResponse>> SubscribeAsync(
+            string clientId,
+            SubscribePackageRequest request)
+        {
+            // 1. Validate Package exists
+            var package = await _unitOfWork
+                .Repository<Package>()
+                .GetByIdAsync(request.PackageId);
 
-        return _mapper.Map<SubscriptionResponse>(subscription);
-    }
+            if (package == null)
+                return ServiceResult<SubscriptionResponse>.Failure(
+                    $"Package with ID {request.PackageId} not found");
 
-    // 🔵 Get all my subscriptions
-    public async Task<IEnumerable<SubscriptionResponse>> GetMySubscriptionsAsync(string clientId)
-    {
-        var spec = new ClientSubscriptionsSpecs(clientId);
+            // 2. Check if already subscribed to this package
+            var existingSubSpec = new ActiveClientSubscriptionForPackageSpecs(
+                clientId,
+                request.PackageId);
+            var existingSub = await _unitOfWork
+                .Repository<Subscription>()
+                .GetWithSpecsAsync(existingSubSpec);
 
-        var subs = await _unitOfWork
-            .Repository<Subscription>()
-            .GetAllWithSpecsAsync(spec);
+            if (existingSub != null)
+                return ServiceResult<SubscriptionResponse>.Failure(
+                    "You are already subscribed to this package");
 
-        return subs.Select(s => _mapper.Map<SubscriptionResponse>(s));
-    }
+            // 3. Validate Trainer is verified and active
+            var trainerSpec = new TrainerByUserIdSpecs(package.TrainerId);
+            var trainer = await _unitOfWork
+                .Repository<TrainerProfile>()
+                .GetWithSpecsAsync(trainerSpec);
 
-    // 🔵 Cancel
-    public async Task CancelAsync(int id, string clientId)
-    {
-        var spec = new ClientSubscriptionByIdSpecs(id, clientId);
+            if (trainer == null || !trainer.IsVerified)
+                return ServiceResult<SubscriptionResponse>.Failure(
+                    "Trainer is not available");
 
-        var sub = await _unitOfWork
-            .Repository<Subscription>()
-            .GetWithSpecsAsync(spec);
+            // 4. Calculate amount and period
+            decimal amount = request.IsAnnual
+                ? package.PriceYearly ?? package.PriceMonthly * 12
+                : package.PriceMonthly;
 
-        if (sub == null) throw new Exception("Subscription not found");
+            DateTime periodEnd = request.IsAnnual
+                ? DateTime.UtcNow.AddYears(1)
+                : DateTime.UtcNow.AddMonths(1);
 
-        sub.Status = SubscriptionStatus.Canceled;
-        sub.CanceledAt = DateTime.UtcNow;
+            // 5. Create subscription
+            var subscription = new Subscription
+            {
+                ClientId = clientId,
+                PackageId = request.PackageId,
+                Status = SubscriptionStatus.Unpaid,
+                StartDate = DateTime.UtcNow,
+                CurrentPeriodEnd = periodEnd,
+                AmountPaid = amount,
+                Currency = "EGP",
+                PlatformFeePercentage = 15m
+            };
 
-        await _unitOfWork.CompleteAsync();
+            _unitOfWork.Repository<Subscription>().Add(subscription);
+            await _unitOfWork.CompleteAsync();
+
+            // 6. Map and return response
+            var response = _mapper.Map<SubscriptionResponse>(subscription);
+            return ServiceResult<SubscriptionResponse>.Success(response);
+        }
+
+        /// <summary>
+        /// Get all client's subscriptions with optional status filter
+        /// </summary>
+        public async Task<ServiceResult<IEnumerable<SubscriptionResponse>>> GetMySubscriptionsAsync(
+            string clientId,
+            SubscriptionStatus? status = null)
+        {
+            var spec = new ClientSubscriptionsSpecs(clientId, status);
+            var subs = await _unitOfWork
+                .Repository<Subscription>()
+                .GetAllWithSpecsAsync(spec);
+
+            var result = subs.Select(s => _mapper.Map<SubscriptionResponse>(s));
+            return ServiceResult<IEnumerable<SubscriptionResponse>>.Success(result);
+        }
+
+        /// <summary>
+        /// Get single subscription by ID for current client
+        /// </summary>
+        public async Task<ServiceResult<SubscriptionResponse>> GetSubscriptionByIdAsync(
+            int id,
+            string clientId)
+        {
+            var spec = new ClientSubscriptionByIdSpecs(id, clientId);
+            var sub = await _unitOfWork
+                .Repository<Subscription>()
+                .GetWithSpecsAsync(spec);
+
+            if (sub == null)
+                return ServiceResult<SubscriptionResponse>.Failure(
+                    "Subscription not found");
+
+            var response = _mapper.Map<SubscriptionResponse>(sub);
+            return ServiceResult<SubscriptionResponse>.Success(response);
+        }
+
+        /// <summary>
+        /// Cancel subscription (client keeps access until period end)
+        /// </summary>
+        public async Task<ServiceResult<bool>> CancelAsync(int id, string clientId)
+        {
+            var spec = new ClientSubscriptionByIdSpecs(id, clientId);
+            var sub = await _unitOfWork
+                .Repository<Subscription>()
+                .GetWithSpecsAsync(spec);
+
+            if (sub == null)
+                return ServiceResult<bool>.Failure("Subscription not found");
+
+            if (sub.Status == SubscriptionStatus.Canceled)
+                return ServiceResult<bool>.Failure(
+                    "Subscription is already canceled");
+
+            // Client keeps access until CurrentPeriodEnd (per SRS UC-10)
+            sub.Status = SubscriptionStatus.Canceled;
+            sub.CanceledAt = DateTime.UtcNow;
+
+            await _unitOfWork.CompleteAsync();
+
+            return ServiceResult<bool>.Success(true);
+        }
+
+        /// <summary>
+        /// Reactivate a canceled subscription (if not expired)
+        /// </summary>
+        public async Task<ServiceResult<bool>> ReactivateAsync(int id, string clientId)
+        {
+            var spec = new ClientSubscriptionByIdSpecs(id, clientId);
+            var sub = await _unitOfWork
+                .Repository<Subscription>()
+                .GetWithSpecsAsync(spec);
+
+            if (sub == null)
+                return ServiceResult<bool>.Failure("Subscription not found");
+
+            if (sub.Status != SubscriptionStatus.Canceled)
+                return ServiceResult<bool>.Failure(
+                    "Only canceled subscriptions can be reactivated");
+
+            if (DateTime.UtcNow > sub.CurrentPeriodEnd)
+                return ServiceResult<bool>.Failure(
+                    "Subscription period has ended. Please subscribe again.");
+
+            sub.Status = SubscriptionStatus.Active;
+            sub.CanceledAt = null;
+
+            await _unitOfWork.CompleteAsync();
+
+            return ServiceResult<bool>.Success(true);
+        }
+
+        /// <summary>
+        /// Check if client has active subscription to a specific trainer
+        /// </summary>
+        public async Task<bool> HasActiveSubscriptionToTrainerAsync(
+            string clientId,
+            string trainerId)
+        {
+            var spec = new ActiveClientSubscriptionToTrainerSpecs(clientId, trainerId);
+            var sub = await _unitOfWork
+                .Repository<Subscription>()
+                .GetWithSpecsAsync(spec);
+
+            return sub != null;
+        }
     }
 }
