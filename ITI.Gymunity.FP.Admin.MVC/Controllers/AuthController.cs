@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Application.DTOs.User;
+﻿using ITI.Gymunity.FP.Application.DTOs.Account;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;

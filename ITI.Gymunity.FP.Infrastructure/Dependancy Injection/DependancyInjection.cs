@@ -87,6 +87,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             //amr end
 
             // Register External Services
+            services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFileUploadService, FileUploadService>();
             services.AddScoped<IAuthService, AuthService>();

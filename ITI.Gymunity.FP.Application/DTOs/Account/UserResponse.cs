@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.Services
+namespace ITI.Gymunity.FP.Application.DTOs.Account
 {
     public class UserResponse
     {
