@@ -75,6 +75,17 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
 
             services.AddScoped<ITrainerProfileRepository, TrainerProfileRepository>();
 
+            //amr start
+            // Register Repositories 
+            services.AddScoped<IExerciseLibraryRepository, ExerciseLibraryRepository>();
+            services.AddScoped<IProgramRepository, ProgramRepository>();
+            services.AddScoped<IWeekRepository, WeekRepository>();
+            services.AddScoped<IDayRepository, DayRepository>();
+            services.AddScoped<IDayExerciseRepository, DayExerciseRepository>();
+            services.AddScoped<IChatRepository, ChatRepository>();
+
+            //amr end
+
             // Register External Services
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFileUploadService, FileUploadService>();

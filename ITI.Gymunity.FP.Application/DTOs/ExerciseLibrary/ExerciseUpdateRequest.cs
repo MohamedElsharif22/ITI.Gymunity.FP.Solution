@@ -1,0 +1,15 @@
+using System;
+
+namespace ITI.Gymunity.FP.Application.DTOs.ExerciseLibrary
+{
+ public class ExerciseUpdateRequest
+ {
+ public string Name { get; set; } = null!;
+ public string Category { get; set; } = null!;
+ public string MuscleGroup { get; set; } = null!;
+ public string? Equipment { get; set; }
+ public string? VideoDemoUrl { get; set; }
+ public string? ThumbnailUrl { get; set; }
+ public bool IsCustom { get; set; }
+ }
+}
