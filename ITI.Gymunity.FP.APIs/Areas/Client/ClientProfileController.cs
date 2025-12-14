@@ -11,7 +11,6 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
-    [Authorize]
     public class ClientProfileController(ClientProfileService clientProfileService) : ClientBaseController
     {
         private readonly ClientProfileService _clientProfileService = clientProfileService;
@@ -20,6 +19,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         {
             return User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         }
+
 
         [HttpGet("profile")]
         [ProducesResponseType(typeof(ClientProfileResponse), StatusCodes.Status200OK)]
@@ -38,6 +38,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
             return Ok(profile);
         }
+
 
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
@@ -117,19 +118,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         //}
 
 
-        [HttpGet("profile/completed")]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<bool>> IsProfileCompleted()
-        {
-            var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            var isCompleted = await _clientProfileService.IsProfileCompletedAsync(userId);
-
-            return Ok(isCompleted);
-        }
+        
 
 
         [HttpDelete("profile/delete")]

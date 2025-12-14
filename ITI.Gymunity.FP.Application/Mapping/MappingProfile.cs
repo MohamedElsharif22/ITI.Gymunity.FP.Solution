@@ -31,7 +31,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.StatusDescription, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-            ///////////////////////////////////////////////////////////////////////////
+            //*********************     Client Profile Mapping       ******************************//
 
             CreateMap<ClientProfileRequest, ClientProfile>();
             CreateMap<ClientProfile, ClientProfileResponse>()

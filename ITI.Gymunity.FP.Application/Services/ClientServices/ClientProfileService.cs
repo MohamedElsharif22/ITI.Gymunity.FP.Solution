@@ -69,6 +69,8 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             return _mapper.Map<ClientProfileResponse>(clientProfile);
         }
+
+
         public async Task<ClientProfileResponse?> UpdateClientProfileAsync(string userId, ClientProfileRequest request)
         {
             var spec = new ClientWithUserSpecs(c => c.UserId == userId);
@@ -94,6 +96,8 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             return _mapper.Map<ClientProfileResponse>(clientProfile);
         }
+
+
         //public async Task<bool> UpdateClientInfoAsync(string userId, string photoUrl)
         //{
 
@@ -149,26 +153,9 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
         //    await _unitOfWork.CompleteAsync();
         //    return true;
         //}
-        public async Task<bool> IsProfileCompletedAsync(string userId)
-        {
-            var spec = new ClientWithUserSpecs(cp => cp.UserId == userId);
-
-            var clientProfile = await _unitOfWork.Repository<ClientProfile, IClientProfileRepository>()
-                                                  .GetWithSpecsAsync(spec);
-
-            if (clientProfile == null)
-                return false;
 
 
-            bool isCompleted =
-                clientProfile.HeightCm.HasValue &&
-                clientProfile.StartingWeightKg.HasValue &&
-                !string.IsNullOrEmpty(clientProfile.Gender) &&
-                !string.IsNullOrEmpty(clientProfile.Goal) &&
-                !string.IsNullOrEmpty(clientProfile.ExperienceLevel);
-
-            return isCompleted;
-        }
+        
         public async Task<bool> DeleteProfileAsync(string userId)
         {
             var spec = new ClientWithUserSpecs(c => c.UserId == userId);
