@@ -19,6 +19,6 @@ namespace ITI.Gymunity.FP.Application.DTOs.ClientDto
         public string? ExperienceLevel { get; set; } // Beginner, Intermediate, Advanced
         public DateTimeOffset? UpdatedAt { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
-        public List<BodyStateLogResponse>? BodyStateLogs { get; set; }
+        public BodyStateLogResponse? BodyStateLog { get; set; }
     }
 }
