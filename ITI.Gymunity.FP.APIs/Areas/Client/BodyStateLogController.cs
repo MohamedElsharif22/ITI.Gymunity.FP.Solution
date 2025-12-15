@@ -37,15 +37,30 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         [HttpGet]
         [ProducesResponseType(typeof(List<BodyStateLogResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
-        public async Task<ActionResult<List<BodyStateLogResponse>>> GetAllLogsByClient()
+        public async Task<ActionResult<List<BodyStateLogResponse>>> GetAllStateLogsByClient()
         {
             var userId = GetUserId();
             if (userId == null)
                 return Unauthorized(new ApiResponse(401));
 
-            var result = await _bodyStateLogService.GetLogsByClientAsync(userId);
+            var result = await _bodyStateLogService.GetStateLogsByClientAsync(userId);
 
             return Ok(result);
         }
+
+
+        [HttpGet("lastStateLog")]
+        [ProducesResponseType(typeof(BodyStateLogResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        public  async Task<ActionResult> GetLastStateLog()
+        {
+            var userId = GetUserId();
+            if (userId == null)
+                return Unauthorized(new ApiResponse(401));
+
+            var result = await _bodyStateLogService.GetLastStateLog(userId);
+            return Ok(result);
+        }
+
     }
 }
