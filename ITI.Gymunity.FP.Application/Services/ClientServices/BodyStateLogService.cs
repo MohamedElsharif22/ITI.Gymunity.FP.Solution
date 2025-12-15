@@ -49,7 +49,7 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             return _mapper.Map<BodyStateLogResponse>(bodyStateLog);
         }
 
-        public async Task<List<BodyStateLogResponse>> GetLogsByClientAsync(string userId)
+        public async Task<List<BodyStateLogResponse>> GetStateLogsByClientAsync(string userId)
         {
             var specs = new ClientWithUserSpecs(c => c.UserId == userId);
 
@@ -66,23 +66,23 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             return _mapper.Map<List<BodyStateLogResponse>>(bodyStateLogs);
         }
 
-        //public async Task<List<BodyStateLogResponse>> GetByClientAsync(string userId)
-        //{
-        //    var specs = new ClientWithUserSpecs(c => c.UserId == userId);
-        //    var profile = await _unitOfWork.Repository<ClientProfile>().GetWithSpecsAsync(specs);
 
-        //    if (profile == null)
-        //    {
-        //        throw new InvalidOperationException("Client profile not found");
-        //    }
+        public async Task<BodyStateLogResponse> GetLastStateLog(string userId)
+        {
+            var specs = new ClientWithUserSpecs(c => c.UserId == userId);
 
-        //    // Create a specification to get all logs for this profile
-        //    var logsSpec = new BodyStateLogSpecification(b => b.ClientProfileId == profile.Id);
-        //    var logs = await _unitOfWork.Repository<BodyStatLog>().GetAllWithSpecsAsync(logsSpec);
+            var profile = await _unitOfWork.Repository<ClientProfile>().GetWithSpecsAsync(specs);
+            if(profile == null)
+            {
+                throw new InvalidOperationException("Client profile not found");
+            }
 
-        //    var stateLogs = _mapper.Map<List<BodyStateLogResponse>>(logs);
+            var lastLog = profile.BodyStatLogs?.OrderByDescending(b => b.LoggedAt).FirstOrDefault();
 
-        //    return stateLogs.OrderByDescending(b => b.LoggedAt).ToList();
-        //}
+            if (lastLog == null)
+                return null;
+
+            return _mapper.Map<BodyStateLogResponse>(lastLog);
+        }
     }
 }
