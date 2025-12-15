@@ -1,5 +1,6 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Client;
 using ITI.Gymunity.FP.Domain.Specification;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,7 @@ namespace ITI.Gymunity.FP.Application.Specefications.ClientSpecification
         public BodyStateLogWithClientAsync()
         {
             AddInclude(b => b.ClientProfile);
+            AddInclude(q => q.Include(tp => tp.ClientProfile).ThenInclude(p => p.BodyStatLogs));
         }
 
         public BodyStateLogWithClientAsync(Expression<Func<BodyStatLog, bool>>? criteria) : base(criteria) 

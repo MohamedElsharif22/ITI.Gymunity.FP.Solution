@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,7 +34,7 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             bodyStateLog.ClientProfileId = profile.Id;
             bodyStateLog.LoggedAt = DateTime.UtcNow;
 
-            _unitOfWork.Repository<BodyStatLog>().Add(bodyStateLog);
+            profile.BodyStatLogs?.Add(bodyStateLog);
 
             try
             {
@@ -46,6 +47,42 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             }
 
             return _mapper.Map<BodyStateLogResponse>(bodyStateLog);
-        } 
+        }
+
+        public async Task<List<BodyStateLogResponse>> GetLogsByClientAsync(string userId)
+        {
+            var specs = new ClientWithUserSpecs(c => c.UserId == userId);
+
+            var profile = await _unitOfWork.Repository<ClientProfile>().GetWithSpecsAsync(specs);
+
+            if (profile == null)
+            {
+                throw new InvalidOperationException("Client profile not found");
+            }
+
+            var bodyStateLogs = profile.BodyStatLogs?.OrderByDescending(b => b.LoggedAt).ToList()
+                ?? new List<BodyStatLog> ();
+
+            return _mapper.Map<List<BodyStateLogResponse>>(bodyStateLogs);
+        }
+
+        //public async Task<List<BodyStateLogResponse>> GetByClientAsync(string userId)
+        //{
+        //    var specs = new ClientWithUserSpecs(c => c.UserId == userId);
+        //    var profile = await _unitOfWork.Repository<ClientProfile>().GetWithSpecsAsync(specs);
+
+        //    if (profile == null)
+        //    {
+        //        throw new InvalidOperationException("Client profile not found");
+        //    }
+
+        //    // Create a specification to get all logs for this profile
+        //    var logsSpec = new BodyStateLogSpecification(b => b.ClientProfileId == profile.Id);
+        //    var logs = await _unitOfWork.Repository<BodyStatLog>().GetAllWithSpecsAsync(logsSpec);
+
+        //    var stateLogs = _mapper.Map<List<BodyStateLogResponse>>(logs);
+
+        //    return stateLogs.OrderByDescending(b => b.LoggedAt).ToList();
+        //}
     }
 }

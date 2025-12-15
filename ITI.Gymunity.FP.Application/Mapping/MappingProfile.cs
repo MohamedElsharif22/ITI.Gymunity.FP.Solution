@@ -35,10 +35,14 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
             CreateMap<ClientProfileRequest, ClientProfile>();
             CreateMap<ClientProfile, ClientProfileResponse>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(cp => cp.User.UserName));
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(cp => cp.User.UserName))
+                .ForMember(dest => dest.BodyStateLogs, opt => opt.MapFrom(src => src.BodyStatLogs.OrderByDescending(b => b.LoggedAt)));
+
+            //*********************     BodyStateLog Mapping       ******************************//
 
             CreateMap<CreateBodyStateLogRequest, BodyStatLog>();
             CreateMap<BodyStatLog, BodyStateLogResponse>();
+                
         }
     }
 }

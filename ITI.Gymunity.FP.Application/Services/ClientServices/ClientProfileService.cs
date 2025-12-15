@@ -44,6 +44,13 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             if(clientProfile == null)
                 return null;
 
+            //var bodyStateLogs = clientProfile.BodyStatLogs?
+            //    .Select(b => _mapper.Map<BodyStateLogResponse>(b)).ToList();
+
+            //var clientProfileResponse = _mapper.Map<ClientProfileResponse>(clientProfile);
+
+            //clientProfileResponse.BodyStateLogs = bodyStateLogs;
+
             return _mapper.Map<ClientProfileResponse>(clientProfile);
         }
 
