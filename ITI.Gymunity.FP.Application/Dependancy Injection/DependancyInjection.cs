@@ -21,9 +21,9 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
 
 
             //amr start
-           
+
             // Home Client
-            services.AddScoped<IHomeClientService, HomeClientService>();
+            IServiceCollection serviceCollection = services.AddScoped<IHomeClientService, HomeClientService>();
 
             // Day - Week - Program services
             services.AddScoped<IDayExerciseService, DayExerciseService>();
@@ -38,9 +38,13 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             // Chat
             services.AddScoped<IChatService, ChatService>();
 
+            //packages
+
+            services.AddScoped<IPackageService, PackageService>();
+
             //amr end
 
-           
+
 
 
             return services;
