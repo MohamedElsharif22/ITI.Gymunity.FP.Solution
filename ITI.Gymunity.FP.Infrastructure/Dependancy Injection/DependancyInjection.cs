@@ -84,6 +84,10 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddScoped<IDayExerciseRepository, DayExerciseRepository>();
             services.AddScoped<IChatRepository, ChatRepository>();
 
+            //packages
+
+            services.AddScoped<IPackageRepository, PackageRepository>();
+
             //amr end
 
             // Register External Services
@@ -92,6 +96,8 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddScoped<IFileUploadService, FileUploadService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPaymentService, PaymentService>();
+
+            
 
 
             return services;

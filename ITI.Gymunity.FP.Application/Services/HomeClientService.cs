@@ -10,15 +10,6 @@ using DomainProgram = ITI.Gymunity.FP.Domain.Models.ProgramAggregate.Program;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
- public interface IHomeClientService
- {
- Task<(IReadOnlyList<ProgramClientResponse> programs, IReadOnlyList<TrainerClientResponse> trainers)> SearchAsync(string term);
- Task<IReadOnlyList<ProgramClientResponse>> GetAllProgramsAsync();
- Task<ProgramClientResponse?> GetProgramByIdAsync(int id);
- Task<IReadOnlyList<TrainerClientResponse>> GetAllTrainersAsync();
- Task<TrainerClientResponse?> GetTrainerByIdAsync(int id);
- }
-
  public class HomeClientService : IHomeClientService
  {
  private readonly IUnitOfWork _unitOfWork;
@@ -37,7 +28,7 @@ namespace ITI.Gymunity.FP.Application.Services
  var programDtos = programs.Select(p => _mapper.Map<ProgramClientResponse>(p)).ToList();
 
  var trainerSpec = new TrainerWithUsersAndProgramsSpecs(tp => tp.Handle.Contains(term) || tp.User.FullName.Contains(term));
- var trainers = await _unitOfWork.Repository<TrainerProfile, ITI.Gymunity.FP.Domain.RepositoiesContracts.ITrainerProfileRepository>().GetAllWithSpecsAsync(trainerSpec);
+ var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(trainerSpec);
  var trainerDtos = trainers.Select(t => _mapper.Map<TrainerClientResponse>(t)).ToList();
 
  return (programDtos, trainerDtos);
@@ -52,9 +43,11 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<ProgramClientResponse?> GetProgramByIdAsync(int id)
  {
- var spec = new ProgramWithTrainerSpec();
- spec.Criteria = p => p.Id == id;
- var program = (await _unitOfWork.Repository<DomainProgram>().GetAllWithSpecsAsync(spec)).FirstOrDefault();
+ // ProgramWithTrainerSpec only accepts optional searchTerm string in constructor.
+ // Create default spec and set Criteria to filter by id.
+ var specById = new ProgramWithTrainerSpec();
+ specById.Criteria = p => p.Id == id;
+ var program = (await _unitOfWork.Repository<DomainProgram>().GetAllWithSpecsAsync(specById)).FirstOrDefault();
  if (program == null) return null;
  return _mapper.Map<ProgramClientResponse>(program);
  }
@@ -62,16 +55,40 @@ namespace ITI.Gymunity.FP.Application.Services
  public async Task<IReadOnlyList<TrainerClientResponse>> GetAllTrainersAsync()
  {
  var spec = new TrainerWithUsersAndProgramsSpecs();
- var trainers = await _unitOfWork.Repository<TrainerProfile, ITI.Gymunity.FP.Domain.RepositoiesContracts.ITrainerProfileRepository>().GetAllWithSpecsAsync(spec);
+ var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(spec);
  return trainers.Select(t => _mapper.Map<TrainerClientResponse>(t)).ToList();
  }
 
  public async Task<TrainerClientResponse?> GetTrainerByIdAsync(int id)
  {
  var spec = new TrainerWithUsersAndProgramsSpecs(tp => tp.Id == id);
- var trainer = await _unitOfWork.Repository<TrainerProfile, ITI.Gymunity.FP.Domain.RepositoiesContracts.ITrainerProfileRepository>().GetWithSpecsAsync(spec);
+ var trainer = await _unitOfWork.Repository<TrainerProfile>().GetWithSpecsAsync(spec);
  if (trainer == null) return null;
  return _mapper.Map<TrainerClientResponse>(trainer);
+ }
+
+ // packages
+ public async Task<IReadOnlyList<PackageClientResponse>> GetAllPackagesAsync()
+ {
+ var list = await _unitOfWork.Repository<Package>().GetAllAsync();
+ var active = list.Where(p => p.IsActive).ToList();
+ return active.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
+ }
+
+ public async Task<PackageClientResponse?> GetPackageByIdAsync(int id)
+ {
+ var p = await _unitOfWork.Repository<Package>().GetByIdAsync(id);
+ if (p == null) return null;
+ return _mapper.Map<PackageClientResponse>(p);
+ }
+
+ public async Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerIdAsync(int trainerProfileId)
+ {
+ var trainer = await _unitOfWork.Repository<TrainerProfile>().GetByIdAsync(trainerProfileId);
+ if (trainer == null) return new List<PackageClientResponse>();
+ var list = await _unitOfWork.Repository<Package>().GetAllAsync();
+ var byTrainer = list.Where(p => p.TrainerId == trainer.UserId).ToList();
+ return byTrainer.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
  }
  }
 }

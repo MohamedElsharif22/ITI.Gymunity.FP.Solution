@@ -4,6 +4,7 @@ using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.DTOs.Client;
 using ITI.Gymunity.FP.Application.DTOs.ExerciseLibrary;
 using ITI.Gymunity.FP.Application.DTOs.Chat;
+using ITI.Gymunity.FP.Application.DTOs.Package;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
@@ -129,6 +130,26 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
 
             // ======================
+            // Package mappings
+            // Used by:
+            // - PackagesController / PackageService
+            // ======================
+            CreateMap<Package, PackageResponse>();
+            CreateMap<PackageCreateRequest, Package>()
+                .ForMember(dest => dest.Id, opt => opt.Ignore())
+                .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
+                .ForMember(dest => dest.Trainer, opt => opt.Ignore())
+                .ForMember(dest => dest.PackagePrograms, opt => opt.Ignore())
+                .ForMember(dest => dest.Subscriptions, opt => opt.Ignore());
+            CreateMap<PackageUpdateRequest, Package>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            // Client-facing package mapping
+            CreateMap<Package, DTOs.Client.PackageClientResponse>()
+                .ForMember(dest => dest.TrainerId, opt => opt.MapFrom(p => p.TrainerId));
+
+
+            // ======================
             // Client-facing Trainer mapping (detwailed fields)
             // Used by:
             // - HomeClientController / HomeClientService for trainer detail in client UI
@@ -145,8 +166,6 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
 
             //end amr mapping
-
-
 
 
 
