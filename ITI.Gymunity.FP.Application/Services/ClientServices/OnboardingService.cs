@@ -3,6 +3,7 @@ using ITI.Gymunity.FP.Application.Specefications.ClientSpecification;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Client;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts.ClientRepositories;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,9 +12,10 @@ using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Application.Services.ClientServices
 {
-    public class OnboardingService(IUnitOfWork unitOfWork)
+    public class OnboardingService(IUnitOfWork unitOfWork, ILogger<OnboardingService> logger)
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ILogger _logger = logger;
 
         public async Task<bool> IsProfileOnboardingCompletedAsync(string userId)
         {
@@ -61,9 +63,10 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             {
                 await _unitOfWork.CompleteAsync();
             }
-            catch
+            catch (Exception ex)
             {
-                
+                _logger.LogError(ex ,"Error occured while Saving Changes");
+                return false;
             }
             return true;
         }
