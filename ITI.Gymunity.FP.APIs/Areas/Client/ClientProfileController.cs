@@ -23,8 +23,8 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
         [HttpGet("profile")]
         [ProducesResponseType(typeof(ClientProfileResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ClientProfileResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ClientProfileResponse), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ClientProfileResponse>> GetMyProfile()
         {
             var userId = GetUserId();

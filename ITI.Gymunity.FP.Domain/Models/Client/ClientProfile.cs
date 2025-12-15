@@ -17,6 +17,7 @@ namespace ITI.Gymunity.FP.Domain.Models.Client
         public string? ExperienceLevel { get; set; } // Beginner, Intermediate, Advanced
         public bool IsOnboardingCompleted { get; set; } = false;
 
+        public ICollection<BodyStatLog>? BodyStatLogs { get; set; }
         public AppUser User { get; set; } = null!;
         public ICollection<Subscription> Subscriptions { get; set; } = [];
     }

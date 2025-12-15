@@ -7,6 +7,7 @@ using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts.ClientRepositories;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -36,13 +37,15 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
         public async Task<ClientProfileResponse?> GetClientProfileAsync(string userId)
         {
             var clientSpec = new ClientWithUserSpecs(c => c.UserId == userId);
-
+            
             var clientProfile = await _unitOfWork.Repository<ClientProfile, IClientProfileRepository>().
                 GetWithSpecsAsync(clientSpec);
 
+            if(clientProfile == null)
+                return null;
+
             return _mapper.Map<ClientProfileResponse>(clientProfile);
         }
-
 
         public async Task<ClientProfileResponse?> CreateClientProfileAsync(string userId, ClientProfileRequest request)
         {
@@ -65,7 +68,15 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             _unitOfWork.Repository<ClientProfile, IClientProfileRepository>().Add(clientProfile);
 
+            try
+            {
             await _unitOfWork.CompleteAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex ,"Error occured while Saving Changes");
+                return null;
+            }
 
             return _mapper.Map<ClientProfileResponse>(clientProfile);
         }
@@ -89,8 +100,9 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             {
                 await _unitOfWork.CompleteAsync();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogError(ex ,"Error occured while Saving Changes");
                 return null;
             }
 
@@ -171,9 +183,9 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             {
                 await _unitOfWork.CompleteAsync();
             }
-            catch
+            catch(Exception ex)
             {
-                _logger.LogError("Error occured while Saving Changes");
+                _logger.LogError(ex ,"Error occured while Saving Changes");
                 return false;
             }
             return true;

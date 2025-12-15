@@ -12,7 +12,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             builder.HasKey(bsl => bsl.Id);
 
             // Property Configurations
-            builder.Property(bsl => bsl.ClientId)
+            builder.Property(bsl => bsl.ClientProfileId)
                 .IsRequired()
                 .HasMaxLength(450);
 
@@ -47,14 +47,14 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             builder.Property(bsl => bsl.UpdatedAt);
 
             // Indexes
-            builder.HasIndex(bsl => bsl.ClientId);
-            builder.HasIndex(bsl => new { bsl.ClientId, bsl.LoggedAt });
+            builder.HasIndex(bsl => bsl.ClientProfileId);
+            builder.HasIndex(bsl => new { bsl.ClientProfileId, bsl.LoggedAt });
             builder.HasIndex(bsl => bsl.LoggedAt);
 
             // Relationships
-            builder.HasOne(bsl => bsl.Client)
+            builder.HasOne(bsl => bsl.ClientProfile)
                 .WithMany(u => u.BodyStatLogs)
-                .HasForeignKey(bsl => bsl.ClientId)
+                .HasForeignKey(bsl => bsl.ClientProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
         }
     }

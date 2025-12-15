@@ -1,16 +1,13 @@
-﻿using ITI.Gymunity.FP.Domain.Models.Identity;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Domain.Models.Client
+namespace ITI.Gymunity.FP.Application.DTOs.ClientDto
 {
-    public class BodyStatLog : BaseEntity 
+    public class BodyStateLogResponse
     {
-        public int ClientProfileId { get; set; }
-        public DateTime LoggedAt { get; set; } = DateTime.UtcNow;
         public decimal? WeightKg { get; set; }
         public decimal? BodyFatPercent { get; set; }
         public string? MeasurementsJson { get; set; } // { "neck": 40, "waist": 80, ... }
@@ -18,8 +15,6 @@ namespace ITI.Gymunity.FP.Domain.Models.Client
         public string? PhotoSideUrl { get; set; }
         public string? PhotoBackUrl { get; set; }
         public string? Notes { get; set; }
-
-        public ClientProfile ClientProfile { get; set; } = null!;
-        //public AppUser Client { get; set; } = null!;
+        public DateTimeOffset LoggedAt { get; set; }
     }
 }
