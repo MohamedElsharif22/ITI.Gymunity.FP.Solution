@@ -22,6 +22,7 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             services.AddScoped<ClientProfileService>();
             services.AddScoped<OnboardingService>();
             services.AddScoped<BodyStateLogService>();
+            services.AddScoped<WorkoutLogService>();
 
             return services;
         }

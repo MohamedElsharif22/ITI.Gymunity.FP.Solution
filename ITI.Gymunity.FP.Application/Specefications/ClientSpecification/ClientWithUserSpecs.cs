@@ -16,11 +16,14 @@ namespace ITI.Gymunity.FP.Application.Specefications.ClientSpecification
         {
             AddInclude(c => c.User);
             AddInclude(c => c.Include(b => b.BodyStatLogs));
+            AddInclude(c => c.Include(w => w.WorkoutLogs));
         }
         public ClientWithUserSpecs(Expression<Func<ClientProfile, bool>>? criteriaExpression) : base(criteriaExpression)
         {
             AddInclude(t => t.User);
             AddInclude(c => c.Include(b => b.BodyStatLogs));
+            AddInclude(c => c.Include(w => w.WorkoutLogs));
+
         }
     }
 }

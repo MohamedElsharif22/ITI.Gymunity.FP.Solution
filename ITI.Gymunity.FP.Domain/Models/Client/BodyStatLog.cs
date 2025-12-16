@@ -10,7 +10,7 @@ namespace ITI.Gymunity.FP.Domain.Models.Client
     public class BodyStatLog : BaseEntity 
     {
         public int ClientProfileId { get; set; }
-        public DateTime LoggedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset LoggedAt { get; set; } = DateTimeOffset.UtcNow;
         public decimal? WeightKg { get; set; }
         public decimal? BodyFatPercent { get; set; }
         public string? MeasurementsJson { get; set; } // { "neck": 40, "waist": 80, ... }

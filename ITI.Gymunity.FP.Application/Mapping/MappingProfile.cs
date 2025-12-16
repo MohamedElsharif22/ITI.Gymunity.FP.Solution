@@ -43,7 +43,11 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
             CreateMap<CreateBodyStateLogRequest, BodyStatLog>();
             CreateMap<BodyStatLog, BodyStateLogResponse>();
-                
+
+            //*********************     BodyStateLog Mapping       ******************************//
+
+            CreateMap<WorkoutLogRequest, WorkoutLog>();
+            CreateMap<WorkoutLog, WorkoutLogResponse>();
         }
     }
 }

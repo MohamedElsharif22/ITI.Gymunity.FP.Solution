@@ -25,7 +25,7 @@ namespace ITI.Gymunity.FP.Domain.Models.Identity
         public TrainerProfile? TrainerProfile { get; set; }
         public ClientProfile? ClientProfile { get; set; }
         public ICollection<Subscription> Subscriptions { get; set; } = new List<Subscription>();
-        public ICollection<WorkoutLog> WorkoutLogs { get; set; } = new List<WorkoutLog>();
+        //public ICollection<WorkoutLog> WorkoutLogs { get; set; } = new List<WorkoutLog>();
         //public ICollection<BodyStatLog> BodyStatLogs { get; set; } = new List<BodyStatLog>();
     }
 }

@@ -15,7 +15,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.ClientDto
         public string? PhotoSideUrl { get; set; }
         public string? PhotoBackUrl { get; set; }
         public string? Notes { get; set; }
-        public DateTime LoggedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset LoggedAt { get; set; } = DateTimeOffset.UtcNow;
 
     }
 }
