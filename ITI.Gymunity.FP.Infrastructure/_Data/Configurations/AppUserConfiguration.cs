@@ -74,10 +74,10 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
                 .HasForeignKey(s => s.ClientId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(u => u.WorkoutLogs)
-                .WithOne(wl => wl.Client)
-                .HasForeignKey(wl => wl.ClientId)
-                .OnDelete(DeleteBehavior.Cascade);
+            //builder.HasMany(u => u.WorkoutLogs)
+            //    .WithOne(wl => wl.Client)
+            //    .HasForeignKey(wl => wl.ClientId)
+            //    .OnDelete(DeleteBehavior.Cascade);
 
             //builder.HasMany(u => u.BodyStatLogs)
             //    .WithOne(bsl => bsl.Client)

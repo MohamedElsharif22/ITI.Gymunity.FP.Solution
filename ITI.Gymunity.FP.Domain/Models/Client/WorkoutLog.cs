@@ -11,14 +11,13 @@ namespace ITI.Gymunity.FP.Domain.Models.Client
     public class WorkoutLog : BaseEntity
     {
         public new long Id { get; set; } // long for high volume
-        public string ClientId { get; set; } = null!;
+        public int ClientProfileId { get; set; } 
+        public ClientProfile ClientProfile { get; set; } = null!;
         public int ProgramDayId { get; set; }
+        public ProgramDay ProgramDay { get; set; } = null!;
         public DateTime CompletedAt { get; set; } = DateTime.UtcNow;
         public string? Notes { get; set; }
         public int? DurationMinutes { get; set; }
         public string ExercisesLoggedJson { get; set; } = "[]"; // full set/rep/weight log
-
-        public AppUser Client { get; set; } = null!;
-        public ProgramDay ProgramDay { get; set; } = null!;
     }
 }

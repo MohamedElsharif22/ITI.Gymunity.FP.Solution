@@ -15,9 +15,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             builder.HasKey(wl => wl.Id);
 
             // Property Configurations
-            builder.Property(wl => wl.ClientId)
-                .IsRequired()
-                .HasMaxLength(450);
+            builder.Property(wl => wl.ClientProfileId)
+                .IsRequired();
 
             builder.Property(wl => wl.ProgramDayId)
                 .IsRequired();
@@ -42,15 +41,17 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             builder.Property(wl => wl.UpdatedAt);
 
             // Indexes
-            builder.HasIndex(wl => wl.ClientId);
+            builder.HasIndex(wl => wl.ClientProfileId);
             builder.HasIndex(wl => wl.ProgramDayId);
-            builder.HasIndex(wl => new { wl.ClientId, wl.CompletedAt });
+            builder.HasIndex(wl => new { wl.ClientProfileId, wl.CompletedAt });
             builder.HasIndex(wl => wl.CompletedAt);
+            builder.HasIndex(wl => new { wl.ClientProfileId, wl.ProgramDayId });
+
 
             // Relationships
-            builder.HasOne(wl => wl.Client)
+            builder.HasOne(wl => wl.ClientProfile)
                 .WithMany(u => u.WorkoutLogs)
-                .HasForeignKey(wl => wl.ClientId)
+                .HasForeignKey(wl => wl.ClientProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasOne(wl => wl.ProgramDay)

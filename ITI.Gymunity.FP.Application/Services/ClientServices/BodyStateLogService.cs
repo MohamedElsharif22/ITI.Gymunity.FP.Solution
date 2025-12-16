@@ -34,7 +34,7 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             bodyStateLog.ClientProfileId = profile.Id;
             bodyStateLog.LoggedAt = DateTime.UtcNow;
 
-            profile.BodyStatLogs?.Add(bodyStateLog);
+            _unitOfWork.Repository<BodyStatLog>().Add(bodyStateLog);
 
             try
             {
