@@ -1,9 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <DocumentationFile>ITI.Gymunity.FP.APIs.xml</DocumentationFile>
+    <UserSecretsId>75836f65-1928-4be6-9de0-6da274a38487</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\images\profile-photos\" />
     <Folder Include="wwwroot\videos\" />
   </ItemGroup>
 

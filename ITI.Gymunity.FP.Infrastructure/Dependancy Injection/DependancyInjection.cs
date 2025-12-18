@@ -81,6 +81,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddScoped<IFileUploadService, FileUploadService>();
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPaymentService, PaymentService>();
+            services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
 
             return services;

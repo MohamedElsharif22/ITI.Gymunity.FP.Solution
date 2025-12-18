@@ -1,0 +1,92 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ITI.Gymunity.FP.APIs</name>
+    </assembly>
+    <members>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.AccountController">
+            <summary>
+            Provides API endpoints for user account registration and authentication operations.
+            </summary>
+            <remarks>This controller exposes endpoints for registering new users and authenticating existing
+            users, including support for standard and Google-based authentication. All endpoints return appropriate HTTP
+            responses based on the outcome of the requested operation.</remarks>
+            <param name="accountService">The account service used to perform user registration and authentication operations. Cannot be null.</param>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.#ctor(ITI.Gymunity.FP.Application.Contracts.ExternalServices.IAccountService)">
+            <summary>
+            Provides API endpoints for user account registration and authentication operations.
+            </summary>
+            <remarks>This controller exposes endpoints for registering new users and authenticating existing
+            users, including support for standard and Google-based authentication. All endpoints return appropriate HTTP
+            responses based on the outcome of the requested operation.</remarks>
+            <param name="accountService">The account service used to perform user registration and authentication operations. Cannot be null.</param>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.Register(ITI.Gymunity.FP.Application.DTOs.Account.RegisterRequest)">
+            <summary>
+            Registers a new user account using the provided registration details.
+            </summary>
+            <remarks>This endpoint is typically used to create a new user account. The request data is
+            expected as form data. If registration fails due to validation or other errors, a 400 Bad Request response
+            is returned with an error message.</remarks>
+            <param name="request">The registration information submitted by the client. Must include all required user details as specified by
+            the registration process. Cannot be null.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing the newly created user's information if registration
+            is successful; otherwise, a bad request response with error details.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.Login(ITI.Gymunity.FP.Application.DTOs.Account.LoginRequest)">
+            <summary>
+            Authenticates a user with the provided login credentials and returns user information if authentication is
+            successful.
+            </summary>
+            <param name="request">The login credentials submitted by the client. Must include valid username and password values.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UserResponse"/> if authentication succeeds;
+            otherwise, a bad request response with error details.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.GoogleAuth(ITI.Gymunity.FP.Application.DTOs.Account.GoogleAuthRequest)">
+            <summary>
+            Authenticates a user using Google credentials and returns user information if authentication is successful.
+            </summary>
+            <param name="request">The Google authentication request containing the user's credentials. Cannot be null.</param>
+            <returns>An ActionResult containing the authenticated user's information if successful; otherwise, a BadRequest
+            result with error details.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.UpdateProfile(ITI.Gymunity.FP.Application.DTOs.Account.UpdateProfileRequest)">
+            <summary>
+            Updates the authenticated user's profile with the specified information.
+            </summary>
+            <remarks>This endpoint requires authentication. Only the currently authenticated user's
+            profile can be updated using this method.</remarks>
+            <param name="request">An <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UpdateProfileRequest"/> object containing the new profile details to apply. Cannot be null.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing the updated user profile if the update is successful;
+            otherwise, a bad request response with error details.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.ChangePassword(ITI.Gymunity.FP.Application.DTOs.Account.ChangePasswordRequest)">
+            <summary>
+            Changes the current user's password using the specified password change request.
+            </summary>
+            <remarks>This endpoint requires authentication. The user must provide their current password
+            and a valid new password as specified by the application's password policy.</remarks>
+            <param name="request">An object containing the current password and the new password to set. Must not be null.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a UserResponse if the password change is successful; otherwise, a BadRequest
+            result with error details.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.SendResetPasswordLink(ITI.Gymunity.FP.Application.DTOs.Account.ForgetPasswordRequest)">
+            <summary>
+            Sends a password reset link to the email address specified in the request.
+            </summary>
+            <param name="request">The request containing the user's email address for which to send the reset password link. Cannot be null.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> indicating the result of the operation. Returns a success
+            response if the reset password email was sent; otherwise, returns a bad request response with an error
+            message.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.ResetPassword(ITI.Gymunity.FP.Application.DTOs.Account.ResetPasswordRequest)">
+            <summary>
+            Resets the user's password using the information provided in the request.
+            </summary>
+            <param name="request">The request containing the user's password reset information. Must not be null.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UserResponse"/> if the password reset is
+            successful; otherwise, a bad request response with error details.</returns>
+        </member>
+    </members>
+</doc>
