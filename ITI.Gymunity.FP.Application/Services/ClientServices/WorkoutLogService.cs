@@ -81,7 +81,6 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             return _mapper.Map<WorkoutLogResponse>(workoutLog);
         }
 
-
         public async Task<WorkoutLogResponse?> GetWorkoutLogByIdAsync(string userId, long workoutLogId)
         {
             var profileSpecs = new ClientWithUserSpecs(c => c.UserId == userId);
@@ -100,7 +99,6 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             return workoutLog == null ? null : _mapper.Map<WorkoutLogResponse>(workoutLog);
         }
-
 
         public async Task<IEnumerable<WorkoutLogResponse>> GetWorkoutLogsByClientAsync(string userId, int? pageNumber = null, int? pageSize = null)
         {
@@ -128,7 +126,6 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             return _mapper.Map<IEnumerable<WorkoutLogResponse>>(workoutLogs);
         }
-
 
         public async Task<WorkoutLogResponse> UpdateWorkoutLogAsync(string userId, long workoutLogId ,WorkoutLogRequest request)
         {
@@ -181,5 +178,52 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
                 return _mapper.Map<WorkoutLogResponse>(workoutLog);
         }
+
+        public async Task<bool> DeleteWorkoutLogAsync(string userId, long workoutLogId)
+        {
+            var specs = new ClientWithUserSpecs(c => c.UserId == userId);
+            var profile = await _unitOfWork.Repository<ClientProfile, IClientProfileRepository>()
+                .GetWithSpecsAsync(specs);
+
+            if (profile == null)
+                throw new InvalidOperationException("Client profile not found");
+
+            var workoutLog = await _unitOfWork.Repository<WorkoutLog, IWorkoutLogRepository>()
+                .GetByIdAsync(workoutLogId);
+
+            if (workoutLog == null || workoutLog.ClientProfileId != profile.Id)
+            {
+                _logger.LogWarning("WorkoutLog {WorkoutLogId} not found or unauthorized for ClientId: {ClientId}",
+                    workoutLogId, profile.Id);
+                return false;
+            }
+
+            _unitOfWork.Repository<WorkoutLog>().Delete(workoutLog);
+
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+                _logger.LogInformation("WorkoutLog {WorkoutLogId} deleted successfully", workoutLogId);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting WorkoutLog {WorkoutLogId}", workoutLogId);
+                throw;
+            }
+        }
+
+        //private void ValidateExercisesJson(string json)
+        //{
+        //    try
+        //    {
+        //        System.Text.Json.JsonDocument.Parse(json);
+        //    }
+        //    catch (System.Text.Json.JsonException ex)
+        //    {
+        //        _logger.LogWarning(ex, "Invalid JSON format in ExercisesLoggedJson");
+        //        throw new ArgumentException("Exercise log contains invalid JSON format", nameof(json));
+        //    }
+        //}
     }
 }
