@@ -6,6 +6,7 @@ using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Client;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts.ClientRepositories;
+using ITI.Gymunity.FP.Domain.Models.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -42,11 +43,20 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
                 throw new InvalidOperationException($"Program day with ID {request.ProgramDayId} not found");
             }
 
-            //var hasAccess = await _unitOfWork.Repository<Subscription>()
-            //    .(s => s.ClientProfileId == profile.Id &&
-            //              s.ProgramId == programDay.ProgramId &&
-            //              s.Status == SubscriptionStatus.Active);
 
+            // Verify client has access to this program via active subscription
+
+            var subscriptionSpecs = new SubscriptionWithClientAndProgramSpecs(s => s.ClientId == userId &&
+            s.Status == SubscriptionStatus.Active);
+
+            var hasAccess = await _unitOfWork.Repository<Subscription>()
+                .GetAllWithSpecsAsync(subscriptionSpecs);
+
+            if (!hasAccess.Any())
+            {
+                _logger.LogWarning("Client {UserId} does not have an active subscription", userId);
+                throw new InvalidOperationException("Client does not have an active subscription");
+            }
 
             var workoutLog = _mapper.Map<WorkoutLog>(request);
             workoutLog.ClientProfileId = profile.Id;
@@ -69,6 +79,26 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             }
 
             return _mapper.Map<WorkoutLogResponse>(workoutLog);
+        }
+
+
+        public async Task<WorkoutLogResponse?> GetWorkoutLogByIdAsync(string userId, long workoutLogId)
+        {
+            var profileSpecs = new ClientWithUserSpecs(c => c.UserId == userId);
+
+            var profile = await _unitOfWork.Repository<ClientProfile>().GetWithSpecsAsync(profileSpecs);
+            if (profile == null)
+            {
+                _logger.LogWarning("Client profile not found for UserId: {UserId}", userId);
+                throw new InvalidOperationException("Client Profile not found.");
+            }
+
+            var workoutLogSpecs = new WorkoutLogWithDetailsSpecs(w => w.Id == workoutLogId &&
+            w.ClientProfileId == profile.Id);
+
+            var workoutLog = await _unitOfWork.Repository<WorkoutLog>().GetWithSpecsAsync(workoutLogSpecs);
+
+            return workoutLog == null ? null : _mapper.Map<WorkoutLogResponse>(workoutLog);
         }
     }
 }
