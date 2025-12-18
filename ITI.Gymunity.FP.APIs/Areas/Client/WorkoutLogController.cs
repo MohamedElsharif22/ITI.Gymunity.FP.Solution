@@ -34,5 +34,28 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
             return StatusCode(StatusCodes.Status201Created, result);
         }
+
+
+        [HttpGet("{id:long}")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(WorkoutLogResponse), StatusCodes.Status200OK)]
+        public async Task<ActionResult> GetWorkoutLogById(long id)
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var workoutLog = await _workoutLogService.GetWorkoutLogByIdAsync(userId, id);
+
+            if (workoutLog == null)
+            {
+                return NotFound(new { error = "WorkoutLog not found" });
+            }
+
+            return Ok(workoutLog);
+        }
     }
 }
