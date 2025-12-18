@@ -37,6 +37,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         }
 
 
+
         [HttpGet("{id:long}")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -58,6 +59,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
             return Ok(workoutLog);
         }
+
 
 
         [HttpPut("{id:long}")]
@@ -85,6 +87,27 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             {
                 return StatusCode(500, new { error = "An error occurred while updating workout log" });
             }
+        }
+        
+
+
+        [HttpDelete("{id:long}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteWorkoutLog(long id)
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var result = await _workoutLogService.DeleteWorkoutLogAsync(userId, id);
+
+            if (!result)
+                return NotFound(new { error = "Workout log not found" });
+
+            return NoContent();
         }
     }
 }
