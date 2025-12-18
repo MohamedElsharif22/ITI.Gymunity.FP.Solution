@@ -74,7 +74,8 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             // Register Repositories 
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<ITrainerProfileRepository, TrainerProfileRepository>();
-            services.AddScoped<IClientProfileRepository, ClientProfileRepository>();
+            //services.AddScoped<IClientProfileRepository, ClientProfileRepository>();
+            services.AddScoped<IWorkoutLogRepository, WorkoutLogRepository>();
 
 
             services.AddScoped<ITrainerProfileRepository, TrainerProfileRepository>();

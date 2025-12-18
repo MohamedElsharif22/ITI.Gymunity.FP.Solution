@@ -62,6 +62,23 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
 
 
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<WorkoutLogResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult> GetWorkoutLogs([FromQuery] int? pageNumber = null, [FromQuery] int? pageSize = null)
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            var workoutLogs = await _workoutLogService.GetWorkoutLogsByClientAsync(userId, pageNumber, pageSize);
+            return Ok(workoutLogs);
+        }
+
+
+
         [HttpPut("{id:long}")]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(WorkoutLogResponse), StatusCodes.Status200OK)]
