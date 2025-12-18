@@ -82,5 +82,63 @@ namespace ITI.Gymunity.FP.APIs.Controllers
  var packages = await _homeService.GetPackagesByTrainerIdAsync(trainerProfileId);
  return Ok(packages);
  }
+
+ // GET: api/homeclient/packages/byTrainerUser/{trainerUserId}
+ [HttpGet("packages/byTrainerUser/{trainerUserId}")]
+ public async Task<ActionResult<IEnumerable<PackageClientResponse>>> GetPackagesByTrainerUserId(string trainerUserId)
+ {
+ var packages = await _homeService.GetPackagesByTrainerAsync(trainerUserId);
+ return Ok(packages);
+ }
+
+ // GET: api/homeclient/packages/byTrainer/{trainerProfileId}
+ [HttpGet("packages/byTrainer/{trainerProfileId:int}")]
+ public async Task<ActionResult<IEnumerable<PackageClientResponse>>> GetPackagesByTrainerProfileIdAlt(int trainerProfileId)
+ {
+ var packages = await _homeService.GetPackagesByTrainerIdAsync(trainerProfileId);
+ return Ok(packages);
+ }
+
+ // --- Client program endpoints requested ---
+ // GET: api/homeclient/programs
+ [HttpGet("programs")]
+ public async Task<ActionResult<IEnumerable<ProgramClientResponse>>> GetAllPrograms()
+ {
+ var programs = await _homeService.GetAllProgramsAsync();
+ return Ok(programs);
+ }
+
+ // GET: api/homeclient/programs/{id}
+ [HttpGet("programs/{id:int}")]
+ public async Task<ActionResult<ProgramClientResponse>> GetProgramById(int id)
+ {
+ var program = await _homeService.GetProgramByIdAsync(id);
+ if (program is null) return NotFound();
+ return Ok(program);
+ }
+
+ // GET: api/homeclient/programs/byTrainer/{trainerId} (trainerId is user id)
+ [HttpGet("programs/byTrainer/{trainerId}")]
+ public async Task<ActionResult<IEnumerable<ProgramClientResponse>>> GetProgramsByTrainer(string trainerId)
+ {
+ var list = await _homeService.GetProgramsByTrainerIdAsync(trainerId);
+ return Ok(list);
+ }
+
+ // New: GET: api/homeclient/programs/byTrainerUser/{trainerUserId} (user id)
+ [HttpGet("programs/byTrainerUser/{trainerUserId}")]
+ public async Task<ActionResult<IEnumerable<ProgramClientResponse>>> GetProgramsByTrainerUserId(string trainerUserId)
+ {
+ var list = await _homeService.GetProgramsByTrainerIdAsync(trainerUserId);
+ return Ok(list);
+ }
+
+ // New: GET: api/homeclient/programs/byTrainerProfile/{trainerProfileId} (profile id -> maps to user id)
+ [HttpGet("programs/byTrainerProfile/{trainerProfileId:int}")]
+ public async Task<ActionResult<IEnumerable<ProgramClientResponse>>> GetProgramsByTrainerProfileId(int trainerProfileId)
+ {
+ var list = await _homeService.GetProgramsByTrainerProfileIdAsync(trainerProfileId);
+ return Ok(list);
+ }
  }
 }

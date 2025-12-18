@@ -86,13 +86,14 @@ namespace ITI.Gymunity.FP.APIs
 
             app.UseStaticFiles();
 
-            app.MapControllers();
-
+            // Ensure CORS, Authentication and Authorization run before endpoints
             app.UseCors("wepPolicy");
 
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.MapControllers();
 
             app.Run();
         }

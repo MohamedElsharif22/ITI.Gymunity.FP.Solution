@@ -90,5 +90,42 @@ namespace ITI.Gymunity.FP.Application.Services
  var byTrainer = list.Where(p => p.TrainerId == trainer.UserId).ToList();
  return byTrainer.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
  }
+
+ public async Task<IReadOnlyList<ProgramClientResponse>> GetProgramsByTrainerIdAsync(string trainerId)
+ {
+ // Try repository method if available, otherwise filter all programs
+ try
+ {
+ var repo = _unitOfWork.Repository<DomainProgram>();
+ // if repository supports GetByTrainerAsync via typed repo, UnitOfWork.Repository<DomainProgram, IProgramRepository>() would be used
+ var all = await repo.GetAllAsync();
+ var byTrainer = all.Where(p => p.TrainerId == trainerId).ToList();
+ return byTrainer.Select(p => _mapper.Map<ProgramClientResponse>(p)).ToList();
+ }
+ catch
+ {
+ var all = await _unitOfWork.Repository<DomainProgram>().GetAllAsync();
+ var byTrainer = all.Where(p => p.TrainerId == trainerId).ToList();
+ return byTrainer.Select(p => _mapper.Map<ProgramClientResponse>(p)).ToList();
+ }
+ }
+
+ // New: packages by trainer user id
+ public async Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerAsync(string trainerUserId)
+ {
+ var list = await _unitOfWork.Repository<Package>().GetAllAsync();
+ var byTrainer = list.Where(p => p.TrainerId == trainerUserId).ToList();
+ return byTrainer.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
+ }
+
+ // New: programs by trainer profile id
+ public async Task<IReadOnlyList<ProgramClientResponse>> GetProgramsByTrainerProfileIdAsync(int trainerProfileId)
+ {
+ var trainer = await _unitOfWork.Repository<TrainerProfile>().GetByIdAsync(trainerProfileId);
+ if (trainer == null) return new List<ProgramClientResponse>();
+ var all = await _unitOfWork.Repository<DomainProgram>().GetAllAsync();
+ var byTrainer = all.Where(p => p.TrainerId == trainer.UserId).ToList();
+ return byTrainer.Select(p => _mapper.Map<ProgramClientResponse>(p)).ToList();
+ }
  }
 }

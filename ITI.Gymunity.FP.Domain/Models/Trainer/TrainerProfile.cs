@@ -32,5 +32,8 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
         public ICollection<Program> Programs { get; set; } = [];
         ICollection<Package> Packages { get; set; } = [];
         ICollection<MessageThread> MessageThreadsAsTrainer { get; set; } = [];
+
+        public ICollection<TrainerReview> TrainerReviews { get; set; } = new List<TrainerReview>();
+
     }
 }
