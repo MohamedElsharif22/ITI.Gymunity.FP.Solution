@@ -36,6 +36,16 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
  return Ok(p);
  }
 
+ // New: GET api/trainer/Packages/byTrainer/{trainerId}
+ [HttpGet("byTrainer/{trainerId}")]
+ [AllowAnonymous]
+ public async Task<IActionResult> GetByTrainerId(string trainerId)
+ {
+ if (string.IsNullOrEmpty(trainerId)) return BadRequest("trainerId is required.");
+ var list = await _service.GetAllForTrainerAsync(trainerId);
+ return Ok(list);
+ }
+
  [HttpPost]
  public async Task<IActionResult> Create([FromBody] PackageCreateRequest request)
  {

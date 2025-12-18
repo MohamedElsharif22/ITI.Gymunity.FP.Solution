@@ -16,5 +16,10 @@ namespace ITI.Gymunity.FP.Application.Services
  Task<IReadOnlyList<PackageClientResponse>> GetAllPackagesAsync();
  Task<PackageClientResponse?> GetPackageByIdAsync(int id);
  Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerIdAsync(int trainerProfileId);
+
+ // Program client endpoints
+ Task<IReadOnlyList<ProgramClientResponse>> GetProgramsByTrainerIdAsync(string trainerId);
+ Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerAsync(string trainerUserId);
+ Task<IReadOnlyList<ProgramClientResponse>> GetProgramsByTrainerProfileIdAsync(int trainerProfileId);
  }
 }

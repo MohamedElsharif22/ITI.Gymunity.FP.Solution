@@ -14,6 +14,6 @@ namespace ITI.Gymunity.FP.Application.DTOs.Account
         public string Role { get; set; } = null!;
         public string Token { get; set; } = null!;
 
-        //public string Id { get; set; } = null!; //amr edit
+        public string Id { get; set; } = null!; //amr edit
     }
 }

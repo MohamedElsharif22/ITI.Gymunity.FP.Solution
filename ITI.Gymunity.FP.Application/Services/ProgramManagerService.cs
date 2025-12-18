@@ -17,6 +17,8 @@ namespace ITI.Gymunity.FP.Application.Services
  Task<bool> UpdateAsync(int id, ProgramUpdateRequest request);
  Task<bool> DeleteAsync(int id);
  Task<IReadOnlyList<ProgramGetAllResponse>> SearchAsync(string? term);
+ // added: get programs by trainer id
+ Task<IReadOnlyList<ProgramGetAllResponse>> GetByTrainerAsync(string trainerId);
  }
 
  public class ProgramManagerService : IProgramManagerService
@@ -94,6 +96,13 @@ namespace ITI.Gymunity.FP.Application.Services
  public async Task<IReadOnlyList<ProgramGetAllResponse>> SearchAsync(string? term)
  {
  var list = await _repo.SearchAsync(term);
+ return list.Select(p => _mapper.Map<ProgramGetAllResponse>(p)).ToList();
+ }
+
+ // new: get programs for a trainer
+ public async Task<IReadOnlyList<ProgramGetAllResponse>> GetByTrainerAsync(string trainerId)
+ {
+ var list = await _repo.GetByTrainerAsync(trainerId);
  return list.Select(p => _mapper.Map<ProgramGetAllResponse>(p)).ToList();
  }
  }

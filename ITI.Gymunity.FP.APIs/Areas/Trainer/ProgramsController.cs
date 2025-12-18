@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
- [Area("Trainer")]
- [Route("api/trainer/[controller]")]
- [ApiController]
+
  public class ProgramsController : TrainerBaseController
  {
  private readonly IProgramManagerService _service;
@@ -27,6 +25,13 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
  public async Task<IActionResult> Search([FromQuery] string? term)
  {
  var list = await _service.SearchAsync(term);
+ return Ok(list);
+ }
+
+ [HttpGet("byTrainer/{trainerId}")]
+ public async Task<IActionResult> GetByTrainer(string trainerId)
+ {
+ var list = await _service.GetByTrainerAsync(trainerId);
  return Ok(list);
  }
 
