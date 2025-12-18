@@ -27,8 +27,8 @@ namespace ITI.Gymunity.FP.APIs
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(options =>
             {
-                options.SwaggerDoc("v1", new() { Title = "Application Name", Version = "v1" });
-
+                options.SwaggerDoc("v1", new() { Title = "Gymunity APIs", Version = "v1" });
+                options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "ITI.Gymunity.FP.APIs.xml"));
                 options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
