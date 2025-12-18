@@ -100,5 +100,86 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             return workoutLog == null ? null : _mapper.Map<WorkoutLogResponse>(workoutLog);
         }
+
+
+        public async Task<IEnumerable<WorkoutLogResponse>> GetWorkoutLogsByClientAsync(string userId, int? pageNumber = null, int? pageSize = null)
+        {
+            var profileSpecs = new ClientWithUserSpecs(c => c.UserId == userId);
+
+            var profile = await _unitOfWork.Repository<ClientProfile>().GetWithSpecsAsync(profileSpecs);
+            if (profile == null)
+            {
+                _logger.LogWarning("Client profile not found for UserId: {UserId}", userId);
+                throw new InvalidOperationException("Client Profile not found.");
+            }
+
+            WorkoutLogsByClientSpecs workoutLogSpecs;
+
+            if (pageNumber.HasValue && pageSize.HasValue)
+            {
+                workoutLogSpecs = new WorkoutLogsByClientSpecs(profile.Id, pageNumber.Value, pageSize.Value);
+            }
+            else
+            {
+                workoutLogSpecs = new WorkoutLogsByClientSpecs(profile.Id);
+            }
+            var workoutLogs = await _unitOfWork.Repository<WorkoutLog>()
+            .GetAllWithSpecsAsync(workoutLogSpecs);
+
+            return _mapper.Map<IEnumerable<WorkoutLogResponse>>(workoutLogs);
+        }
+
+
+        public async Task<WorkoutLogResponse> UpdateWorkoutLogAsync(string userId, long workoutLogId ,WorkoutLogRequest request)
+        {
+            var profileSpecs = new ClientWithUserSpecs(c => c.UserId == userId);
+
+            var profile = await _unitOfWork.Repository<ClientProfile>().GetWithSpecsAsync(profileSpecs);
+            if (profile == null)
+            {
+                _logger.LogWarning("Client profile not found for UserId: {UserId}", userId);
+                throw new InvalidOperationException("Client Profile not found.");
+            }
+
+            var workoutLogSpecs = new WorkoutLogWithDetailsSpecs(w => w.ClientProfileId == profile.Id &&
+            w.Id == workoutLogId);
+
+            var workoutLog = await _unitOfWork.Repository<WorkoutLog>().GetWithSpecsAsync(workoutLogSpecs);
+
+            if (workoutLog == null)
+            {
+                _logger.LogWarning("WorkoutLog {WorkoutLogId} not found for ClientId: {ClientId}",
+                    workoutLogId, profile.Id);
+                throw new InvalidOperationException("Workout log not found");
+            }
+
+            if (request.ProgramDayId != workoutLog.ProgramDayId)
+            {
+                var programDay = await _unitOfWork.Repository<ProgramDay>().GetByIdAsync(request.ProgramDayId);
+                if (programDay == null)
+                {
+                    if (programDay == null)
+                        throw new InvalidOperationException($"Program day with ID {request.ProgramDayId} not found");
+                }
+            }
+
+                _mapper.Map(request, workoutLog);
+                //ValidateExercisesJson(workoutLog.ExercisesLoggedJson);
+
+                 _unitOfWork.Repository<WorkoutLog>().Update(workoutLog);
+
+                try
+                {
+                    await _unitOfWork.CompleteAsync();
+                    _logger.LogInformation("WorkoutLog {WorkoutLogId} updated successfully", workoutLogId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating WorkoutLog {WorkoutLogId}", workoutLogId);
+                    throw;
+                }
+
+                return _mapper.Map<WorkoutLogResponse>(workoutLog);
+        }
     }
 }
