@@ -18,6 +18,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
+
         [HttpPost]
         [ProducesResponseType(typeof(ApiValidationErrorResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
@@ -56,6 +57,34 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             }
 
             return Ok(workoutLog);
+        }
+
+
+        [HttpPut("{id:long}")]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(WorkoutLogResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult> updateWorkoutLogAsync(long id, [FromBody] WorkoutLogRequest request)
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+            {
+                return Unauthorized();
+            }
+
+            try
+            {
+                var response = await _workoutLogService.UpdateWorkoutLogAsync(userId, id, request);
+                return Ok(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = "An error occurred while updating workout log" });
+            }
         }
     }
 }
