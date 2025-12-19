@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
-
  public class ProgramsController : TrainerBaseController
  {
  private readonly IProgramManagerService _service;

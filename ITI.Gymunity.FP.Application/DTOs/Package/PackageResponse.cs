@@ -13,5 +13,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
  public DateTimeOffset CreatedAt { get; set; }
  public DateTimeOffset? UpdatedAt { get; set; }
  public string TrainerId { get; set; } = null!;
+ public bool IsAnnual { get; set; }
+ public string? PromoCode { get; set; }
  }
 }

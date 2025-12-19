@@ -4,9 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
- [Area("Trainer")]
- [Route("api/trainer/chat")]
- [ApiController]
  public class ChatController : TrainerBaseController
  {
  private readonly IChatService _service;
