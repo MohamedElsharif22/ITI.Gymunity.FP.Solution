@@ -7,8 +7,9 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
     [Route("api/trainer/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Trainer")] // Uncomment when authentication is ready
-   
+    [AllowAnonymous] // Temporary for testing purposes
+    //[Authorize(Roles = "Trainer")] // Uncomment when authentication is ready
+
     public class TrainerBaseController : ControllerBase
     {
     }

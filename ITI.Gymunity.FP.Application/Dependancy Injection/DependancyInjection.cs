@@ -19,7 +19,6 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             services.AddAutoMapper((opt) => { },typeof(MappingProfile).Assembly);
             services.AddScoped<TrainerProfileService>();
 
-
             //amr start
 
             // Home Client
@@ -41,6 +40,13 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             //packages
 
             services.AddScoped<IPackageService, PackageService>();
+
+            // Register Trainer Review service
+            services.AddScoped<ITrainerReviewService, TrainerReviewService>();
+            services.AddScoped<IReviewClientService, ReviewClientService>();
+            services.AddScoped<IReviewTrainerService, ReviewTrainerService>();
+            services.AddScoped<IReviewAdminService, ReviewAdminService>();
+            services.AddScoped<IGuestReviewService, GuestReviewService>();
 
             //amr end
 

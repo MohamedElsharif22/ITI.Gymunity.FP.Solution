@@ -12,5 +12,8 @@ namespace ITI.Gymunity.FP.Application.DTOs.Client
  public bool IsActive { get; set; }
  public string? ThumbnailUrl { get; set; }
  public string TrainerId { get; set; } = null!;
+ public DateTimeOffset CreatedAt { get; set; }
+ public bool IsAnnual { get; set; }
+ public string? PromoCode { get; set; }
  }
 }

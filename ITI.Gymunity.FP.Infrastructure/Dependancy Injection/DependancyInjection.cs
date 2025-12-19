@@ -6,6 +6,7 @@ using ITI.Gymunity.FP.Infrastructure;
 using ITI.Gymunity.FP.Infrastructure._Data;
 using ITI.Gymunity.FP.Infrastructure.ExternalServices;
 using ITI.Gymunity.FP.Infrastructure.Repositories;
+using ITI.Gymunity.FP.Application.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Claims;
+using Microsoft.Extensions.Logging;
 
 namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
 {
@@ -33,6 +36,9 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
 
             }).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
             {
+                // For local development if you are not using https in token issuer
+                options.RequireHttpsMetadata = false;
+
                 options.TokenValidationParameters = new TokenValidationParameters()
                 {
                     ValidateIssuer = true,
@@ -44,6 +50,26 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
                     ValidateLifetime = true,
 
                     ClockSkew = TimeSpan.Zero,
+
+                    // Ensure role claims are mapped correctly
+                    RoleClaimType = ClaimTypes.Role
+                };
+
+                // Add events for debugging authentication problems
+                options.Events = new JwtBearerEvents
+                {
+                    OnAuthenticationFailed = ctx =>
+                    {
+                        var logger = ctx.HttpContext.RequestServices.GetService<ILoggerFactory>()?.CreateLogger("JwtAuth");
+                        logger?.LogError(ctx.Exception, "JWT authentication failed: {Message}", ctx.Exception.Message);
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = ctx =>
+                    {
+                        var logger = ctx.HttpContext.RequestServices.GetService<ILoggerFactory>()?.CreateLogger("JwtAuth");
+                        logger?.LogInformation("JWT token validated for {Name}", ctx.Principal?.Identity?.Name ?? "unknown");
+                        return Task.CompletedTask;
+                    }
                 };
 
             });
@@ -88,6 +114,15 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
 
             services.AddScoped<IPackageRepository, PackageRepository>();
 
+            // Register trainer review repo
+            services.AddScoped<ITrainerReviewRepository, TrainerReviewRepository>();
+            
+            // ensure repositories
+            services.AddScoped<IReviewClientRepository, ReviewClientRepository>();
+            services.AddScoped<IReviewTrainerRepository, ReviewTrainerRepository>();
+            services.AddScoped<IReviewAdminRepository, ReviewAdminRepository>();
+            services.AddScoped<IGuestReviewRepository, GuestReviewRepository>();
+
             //amr end
 
             // Register External Services
@@ -97,7 +132,8 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IPaymentService, PaymentService>();
 
-            
+
+
 
 
             return services;

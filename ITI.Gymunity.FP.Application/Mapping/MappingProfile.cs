@@ -10,6 +10,9 @@ using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.Models.Enums;
+using ITI.Gymunity.FP.Application.DTOs.Guest;
+using ITI.Gymunity.FP.Application.DTOs.Admin;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
 
 namespace ITI.Gymunity.FP.Application.Mapping
 {
@@ -130,11 +133,17 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
 
             // ======================
-            // Package mappings
+            // Package mappings (updated)
             // Used by:
             // - PackagesController / PackageService
+            // - HomeClientService for client-facing package responses
             // ======================
-            CreateMap<Package, PackageResponse>();
+            CreateMap<Package, PackageResponse>()
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(p => new DateTimeOffset(p.CreatedAt)))
+                .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(p => p.UpdatedAt))
+                .ForMember(dest => dest.IsAnnual, opt => opt.MapFrom(p => p.IsAnnual))
+                .ForMember(dest => dest.PromoCode, opt => opt.MapFrom(p => p.PromoCode));
+
             CreateMap<PackageCreateRequest, Package>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
                 .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
@@ -146,7 +155,10 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
             // Client-facing package mapping
             CreateMap<Package, DTOs.Client.PackageClientResponse>()
-                .ForMember(dest => dest.TrainerId, opt => opt.MapFrom(p => p.TrainerId));
+                .ForMember(dest => dest.TrainerId, opt => opt.MapFrom(p => p.TrainerId))
+                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(p => new DateTimeOffset(p.CreatedAt)))
+                .ForMember(dest => dest.IsAnnual, opt => opt.MapFrom(p => p.IsAnnual))
+                .ForMember(dest => dest.PromoCode, opt => opt.MapFrom(p => p.PromoCode));
 
 
             // ======================
@@ -163,6 +175,22 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.RatingAverage, opt => opt.MapFrom(tp => tp.RatingAverage))
                 .ForMember(dest => dest.TotalClients, opt => opt.MapFrom(tp => tp.TotalClients))
                 .ForMember(dest => dest.YearsExperience, opt => opt.MapFrom(tp => tp.YearsExperience));
+
+
+            // Reviews mappings
+            CreateMap<TrainerReview, TrainerAreaReviewResponse>();
+            CreateMap<TrainerReview, DTOs.Client.TrainerReviewClientResponse>();
+            CreateMap<TrainerReview, DTOs.Trainer.TrainerReviewResponse>();
+            CreateMap<TrainerReview, GuestReviewResponseItem>()
+                .ForMember(dest => dest.ClientUserName, opt => opt.MapFrom(r => r.Client != null ? r.Client.User.UserName : string.Empty));
+
+            CreateMap<TrainerProfile, TopTrainerResponse>()
+                .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(tp => tp.Id))
+                .ForMember(dest => dest.Handle, opt => opt.MapFrom(tp => tp.Handle))
+                .ForMember(dest => dest.TotalClients, opt => opt.MapFrom(tp => tp.TotalClients));
+
+            CreateMap<TrainerReview, AdminReviewActionResponse>()
+                .ForMember(dest => dest.Message, opt => opt.Ignore());
 
 
             //end amr mapping

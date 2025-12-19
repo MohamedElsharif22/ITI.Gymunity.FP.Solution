@@ -18,6 +18,7 @@ namespace ITI.Gymunity.FP.Application.Services
  Task<bool> UpdateAsync(int id, PackageCreateRequest request);
  Task<bool> DeleteAsync(int id);
  Task<bool> ToggleActiveAsync(int id);
+ Task<IReadOnlyList<PackageResponse>> GetAllAsync();
  }
 
  public class PackageService : IPackageService
@@ -125,6 +126,13 @@ namespace ITI.Gymunity.FP.Application.Services
  repo.Update(entity);
  await _unitOfWork.CompleteAsync();
  return true;
+ }
+
+ public async Task<IReadOnlyList<PackageResponse>> GetAllAsync()
+ {
+ var repo = _unitOfWork.Repository<Package>();
+ var list = await repo.GetAllAsync();
+ return list.Select(p => _mapper.Map<PackageResponse>(p)).ToList();
  }
  }
 }

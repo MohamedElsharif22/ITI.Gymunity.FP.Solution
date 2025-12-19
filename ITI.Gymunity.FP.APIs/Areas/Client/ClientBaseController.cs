@@ -6,8 +6,12 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
     [Route("api/client/[controller]")]
     [ApiController]
-    [Authorize(Roles = "Client")]
+    [AllowAnonymous] // Temporary for testing purposes
+    // [Authorize(Roles = "Client")] // Uncomment when authentication is ready
     public class ClientBaseController : ControllerBase
     {
+        protected string CurrentClientId =>
+        User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value!;
+
     }
 }
