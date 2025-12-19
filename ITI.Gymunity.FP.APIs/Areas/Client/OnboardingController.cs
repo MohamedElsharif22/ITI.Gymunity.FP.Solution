@@ -17,35 +17,46 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
     {
         private readonly OnboardingService _onboardingService = onboardingService;
 
-        [HttpPut("onboarding/complete")]
+        private string? GetUserId()
+        {
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+        }
+
+        [HttpPut("complete")]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status409Conflict)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> CompleteProfileOnboardingAsync(OnboardingRequest request)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null)
-                return Unauthorized();
-           
-            var result = await _onboardingService.CompleteOnboardingAsync(userId, request);
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
-            if (!result)
-                return Conflict(new ApiResponse(409, "Profile already completed"));
+            try
+            {
+                var result = await _onboardingService.CompleteOnboardingAsync(userId, request);
 
-            return Ok(new ApiResponse(200, "Your profile is completed"));
+                if (!result)
+                    return Conflict(new ApiResponse(409, "Profile already completed"));
+
+                return Ok(new ApiResponse(200, "Your profile is completed"));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse(400, ex.Message));
+            }
         }
 
 
-        [HttpGet("isOnboardingCompleted")]
+        [HttpGet("status")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<bool>> IsProfileOnboardingCompleted()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if(userId == null)
-            {
-                return Unauthorized();
-            }
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
             var isCompleted = await _onboardingService.IsProfileOnboardingCompletedAsync(userId);
 

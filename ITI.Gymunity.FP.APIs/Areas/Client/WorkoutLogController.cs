@@ -12,7 +12,6 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
     {
         private readonly WorkoutLogService _workoutLogService = workoutLogService;
 
-
         private string? GetUserId()
         {
             return User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -26,36 +25,42 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         public async Task<ActionResult> AddAsync([FromBody] WorkoutLogRequest request)
         {
             var userId = GetUserId();
-            if (userId == null)
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
+
+            try
             {
-                return Unauthorized(new ApiResponse(401));
+                var result = await _workoutLogService.AddWorkoutLogAsync(userId, request);
+
+                return Created(nameof(GetWorkoutLogById), request);
             }
-
-            var result = await _workoutLogService.AddWorkoutLogAsync(userId, request);
-
-            return StatusCode(StatusCodes.Status201Created, result);
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse(400, ex.Message));
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new ApiResponse(500, "An error occurred while creating workout log"));
+            }
         }
 
 
 
         [HttpGet("{id:long}")]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(typeof(WorkoutLogResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiValidationErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<ActionResult> GetWorkoutLogById(long id)
         {
             var userId = GetUserId();
             if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
             var workoutLog = await _workoutLogService.GetWorkoutLogByIdAsync(userId, id);
 
             if (workoutLog == null)
-            {
-                return NotFound(new { error = "WorkoutLog not found" });
-            }
+                return NotFound(new ApiResponse(404, "WorkoutLog not found"));
 
             return Ok(workoutLog);
         }
@@ -64,14 +69,14 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<WorkoutLogResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiValidationErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult> GetWorkoutLogs([FromQuery] int? pageNumber = null, [FromQuery] int? pageSize = null)
         {
             var userId = GetUserId();
             if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
+
 
             var workoutLogs = await _workoutLogService.GetWorkoutLogsByClientAsync(userId, pageNumber, pageSize);
             return Ok(workoutLogs);
@@ -80,16 +85,15 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
 
         [HttpPut("{id:long}")]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(typeof(WorkoutLogResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiValidationErrorResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<ActionResult> updateWorkoutLogAsync(long id, [FromBody] WorkoutLogRequest request)
         {
             var userId = GetUserId();
             if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
             try
             {
@@ -98,11 +102,11 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             }
             catch (InvalidOperationException ex)
             {
-                return NotFound(new { error = ex.Message });
+                return NotFound(new ApiResponse(404, ex.Message));
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = "An error occurred while updating workout log" });
+                return StatusCode(500, new ApiResponse(500, "An error occurred while updating workout log"));
             }
         }
         
@@ -110,19 +114,18 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 
         [HttpDelete("{id:long}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteWorkoutLog(long id)
         {
             var userId = GetUserId();
             if (string.IsNullOrEmpty(userId))
-            {
-                return Unauthorized();
-            }
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
             var result = await _workoutLogService.DeleteWorkoutLogAsync(userId, id);
 
             if (!result)
-                return NotFound(new { error = "Workout log not found" });
+                return NotFound(new ApiResponse(404, "Workout log not found"));
 
             return NoContent();
         }

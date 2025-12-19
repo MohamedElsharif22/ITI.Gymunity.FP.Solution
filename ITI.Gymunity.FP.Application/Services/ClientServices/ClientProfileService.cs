@@ -170,15 +170,15 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
         
         public async Task<bool> DeleteProfileAsync(string userId)
         {
-            var spec = new ClientWithUserSpecs(c => c.UserId == userId);
+            var profileSpecs = new ClientWithUserSpecs(c => c.UserId == userId);
 
-            var existingProfile = await _unitOfWork.Repository<ClientProfile, IClientProfileRepository>()
-                .GetWithSpecsAsync(spec);
+            var profile = await _unitOfWork.Repository<ClientProfile, IClientProfileRepository>()
+                .GetWithSpecsAsync(profileSpecs);
 
-            if(existingProfile == null) 
-                return false;
+                if (profile == null)
+                    throw new InvalidOperationException("Client profile not found");
 
-            _unitOfWork.Repository<ClientProfile>().Delete(existingProfile);
+            _unitOfWork.Repository<ClientProfile>().Delete(profile);
             try
             {
                 await _unitOfWork.CompleteAsync();

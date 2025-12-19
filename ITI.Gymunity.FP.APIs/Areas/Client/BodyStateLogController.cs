@@ -24,13 +24,11 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         public async Task<ActionResult> AddAsync([FromBody] CreateBodyStateLogRequest request)
         {
             var userId = GetUserId();
-            if (userId == null)
-            {
-                return Unauthorized(new ApiResponse(401));
-            }
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
             var result = await _bodyStateLogService.AddAsync(userId, request);
-            return StatusCode(StatusCodes.Status201Created, result);
+            return Created(nameof(GetLastStateLog), result);
         }
 
 
@@ -40,8 +38,8 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         public async Task<ActionResult<List<BodyStateLogResponse>>> GetAllStateLogsByClient()
         {
             var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse(401));
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
             var result = await _bodyStateLogService.GetStateLogsByClientAsync(userId);
 
@@ -55,8 +53,8 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         public  async Task<ActionResult> GetLastStateLog()
         {
             var userId = GetUserId();
-            if (userId == null)
-                return Unauthorized(new ApiResponse(401));
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
 
             var result = await _bodyStateLogService.GetLastStateLog(userId);
             return Ok(result);
