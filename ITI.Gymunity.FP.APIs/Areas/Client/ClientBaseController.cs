@@ -6,8 +6,8 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
     [Route("api/client/[controller]")]
     [ApiController]
-    [AllowAnonymous] // Temporary for testing purposes
-    // [Authorize(Roles = "Client")] // Uncomment when authentication is ready
+    //[AllowAnonymous] // Temporary for testing purposes
+     [Authorize(Roles = "Client")] // Uncomment when authentication is ready
     public class ClientBaseController : ControllerBase
     {
         protected string CurrentClientId =>

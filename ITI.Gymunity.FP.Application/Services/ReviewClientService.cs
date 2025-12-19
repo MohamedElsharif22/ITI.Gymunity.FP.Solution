@@ -25,11 +25,12 @@ namespace ITI.Gymunity.FP.Application.Services
  {
  if (request.Rating <1 || request.Rating >5)
  throw new ArgumentException("Rating must be between1 and5");
+ //i need depent in client id user ud string
 
  var review = new TrainerReview
  {
  TrainerId = trainerId,
- ClientId = int.Parse(clientUserId),
+ //ClientId = int.Parse(clientUserId),
  Rating = request.Rating,
  Comment = request.Comment,
  CreatedAt = DateTimeOffset.UtcNow
