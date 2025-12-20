@@ -4,7 +4,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 {
  public class TrainerReviewCreateRequest
  {
- //public string ClientId { get; set; } = null!; //edited for prevent authirezed state 
+ public string ClientId { get; set; } = null!; //edited for prevent authirezed state 
  [Required]
  [Range(1,5, ErrorMessage = "Rating must be between1 and5")]
  public int Rating { get; set; }

@@ -41,6 +41,10 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
 
             services.AddScoped<IPackageService, PackageService>();
 
+            //clients for trainer
+
+            services.AddScoped<IClientService, ClientService>();
+
             // Register Trainer Review service
             services.AddScoped<ITrainerReviewService, TrainerReviewService>();
             services.AddScoped<IReviewClientService, ReviewClientService>();

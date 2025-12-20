@@ -5,6 +5,8 @@ using AutoMapper;
 using ITI.Gymunity.FP.Domain;
 using System;
 using System.Threading.Tasks;
+using ITI.Gymunity.FP.Domain.Models.Client;
+using System.Linq;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -25,12 +27,29 @@ namespace ITI.Gymunity.FP.Application.Services
  {
  if (request.Rating <1 || request.Rating >5)
  throw new ArgumentException("Rating must be between1 and5");
- //i need depent in client id user ud string
 
+ // clientUserId is AppUser.Id (string). Resolve or create ClientProfile for this user.
+ var clientRepo = _uow.Repository<ClientProfile>();
+ var allClients = await clientRepo.GetAllAsync();
+ var clientProfile = allClients.FirstOrDefault(c => c.UserId == clientUserId);
+ if (clientProfile == null)
+//throw new InvalidOperationException("Client profile not found for the current user.");
+//start handle exception by amr
+ {
+ // Create a minimal ClientProfile so we can store the review
+ clientProfile = new ClientProfile
+ {
+ UserId = clientUserId,
+ CreatedAt = DateTimeOffset.UtcNow
+ };
+ clientRepo.Add(clientProfile);
+ await _uow.CompleteAsync();
+ }
+ //start handle exception by amr
  var review = new TrainerReview
  {
  TrainerId = trainerId,
- //ClientId = int.Parse(clientUserId),
+ ClientId = clientProfile.Id,
  Rating = request.Rating,
  Comment = request.Comment,
  CreatedAt = DateTimeOffset.UtcNow
