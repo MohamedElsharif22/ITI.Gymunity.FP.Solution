@@ -1,8 +1,8 @@
 ﻿using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
-using ITI.Gymunity.FP.Infrastructure._Data;
-using ITI.Gymunity.FP.Infrastructure.Repositories;
+using ITI.Gymunity.FP.Application._Data;
+using ITI.Gymunity.FP.Application.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure
+namespace ITI.Gymunity.FP.Application
 {
     public class UnitOfWork(AppDbContext context, IServiceProvider serviceProvider) : IUnitOfWork
     {

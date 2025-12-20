@@ -14,7 +14,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure._Data
+namespace ITI.Gymunity.FP.Application._Data
 {
     public class AppDbContext(DbContextOptions<AppDbContext> options) : IdentityDbContext<AppUser>(options)
     {
@@ -45,6 +45,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
         // Messaging
         public DbSet<MessageThread> MessageThreads { get; set; }
         public DbSet<Message> Messages { get; set; }
+
+        // Notifications
+        public DbSet<Notification> Notifications { get; set; }
 
         #endregion
 

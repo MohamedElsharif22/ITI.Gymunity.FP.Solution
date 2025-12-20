@@ -1,4 +1,5 @@
-﻿using ITI.Gymunity.FP.APIs.Errors;
+﻿using ITI.Gymunity.FP.APIs.Responses;
+using ITI.Gymunity.FP.APIs.Responses.Errors;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 

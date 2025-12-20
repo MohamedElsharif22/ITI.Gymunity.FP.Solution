@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure._Data
+namespace ITI.Gymunity.FP.Application._Data
 {
     public static class DbContextMaigrationAndSeeding
     {

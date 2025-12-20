@@ -1,5 +1,4 @@
-﻿
-namespace ITI.Gymunity.FP.APIs.Errors
+﻿namespace ITI.Gymunity.FP.APIs.Responses.Errors
 {
     public class ApiValidationErrorResponse() : ApiResponse(400)
     {

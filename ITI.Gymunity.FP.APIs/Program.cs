@@ -1,8 +1,9 @@
-using ITI.Gymunity.FP.APIs.Errors.Configuration;
+using ITI.Gymunity.FP.APIs.Extensions;
+using ITI.Gymunity.FP.APIs.Hubs;
 using ITI.Gymunity.FP.APIs.Middlewares;
 using ITI.Gymunity.FP.Application.Dependancy_Injection;
-using ITI.Gymunity.FP.Infrastructure._Data;
-using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
+using ITI.Gymunity.FP.Application._Data;
+using ITI.Gymunity.FP.Application.Dependancy_Injection;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -55,6 +56,22 @@ namespace ITI.Gymunity.FP.APIs
                 });
             });
 
+            // Add SignalR
+            builder.Services.AddSignalR();
+
+            // Add CORS for SignalR
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("wepPolicy", policyBuilder =>
+                {
+                    policyBuilder
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .SetIsOriginAllowed(origin => true);
+                });
+            });
+
             builder.Services.AddDbContextServices(builder.Configuration);
 
             builder.Services.AddInfrastructureServices();
@@ -87,6 +104,10 @@ namespace ITI.Gymunity.FP.APIs
             app.UseStaticFiles();
 
             app.MapControllers();
+
+            // Map SignalR Hubs
+            app.MapHub<ChatHub>("/hubs/chat");
+            app.MapHub<NotificationHub>("/hubs/notifications");
 
             app.UseCors("wepPolicy");
 

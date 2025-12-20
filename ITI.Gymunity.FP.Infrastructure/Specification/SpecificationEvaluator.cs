@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specification
+namespace ITI.Gymunity.FP.Application.Specification
 {
     internal class SpecificationEvaluator<TEntity> where TEntity : BaseEntity
     {

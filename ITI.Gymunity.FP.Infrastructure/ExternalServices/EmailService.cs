@@ -10,7 +10,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
+namespace ITI.Gymunity.FP.Application.ExternalServices
 {
     public class EmailService : IEmailService
     {

@@ -1,4 +1,4 @@
-﻿namespace ITI.Gymunity.FP.APIs.Errors
+﻿namespace ITI.Gymunity.FP.APIs.Responses.Errors
 {
     public class ApiExceptionResponse(int statusCode, string message, string description) : ApiResponse(statusCode, message)
     {

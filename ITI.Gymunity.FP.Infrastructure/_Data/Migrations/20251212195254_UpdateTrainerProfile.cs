@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
+namespace ITI.Gymunity.FP.Application._Data.Migrations
 {
     /// <inheritdoc />
     public partial class UpdateTrainerProfile : Migration
