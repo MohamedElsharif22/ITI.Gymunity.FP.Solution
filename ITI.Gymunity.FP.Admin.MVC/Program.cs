@@ -1,5 +1,5 @@
 using ITI.Gymunity.FP.Application.Dependancy_Injection;
-using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
+using ITI.Gymunity.FP.Application.Dependancy_Injection;
 
 namespace ITI.Gymunity.FP.Admin.MVC
 {

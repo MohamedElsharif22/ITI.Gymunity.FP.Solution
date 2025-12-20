@@ -1,6 +1,10 @@
 ﻿using AutoMapper;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.DTOs.Messaging;
+using ITI.Gymunity.FP.Application.DTOs.Notifications;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
+using ITI.Gymunity.FP.Domain.Models.Messaging;
+using ITI.Gymunity.FP.Domain.Models;
 
 namespace ITI.Gymunity.FP.Application.Mapping
 {
@@ -29,6 +33,13 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.StatusDescription, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
+            // Message mappings
+            CreateMap<Message, MessageResponse>()
+                .ForMember(dest => dest.SenderName, opt => opt.MapFrom(m => m.Sender.FullName))
+                .ForMember(dest => dest.SenderProfilePhoto, opt => opt.MapFrom(m => m.Sender.ProfilePhotoUrl));
+
+            // Notification mappings
+            CreateMap<Notification, NotificationResponse>();
         }
     }
 }

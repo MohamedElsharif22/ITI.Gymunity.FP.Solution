@@ -1,8 +1,8 @@
-﻿using ITI.Gymunity.FP.APIs.Errors;
+﻿using ITI.Gymunity.FP.APIs.Responses;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.Account;
 using ITI.Gymunity.FP.Domain.Models.Identity;
-using ITI.Gymunity.FP.Infrastructure.ExternalServices;
+using ITI.Gymunity.FP.Application.ExternalServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

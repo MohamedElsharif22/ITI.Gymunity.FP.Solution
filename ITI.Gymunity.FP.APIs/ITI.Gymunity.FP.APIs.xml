@@ -88,5 +88,207 @@
             <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UserResponse"/> if the password reset is
             successful; otherwise, a bad request response with error details.</returns>
         </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatController">
+            <summary>
+            Provides API endpoints for managing chat threads and messages for authenticated users.
+            </summary>
+            <remarks>All actions in this controller require the user to be authenticated. The controller enables
+            users to retrieve their chat threads, view messages within a thread, send messages, and mark messages or entire
+            threads as read. Most endpoints return results in a standard response format indicating success or failure. For
+            real-time messaging, consider using SignalR in addition to these endpoints.</remarks>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.IChatService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.ChatController})">
+            <summary>
+            Provides API endpoints for managing chat threads and messages for authenticated users.
+            </summary>
+            <remarks>All actions in this controller require the user to be authenticated. The controller enables
+            users to retrieve their chat threads, view messages within a thread, send messages, and mark messages or entire
+            threads as read. Most endpoints return results in a standard response format indicating success or failure. For
+            real-time messaging, consider using SignalR in addition to these endpoints.</remarks>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.GetUserChats">
+            <summary>
+            Get all chat threads for the current user
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.GetThreadMessages(System.Int32)">
+            <summary>
+            Get messages for a specific thread
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.SendMessage(System.Int32,ITI.Gymunity.FP.Application.DTOs.Messaging.SendMessageRequest)">
+            <summary>
+            Send a message to a thread (can also be done via SignalR for real-time)
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.MarkMessageAsRead(System.Int64)">
+            <summary>
+            Mark a message as read
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.MarkThreadAsRead(System.Int32)">
+            <summary>
+            Mark entire thread as read
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.NotificationsController">
+            <summary>
+            API controller that manages user notifications, including retrieving, counting, and updating notification status
+            for the authenticated user.
+            </summary>
+            <remarks>All endpoints require the user to be authenticated. This controller provides actions to
+            retrieve notifications, get the count of unread notifications, and mark notifications as read. It is intended to
+            be used by client applications to manage notification state for the current user.</remarks>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.NotificationsController.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.INotificationService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.NotificationsController})">
+            <summary>
+            API controller that manages user notifications, including retrieving, counting, and updating notification status
+            for the authenticated user.
+            </summary>
+            <remarks>All endpoints require the user to be authenticated. This controller provides actions to
+            retrieve notifications, get the count of unread notifications, and mark notifications as read. It is intended to
+            be used by client applications to manage notification state for the current user.</remarks>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.NotificationsController.GetNotifications(System.Boolean)">
+            <summary>
+            Get all notifications for the current user
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.NotificationsController.GetUnreadCount">
+            <summary>
+            Get unread notification count
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.NotificationsController.MarkAsRead(System.Int32)">
+            <summary>
+            Mark a notification as read
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.NotificationsController.MarkAllAsRead">
+            <summary>
+            Mark all notifications as read
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Hubs.ChatHub">
+            <summary>
+            SignalR Hub for real-time messaging
+            Handles message sending, receiving, and read notifications
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.OnConnectedAsync">
+            <summary>
+            Called when a user connects to the hub
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.OnDisconnectedAsync(System.Exception)">
+            <summary>
+            Called when a user disconnects from the hub
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.SendMessage(System.Int32,ITI.Gymunity.FP.Application.DTOs.Messaging.SendMessageRequest)">
+            <summary>
+            Send a message to a specific thread
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.JoinThread(System.Int32)">
+            <summary>
+            Join a message thread group for real-time updates
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.LeaveThread(System.Int32)">
+            <summary>
+            Leave a message thread group
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.MarkMessageAsRead(System.Int64,System.Int32)">
+            <summary>
+            Mark a message as read
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.MarkThreadAsRead(System.Int32)">
+            <summary>
+            Mark entire thread as read
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.UserTyping(System.Int32)">
+            <summary>
+            Typing indicator - notify others that user is typing
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.UserStoppedTyping(System.Int32)">
+            <summary>
+            User stopped typing
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Hubs.NotificationHub">
+            <summary>
+            SignalR Hub for real-time notifications
+            Handles notification delivery and management
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.INotificationService,ITI.Gymunity.FP.Application.Contracts.ExternalServices.ISignalRConnectionManager,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Hubs.NotificationHub})">
+            <summary>
+            SignalR Hub for real-time notifications
+            Handles notification delivery and management
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.OnConnectedAsync">
+            <summary>
+            Called when a user connects to the notification hub
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.OnDisconnectedAsync(System.Exception)">
+            <summary>
+            Called when a user disconnects from the notification hub
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.GetUnreadNotifications">
+            <summary>
+            Get all unread notifications for the current user
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.GetUnreadNotificationCount">
+            <summary>
+            Get unread notification count
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.MarkNotificationAsRead(System.Int32)">
+            <summary>
+            Mark a notification as read
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.MarkAllNotificationsAsRead">
+            <summary>
+            Mark all notifications as read
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Responses.ApiResponse.#ctor(System.Int32,System.String)">
+            <summary>
+            Initializes a new instance of the ApiResponse class with the specified status code and an optional message.
+            </summary>
+            <param name="statusCode">The HTTP status code to associate with the response.</param>
+            <param name="message">An optional message describing the response. If null, a default message based on the status code is used.</param>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Responses.ApiResponse`1">
+            <summary>
+            Represents a standard response returned by an API operation, including the result data and a success indicator.
+            </summary>
+            <typeparam name="T">The type of the data returned by the API operation.</typeparam>
+            <param name="data">The data associated with the API response. This value is typically the result of the operation.</param>
+            <param name="success">A value indicating whether the API operation was successful. The default is <see langword="true"/>.</param>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Responses.ApiResponse`1.#ctor(`0,System.Boolean)">
+            <summary>
+            Represents a standard response returned by an API operation, including the result data and a success indicator.
+            </summary>
+            <typeparam name="T">The type of the data returned by the API operation.</typeparam>
+            <param name="data">The data associated with the API response. This value is typically the result of the operation.</param>
+            <param name="success">A value indicating whether the API operation was successful. The default is <see langword="true"/>.</param>
+        </member>
+        <member name="P:ITI.Gymunity.FP.APIs.Responses.ApiResponse`1.Data">
+            <summary>
+            Gets the data associated with the current instance.
+            </summary>
+        </member>
     </members>
 </doc>

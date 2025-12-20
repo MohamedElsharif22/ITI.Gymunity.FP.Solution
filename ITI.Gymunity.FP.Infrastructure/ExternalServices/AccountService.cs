@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
+namespace ITI.Gymunity.FP.Application.ExternalServices
 {
     public class AccountService(UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,
@@ -139,6 +139,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 throw new Exception("Invalid email/username or password.");
 
             var token = await _authService.CreateTokenAsync(user, _userManager);
+
             var emailRequset = new EmailRequest()
             {
                 ToEmail = user.Email!,

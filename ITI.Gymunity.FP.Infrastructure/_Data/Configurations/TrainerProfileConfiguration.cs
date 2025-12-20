@@ -2,7 +2,7 @@ using ITI.Gymunity.FP.Domain.Models.Trainer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
+namespace ITI.Gymunity.FP.Application._Data.Configurations
 {
     public class TrainerProfileConfiguration : IEntityTypeConfiguration<TrainerProfile>
     {

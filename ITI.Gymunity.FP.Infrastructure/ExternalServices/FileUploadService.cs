@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
+namespace ITI.Gymunity.FP.Application.ExternalServices
 {
     public class FileUploadService(IWebHostEnvironment environment) : IFileUploadService
     {

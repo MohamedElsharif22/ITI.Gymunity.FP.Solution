@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using ITI.Gymunity.FP.APIs.Responses.Errors;
+using Microsoft.AspNetCore.Mvc;
 
-namespace ITI.Gymunity.FP.APIs.Errors.Configuration
+namespace ITI.Gymunity.FP.APIs.Extensions
 {
     public static class ApiInvalidModelStateConfiguration
     {
