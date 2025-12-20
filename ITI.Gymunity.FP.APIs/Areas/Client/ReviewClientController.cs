@@ -19,7 +19,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             [FromBody] TrainerReviewCreateRequest request)
         {
             var created = await _service.CreateAsync(
-                CurrentClientId,
+                request.ClientId,
                 trainerId,
                 request
             );
