@@ -57,7 +57,9 @@ namespace ITI.Gymunity.FP.Application.Services
  PriceYearly = request.PriceYearly,
  IsActive = request.IsActive,
  ThumbnailUrl = request.ThumbnailUrl,
- TrainerId = trainerId
+ TrainerId = trainerId,
+ IsAnnual = request.IsAnnual,
+ PromoCode = request.PromoCode ?? string.Empty
  };
 
  _unitOfWork.Repository<Package>().Add(entity);
@@ -88,6 +90,8 @@ namespace ITI.Gymunity.FP.Application.Services
  entity.PriceYearly = request.PriceYearly;
  entity.IsActive = request.IsActive;
  entity.ThumbnailUrl = request.ThumbnailUrl;
+ entity.IsAnnual = request.IsAnnual;
+ entity.PromoCode = request.PromoCode ?? entity.PromoCode ?? string.Empty;
  repo.Update(entity);
  await _unitOfWork.CompleteAsync();
 

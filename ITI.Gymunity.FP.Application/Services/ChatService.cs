@@ -69,7 +69,10 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<bool> DeleteMessageForMeAsync(long messageId, string userId)
  {
- var msg = await _unitOfWork.Repository<Message>().GetByIdAsync((int)messageId);
+ if (messageId <0 || messageId > int.MaxValue)
+ throw new ArgumentOutOfRangeException(nameof(messageId), "Invalid message id");
+
+ var msg = await _unitOfWork.Repository<Message>().GetByIdAsync(messageId);
  if (msg == null) return false;
  // simple implementation: mark as IsRead = true for that user or flag deletion table (not implemented)
  msg.IsRead = true;
@@ -80,7 +83,11 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<bool> DeleteMessageForAllAsync(long messageId)
  {
- var msg = await _unitOfWork.Repository<Message>().GetByIdAsync((int)messageId);
+ if (messageId <0 || messageId > int.MaxValue)
+ throw new ArgumentOutOfRangeException(nameof(messageId), "Invalid message id");
+
+  //var msg = await _unitOfWork.Repository<Message>().GetByIdAsync((int)messageId);
+  var msg = await _unitOfWork.Repository<Message>().GetByIdAsync(messageId); //amr edit
  if (msg == null) return false;
  _unitOfWork.Repository<Message>().Delete(msg);
  await _unitOfWork.CompleteAsync();

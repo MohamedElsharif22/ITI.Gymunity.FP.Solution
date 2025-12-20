@@ -59,8 +59,11 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
                 .IsRequired()
                 .HasDefaultValue(false);
 
+            // Ensure PromoCode has a default value to prevent NULL inserts
             builder.Property(p => p.PromoCode)
-                .HasMaxLength(20);
+                .HasMaxLength(20)
+                .IsRequired()
+                .HasDefaultValue(string.Empty);
 
             // Soft Delete
             builder.Property(p => p.IsDeleted)
