@@ -1,12 +1,12 @@
-﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Application.Contracts.Services;
+﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Infrastructure.Contracts.Services;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
-using ITI.Gymunity.FP.Application;
-using ITI.Gymunity.FP.Application._Data;
-using ITI.Gymunity.FP.Application.ExternalServices;
-using ITI.Gymunity.FP.Application.Repositories;
+using ITI.Gymunity.FP.Infrastructure;
+using ITI.Gymunity.FP.Infrastructure._Data;
+using ITI.Gymunity.FP.Infrastructure.ExternalServices;
+using ITI.Gymunity.FP.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -18,9 +18,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Infrastructure.Services;
 
-namespace ITI.Gymunity.FP.Application.Dependancy_Injection
+namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
 {
     public static class DependancyInjection
     {
@@ -82,7 +82,7 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IFileUploadService, FileUploadService>();
             services.AddScoped<IAuthService, AuthService>();
-            services.AddScoped<IPaymentService, PaymentService>();
+            //services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
 
             // Register SignalR Services

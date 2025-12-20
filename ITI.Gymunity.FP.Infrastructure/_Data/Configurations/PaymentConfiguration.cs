@@ -2,7 +2,7 @@ using ITI.Gymunity.FP.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ITI.Gymunity.FP.Application._Data.Configurations
+namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
 {
     public class PaymentConfiguration : IEntityTypeConfiguration<Payment>
     {
@@ -18,7 +18,7 @@ namespace ITI.Gymunity.FP.Application._Data.Configurations
             builder.Property(p => p.PaymobTransactionId)
                 .HasMaxLength(255);
 
-            builder.Property(p => p.PayPalPaymentId)
+            builder.Property(p => p.PayPalOrderId)
                 .HasMaxLength(255);
 
             builder.Property(p => p.Amount)
@@ -55,7 +55,7 @@ namespace ITI.Gymunity.FP.Application._Data.Configurations
             builder.HasIndex(p => p.SubscriptionId);
             builder.HasIndex(p => p.PaymobTransactionId)
                 .IsUnique();
-            builder.HasIndex(p => p.PayPalPaymentId)
+            builder.HasIndex(p => p.PayPalOrderId)
                 .IsUnique();
             builder.HasIndex(p => p.Status);
             builder.HasIndex(p => p.PaidAt);

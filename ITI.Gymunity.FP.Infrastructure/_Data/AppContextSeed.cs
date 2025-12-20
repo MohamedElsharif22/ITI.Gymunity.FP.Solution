@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application._Data
+namespace ITI.Gymunity.FP.Infrastructure._Data
 {
     public class AppContextSeed
     {

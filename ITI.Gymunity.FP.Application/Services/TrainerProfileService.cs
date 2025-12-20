@@ -1,13 +1,13 @@
 ﻿using AutoMapper;
-using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
 
-using ITI.Gymunity.FP.Application.DTOs.Trainer;
-using ITI.Gymunity.FP.Application.Specefications;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Trainer;
+using ITI.Gymunity.FP.Infrastructure.Specefications;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 
-namespace ITI.Gymunity.FP.Application.Services
+namespace ITI.Gymunity.FP.Infrastructure.Services
 {
     public class TrainerProfileService(
         IUnitOfWork unitOfWork,

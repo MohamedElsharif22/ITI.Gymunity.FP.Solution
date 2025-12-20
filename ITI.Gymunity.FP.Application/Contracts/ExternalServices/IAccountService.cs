@@ -1,12 +1,11 @@
-﻿using ITI.Gymunity.FP.Application.DTOs.Account;
-using ITI.Gymunity.FP.Application.DTOs.Account;
+﻿using ITI.Gymunity.FP.Infrastructure.DTOs.Account;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
+namespace ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices
 {
     public interface IAccountService
     {

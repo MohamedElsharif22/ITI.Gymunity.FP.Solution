@@ -1,6 +1,6 @@
-using ITI.Gymunity.FP.Application.DTOs.Messaging;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Messaging;
 
-namespace ITI.Gymunity.FP.Application.Contracts.Services
+namespace ITI.Gymunity.FP.Infrastructure.Contracts.Services
 {
     public interface IChatService
     {

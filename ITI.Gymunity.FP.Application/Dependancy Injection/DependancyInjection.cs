@@ -1,13 +1,9 @@
-﻿using ITI.Gymunity.FP.Application.Mapping;
-using ITI.Gymunity.FP.Application.Services;
+﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Infrastructure.Mapping;
+using ITI.Gymunity.FP.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.Dependancy_Injection
+namespace ITI.Gymunity.FP.Application.DependencyInjection
 {
     public static class DependancyInjection
     {
@@ -16,10 +12,19 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             // Register your application services here => سجل ال Services الخاصة بالتطبيق هنا
 
             // Auto Mapper Configurations
-            services.AddAutoMapper((opt) => { },typeof(MappingProfile).Assembly);
+            services.AddAutoMapper((opt) => { }, typeof(MappingProfile).Assembly);
             services.AddScoped<TrainerProfileService>();
+            services.AddScoped<SubscriptionService>();
+            services.AddScoped<PaymentService>();
+            services.AddScoped<WebhookService>();
+
+            // Email implementation lives in the Infrastructure project and should be registered there.
+            // e.g. in ITI.Gymunity.FP.Infrastructure.Dependancy_Injection.AddInfrastructureServices
+            // services.AddScoped<IEmailService, EmailService>();
+            // services.AddScoped<EmailTemplateService>();
 
             return services;
         }
     }
 }
+

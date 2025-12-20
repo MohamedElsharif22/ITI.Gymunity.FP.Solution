@@ -14,7 +14,7 @@ namespace ITI.Gymunity.FP.Domain.Models
         public string ClientId { get; set; } = null!;
         public int PackageId { get; set; }
 
-        public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Active;
+        public SubscriptionStatus Status { get; set; } = SubscriptionStatus.Unpaid;  //Enum
         public DateTime StartDate { get; set; } = DateTime.UtcNow;
         public DateTime CurrentPeriodEnd { get; set; }
 

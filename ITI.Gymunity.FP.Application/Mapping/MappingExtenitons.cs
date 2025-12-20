@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Application.DTOs.Account;
+﻿using ITI.Gymunity.FP.Infrastructure.DTOs.Account;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.Mapping
+namespace ITI.Gymunity.FP.Infrastructure.Mapping
 {
     public static class MappingExtenitons
     {

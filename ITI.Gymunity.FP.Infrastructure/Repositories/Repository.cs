@@ -1,8 +1,8 @@
 ﻿using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 using ITI.Gymunity.FP.Domain.Specification;
-using ITI.Gymunity.FP.Application._Data;
-using ITI.Gymunity.FP.Application.Specification;
+using ITI.Gymunity.FP.Infrastructure._Data;
+using ITI.Gymunity.FP.Infrastructure.Specification;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.Repositories
+namespace ITI.Gymunity.FP.Infrastructure.Repositories
 {
     public class Repository<T>(AppDbContext context) : IRepository<T> where T : BaseEntity
     {

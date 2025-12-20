@@ -1,10 +1,10 @@
-using ITI.Gymunity.FP.Application.Contracts.Services;
-using ITI.Gymunity.FP.Application.DTOs.Notifications;
+using ITI.Gymunity.FP.Infrastructure.Contracts.Services;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Notifications;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using AutoMapper;
 
-namespace ITI.Gymunity.FP.Application.Services
+namespace ITI.Gymunity.FP.Infrastructure.Services
 {
     public class NotificationService(IUnitOfWork unitOfWork, IMapper mapper) : INotificationService
     {

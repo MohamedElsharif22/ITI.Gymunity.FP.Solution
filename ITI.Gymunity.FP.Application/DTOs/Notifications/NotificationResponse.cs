@@ -1,6 +1,6 @@
 using ITI.Gymunity.FP.Domain.Models.Enums;
 
-namespace ITI.Gymunity.FP.Application.DTOs.Notifications
+namespace ITI.Gymunity.FP.Infrastructure.DTOs.Notifications
 {
     public class NotificationResponse
     {

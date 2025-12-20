@@ -1,7 +1,7 @@
-﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Application.DTOs.Account;
-using ITI.Gymunity.FP.Application.DTOs.Email;
-using ITI.Gymunity.FP.Application.Mapping;
+﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Account;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Email;
+using ITI.Gymunity.FP.Infrastructure.Mapping;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -14,7 +14,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.ExternalServices
+namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 {
     public class AccountService(UserManager<AppUser> userManager,
         SignInManager<AppUser> signInManager,

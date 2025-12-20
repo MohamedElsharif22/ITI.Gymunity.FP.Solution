@@ -1,5 +1,5 @@
-﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Application.DTOs.Email;
+﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Email;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -10,7 +10,7 @@ using System.Net.Mail;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.ExternalServices
+namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 {
     public class EmailService : IEmailService
     {
