@@ -1,26 +1,52 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Domain.Models
 {
     public class Payment : BaseEntity
     {
+        // Relations
         public int SubscriptionId { get; set; }
+        public string ClientId { get; set; } = null!; //  Added for better queries
 
-        public string? PaymobTransactionId { get; set; }
-        public string? PayPalPaymentId { get; set; }
-
+        // Amount Details
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "EGP";
-        public decimal PlatformFee { get; set; }
-        public decimal TrainerPayout { get; set; }
-        public PaymentStatus Status { get; set; }
-        public DateTime PaidAt { get; set; }
+        public decimal PlatformFee { get; set; } // 15% of Amount
+        public decimal TrainerPayout { get; set; } // Amount - PlatformFee
 
+        // Status & Method
+        public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
+        public PaymentMethod Method { get; set; }
+
+        // Paymob Integration
+        public string? PaymobOrderId { get; set; }
+        public string? PaymobTransactionId { get; set; }
+        public int? PaymobIntegrationId { get; set; }
+
+        // PayPal Integration
+        public string? PayPalOrderId { get; set; }
+        public string? PayPalPayerId { get; set; }
+        public string? PayPalCaptureId { get; set; }
+
+        // Metadata
+        public string? PaymentMethodType { get; set; } // card, wallet, etc
+        public string? FailureReason { get; set; }
+        public string? IpAddress { get; set; }
+        public string? UserAgent { get; set; }
+
+        // Dates
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? PaidAt { get; set; }
+        public DateTime? FailedAt { get; set; }
+
+        // Navigation
         public Subscription Subscription { get; set; } = null!;
+
+        //  Helper method to calculate fees
+        public void CalculateFees(decimal platformFeePercentage = 15m)
+        {
+            PlatformFee = Amount * (platformFeePercentage / 100m);
+            TrainerPayout = Amount - PlatformFee;
+        }
     }
 }

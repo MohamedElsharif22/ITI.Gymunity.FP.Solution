@@ -2,7 +2,7 @@ using ITI.Gymunity.FP.Domain.Models.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace ITI.Gymunity.FP.Application._Data.Configurations
+namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
 {
     public class MessageConfiguration : IEntityTypeConfiguration<Message>
     {

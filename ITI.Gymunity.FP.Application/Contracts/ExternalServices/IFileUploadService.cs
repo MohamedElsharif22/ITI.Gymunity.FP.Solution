@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 
-namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
+namespace ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices
 {
     public interface IFileUploadService
     {

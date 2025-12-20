@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.ExternalServices
+namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 {
     public class FileUploadService(IWebHostEnvironment environment) : IFileUploadService
     {

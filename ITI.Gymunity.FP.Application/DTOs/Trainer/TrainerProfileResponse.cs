@@ -1,4 +1,4 @@
-﻿namespace ITI.Gymunity.FP.Application.DTOs.Trainer
+﻿namespace ITI.Gymunity.FP.Infrastructure.DTOs.Trainer
 
 {
     public class TrainerProfileResponse

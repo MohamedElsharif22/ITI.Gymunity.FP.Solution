@@ -1,6 +1,6 @@
 ﻿using ITI.Gymunity.FP.APIs.Responses;
-using ITI.Gymunity.FP.Application.DTOs.Trainer;
-using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Trainer;
+using ITI.Gymunity.FP.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -155,25 +155,20 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
             }
         }
 
-        // DELETE: api/trainer/trainerprofile/deletestatus/{id}
-        [HttpDelete("Status/{id}")]
-        // [Authorize] // Uncomment when authentication is ready
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeleteStatus(int id)
-        {
-            // TODO: Add authentication check to ensure user owns this profile
-            // var profile = await _trainerProfileService.GetProfileById(id);
-            // var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            // if (profile?.UserId != currentUserId)
-            //     return Unauthorized(new ApiResponse(401, "Unauthorized access."));
+        // Get TrainerProfile By id  
 
-            var result = await _trainerProfileService.DeleteStatus(id);
+        //[HttpGet("GetById/{id:int}")]
+        //[ProducesResponseType(typeof(TrainerProfileResponse), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        //public async Task<IActionResult> GetById(int id)
+        //{
+        //    var profile = await _trainerProfileService.GetProfileById(id);
 
-            if (!result)
-                return NotFound(new ApiResponse(404, "Trainer profile not found."));
+        //    if (profile is null)
+        //        return NotFound(new ApiResponse(404, "Trainer profile not found."));
 
-            return NoContent();
-        }
+        //    return Ok(profile);
+        //}
+
     }
 }

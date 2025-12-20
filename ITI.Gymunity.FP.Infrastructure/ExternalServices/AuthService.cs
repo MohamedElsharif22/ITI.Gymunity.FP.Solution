@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +11,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.ExternalServices
+namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 {
     public class AuthService(IConfiguration configuration) : IAuthService
     {

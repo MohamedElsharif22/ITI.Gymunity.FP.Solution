@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.DTOs.Email
+namespace ITI.Gymunity.FP.Infrastructure.DTOs.Email
 {
     public class EmailRequest
     {

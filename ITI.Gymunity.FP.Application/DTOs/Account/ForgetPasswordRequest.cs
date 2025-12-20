@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.DTOs.Account
+namespace ITI.Gymunity.FP.Infrastructure.DTOs.Account
 {
     public class ForgetPasswordRequest
     {

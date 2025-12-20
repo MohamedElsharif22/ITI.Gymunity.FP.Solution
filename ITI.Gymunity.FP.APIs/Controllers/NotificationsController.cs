@@ -1,5 +1,5 @@
 using ITI.Gymunity.FP.APIs.Responses;
-using ITI.Gymunity.FP.Application.Contracts.Services;
+using ITI.Gymunity.FP.Infrastructure.Contracts.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;

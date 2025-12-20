@@ -1,6 +1,7 @@
-using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Application.Contracts.Services;
-using ITI.Gymunity.FP.Application.DTOs.Messaging;
+
+using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Infrastructure.Contracts.Services;
+using ITI.Gymunity.FP.Infrastructure.DTOs.Messaging;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
