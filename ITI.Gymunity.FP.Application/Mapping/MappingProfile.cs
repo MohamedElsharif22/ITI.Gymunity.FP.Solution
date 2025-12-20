@@ -3,7 +3,6 @@ using ITI.Gymunity.FP.Application.DTOs.Program;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.DTOs.Client;
 using ITI.Gymunity.FP.Application.DTOs.ExerciseLibrary;
-using ITI.Gymunity.FP.Application.DTOs.Chat;
 using ITI.Gymunity.FP.Application.DTOs.Package;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
@@ -96,17 +95,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
             CreateMap<ExerciseCreateRequest, Exercise>();
             CreateMap<ExerciseUpdateRequest, Exercise>();
 
-            // ======================
-            // Chat / Messaging mappings
-            // Used by:
-            // - ChatController (StartThread, SendMessage, GetThreads, GetMessages, MarkSeen, Delete)
-            // ======================
-            CreateMap<Message, MessageGetResponse>()
-                .ForMember(dest => dest.ReadStatus, opt => opt.MapFrom(m => m.IsRead ? MessageReadStatus.Seen : MessageReadStatus.Delivered));
-
-            CreateMap<Message, MessageSendResponse>()
-                .ForMember(dest => dest.Id, opt => opt.MapFrom(m => m.Id))
-                .ForMember(dest => dest.ReadStatus, opt => opt.MapFrom(m => m.IsRead ? MessageReadStatus.Seen : MessageReadStatus.Delivered));
+          
 
             // ======================
             // TrainerProfile detailed mapping

@@ -34,8 +34,7 @@ namespace ITI.Gymunity.FP.Application.Dependancy_Injection
             // Exercise Library
             services.AddScoped<IExerciseLibraryService, ExerciseLibraryService>();
 
-            // Chat
-            services.AddScoped<IChatService, ChatService>();
+            
 
             //packages
 
