@@ -1,6 +1,7 @@
 using ITI.Gymunity.FP.APIs.Errors.Configuration;
+using ITI.Gymunity.FP.APIs.Middleware;
 using ITI.Gymunity.FP.APIs.Middlewares;
-using ITI.Gymunity.FP.Application.Dependancy_Injection;
+using ITI.Gymunity.FP.Application.DependencyInjection;
 using ITI.Gymunity.FP.Infrastructure._Data;
 using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
 using Microsoft.OpenApi.Models;
@@ -62,7 +63,7 @@ namespace ITI.Gymunity.FP.APIs
             builder.Services.AddApplicationServices();
 
             builder.Services.AddAuthenticationServices(builder.Configuration);
-
+            builder.Services.AddMemoryCache();
             //Confiure Api Invalid Model State Response
             builder.Services.AddApiInvalidModelStateConfiguration();
 
@@ -93,6 +94,7 @@ namespace ITI.Gymunity.FP.APIs
             app.UseAuthentication();
 
             app.UseAuthorization();
+            app.UseMiddleware<WebhookSecurityMiddleware>();
 
             app.Run();
         }

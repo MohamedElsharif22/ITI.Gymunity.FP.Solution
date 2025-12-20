@@ -1,6 +1,4 @@
-﻿// Application/Specefications/Subscription/ActiveClientSubscriptionForPackageSpecs.cs
-
-using ITI.Gymunity.FP.Domain.Models;
+﻿using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Specification;
 

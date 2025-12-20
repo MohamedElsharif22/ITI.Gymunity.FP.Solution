@@ -1,6 +1,5 @@
 ﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.Account;
-using ITI.Gymunity.FP.Application.DTOs.Account;
 using ITI.Gymunity.FP.Application.Mapping;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;

@@ -1,6 +1,4 @@
-﻿// Application/Specefications/Subscription/ClientSubscriptionByIdSpecs.cs
-
-using ITI.Gymunity.FP.Domain.Models;
+﻿using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Specification;
 
 namespace ITI.Gymunity.FP.Application.Specefications.Subscription
@@ -11,6 +9,8 @@ namespace ITI.Gymunity.FP.Application.Specefications.Subscription
             : base(s => s.Id == id && s.ClientId == clientId)
         {
             AddInclude(s => s.Package);
+            AddInclude(s => s.Package.Trainer);        
+            AddInclude(s => s.Package.Trainer);
         }
     }
 }
