@@ -1,9 +1,7 @@
-﻿// APIs/Areas/Client/SubscriptionsController.cs
-
+﻿using ITI.Gymunity.FP.APIs.Errors;
 using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 using ITI.Gymunity.FP.Application.Services;
 using ITI.Gymunity.FP.Domain.Models.Enums;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;
@@ -12,11 +10,9 @@ using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
-    [Authorize(Roles = "Client")]
-    [ApiController]
-    [Route("api/client/subscriptions")]
+    [Route("api/client/subscriptions")]  
     [Produces("application/json")]
-    public class SubscriptionsController : ControllerBase
+    public class SubscriptionsController : ClientBaseController 
     {
         private readonly SubscriptionService _service;
         private readonly ILogger<SubscriptionsController> _logger;
@@ -29,21 +25,18 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             _logger = logger;
         }
 
-        /// <summary>
         /// Subscribe to a trainer's package
-        /// </summary>
-        /// <param name="request">Package subscription details</param>
-        /// <returns>Created subscription</returns>
         [HttpPost("subscribe")]
         [ProducesResponseType(typeof(SubscriptionResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Subscribe([FromBody] SubscribePackageRequest request)
         {
             var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _service.SubscribeAsync(clientId, request);
 
             if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+                return BadRequest(new ApiResponse(400, result.ErrorMessage));
 
             _logger.LogInformation(
                 "Client {ClientId} subscribed to package {PackageId}",
@@ -53,13 +46,10 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             return Ok(result.Data);
         }
 
-        /// <summary>
         /// Get all my subscriptions
-        /// </summary>
-        /// <param name="status">Optional filter by status (Active, Canceled, PastDue, Unpaid)</param>
-        /// <returns>List of subscriptions</returns>
         [HttpGet]
         [ProducesResponseType(typeof(SubscriptionListResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetMySubscriptions(
             [FromQuery] SubscriptionStatus? status = null)
         {
@@ -67,7 +57,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             var result = await _service.GetMySubscriptionsAsync(clientId, status);
 
             if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+                return BadRequest(new ApiResponse(400, result.ErrorMessage));
 
             var subscriptions = result.Data!.ToList();
             var response = new SubscriptionListResponse
@@ -81,41 +71,33 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             return Ok(response);
         }
 
-        /// <summary>
         /// Get single subscription by ID
-        /// </summary>
-        /// <param name="id">Subscription ID</param>
-        /// <returns>Subscription details</returns>
         [HttpGet("{id:int}")]
         [ProducesResponseType(typeof(SubscriptionResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetSubscription(int id)
         {
             var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _service.GetSubscriptionByIdAsync(id, clientId);
 
             if (!result.IsSuccess)
-                return NotFound(new { error = result.ErrorMessage });
+                return NotFound(new ApiResponse(404, result.ErrorMessage));
 
             return Ok(result.Data);
         }
 
-        /// <summary>
         /// Cancel subscription (keeps access until period end per SRS UC-10)
-        /// </summary>
-        /// <param name="id">Subscription ID</param>
-        /// <returns>No content</returns>
         [HttpPost("{id:int}/cancel")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Cancel(int id)
         {
             var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _service.CancelAsync(id, clientId);
 
             if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+                return BadRequest(new ApiResponse(400, result.ErrorMessage));
 
             _logger.LogInformation(
                 "Client {ClientId} canceled subscription {SubscriptionId}",
@@ -125,22 +107,18 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             return NoContent();
         }
 
-        /// <summary>
         /// Reactivate a canceled subscription (if not expired)
-        /// </summary>
-        /// <param name="id">Subscription ID</param>
-        /// <returns>No content</returns>
         [HttpPost("{id:int}/reactivate")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Reactivate(int id)
         {
             var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var result = await _service.ReactivateAsync(id, clientId);
 
             if (!result.IsSuccess)
-                return BadRequest(new { error = result.ErrorMessage });
+                return BadRequest(new ApiResponse(400, result.ErrorMessage));
 
             _logger.LogInformation(
                 "Client {ClientId} reactivated subscription {SubscriptionId}",
@@ -150,11 +128,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             return NoContent();
         }
 
-        /// <summary>
         /// Check if client has access to a specific trainer's content
-        /// </summary>
-        /// <param name="trainerId">Trainer User ID</param>
-        /// <returns>Access status</returns>
         [HttpGet("access/trainer/{trainerId}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         public async Task<IActionResult> HasAccessToTrainer(string trainerId)
