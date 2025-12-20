@@ -20,6 +20,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         private readonly IChatService _chatService = chatService;
         private readonly ILogger<ChatController> _logger = logger;
 
+
         private string? GetUserId() =>
             User.FindFirstValue(ClaimTypes.NameIdentifier);
         /// <summary>
@@ -63,14 +64,21 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         }
 
         /// <summary>
-        /// Send a message to a thread (can also be done via SignalR for real-time)
+        /// Sends a new message to the specified chat thread.
         /// </summary>
+        /// <remarks>Returns an unauthorized response if the user is not authenticated. The message is
+        /// sent on behalf of the currently authenticated user.</remarks>
+        /// <param name="threadId">The unique identifier of the chat thread to which the message will be sent.</param>
+        /// <param name="request">An object containing the details of the message to send, including content and any relevant metadata. Cannot
+        /// be null.</param>
+        /// <returns>An ActionResult containing an ApiResponse with the details of the sent message if successful; otherwise, an
+        /// error response.</returns>
         [HttpPost("threads/{threadId}/messages")]
-        public async Task<ActionResult> SendMessage(int threadId, [FromBody] SendMessageRequest request)
+        public async Task<ActionResult<ApiResponse<MessageResponse>>> SendMessage(int threadId, [FromBody] SendMessageRequest request)
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserId();
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized();
 
@@ -113,7 +121,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserId();
                 if (string.IsNullOrEmpty(userId))
                     return Unauthorized();
 
