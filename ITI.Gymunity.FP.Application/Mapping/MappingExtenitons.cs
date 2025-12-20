@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.Mapping
+namespace ITI.Gymunity.FP.Application.Mapping
 {
     public static class MappingExtenitons
     {

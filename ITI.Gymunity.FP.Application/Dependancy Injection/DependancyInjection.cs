@@ -1,5 +1,6 @@
-﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Infrastructure.Mapping;
+﻿using ITI.Gymunity.FP.Application.Mapping;
+using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Application.Services.ClientServices;
 using ITI.Gymunity.FP.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -14,6 +15,10 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             // Auto Mapper Configurations
             services.AddAutoMapper((opt) => { }, typeof(MappingProfile).Assembly);
             services.AddScoped<TrainerProfileService>();
+            services.AddScoped<ClientProfileService>();
+            services.AddScoped<OnboardingService>();
+            services.AddScoped<BodyStateLogService>();
+            services.AddScoped<WorkoutLogService>();
             services.AddScoped<SubscriptionService>();
             services.AddScoped<PaymentService>();
             services.AddScoped<WebhookService>();

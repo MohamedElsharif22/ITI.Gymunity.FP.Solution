@@ -34,10 +34,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
 
-                    b.Property<string>("ClientId")
-                        .IsRequired()
+                    b.Property<int>("ClientProfileId")
                         .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
@@ -47,8 +46,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<DateTime>("LoggedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTimeOffset>("LoggedAt")
+                        .HasColumnType("datetimeoffset");
 
                     b.Property<string>("MeasurementsJson")
                         .HasMaxLength(1000)
@@ -79,11 +78,11 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId");
+                    b.HasIndex("ClientProfileId");
 
                     b.HasIndex("LoggedAt");
 
-                    b.HasIndex("ClientId", "LoggedAt");
+                    b.HasIndex("ClientProfileId", "LoggedAt");
 
                     b.ToTable("BodyStatLogs");
                 });
@@ -119,6 +118,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("IsOnboardingCompleted")
+                        .HasColumnType("bit");
+
                     b.Property<decimal?>("StartingWeightKg")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
@@ -147,10 +149,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("Id"));
 
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<int>("ClientProfileId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CompletedAt")
                         .HasColumnType("datetime2");
@@ -185,13 +185,15 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId");
+                    b.HasIndex("ClientProfileId");
 
                     b.HasIndex("CompletedAt");
 
                     b.HasIndex("ProgramDayId");
 
-                    b.HasIndex("ClientId", "CompletedAt");
+                    b.HasIndex("ClientProfileId", "CompletedAt");
+
+                    b.HasIndex("ClientProfileId", "ProgramDayId");
 
                     b.ToTable("WorkoutLogs", (string)null);
                 });
@@ -461,8 +463,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.Property<string>("UserId")
                         .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -489,8 +490,12 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Currency")
                         .IsRequired()
@@ -499,17 +504,44 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasColumnType("nvarchar(10)")
                         .HasDefaultValue("EGP");
 
+                    b.Property<DateTime?>("FailedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FailureReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<int>("Method")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("PaidAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PayPalPaymentId")
+                    b.Property<string>("PayPalCaptureId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayPalOrderId")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("PayPalPayerId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PaymentMethodType")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PaymobIntegrationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PaymobOrderId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PaymobTransactionId")
                         .HasMaxLength(255)
@@ -532,13 +564,16 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("UserAgent")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PaidAt");
 
-                    b.HasIndex("PayPalPaymentId")
+                    b.HasIndex("PayPalOrderId")
                         .IsUnique()
-                        .HasFilter("[PayPalPaymentId] IS NOT NULL");
+                        .HasFilter("[PayPalOrderId] IS NOT NULL");
 
                     b.HasIndex("PaymobTransactionId")
                         .IsUnique()
@@ -1281,13 +1316,13 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Client.BodyStatLog", b =>
                 {
-                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Identity.AppUser", "Client")
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Client.ClientProfile", "ClientProfile")
                         .WithMany("BodyStatLogs")
-                        .HasForeignKey("ClientId")
+                        .HasForeignKey("ClientProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Client");
+                    b.Navigation("ClientProfile");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Client.ClientProfile", b =>
@@ -1303,9 +1338,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Client.WorkoutLog", b =>
                 {
-                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Identity.AppUser", "Client")
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Client.ClientProfile", "ClientProfile")
                         .WithMany("WorkoutLogs")
-                        .HasForeignKey("ClientId")
+                        .HasForeignKey("ClientProfileId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1315,7 +1350,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Client");
+                    b.Navigation("ClientProfile");
 
                     b.Navigation("ProgramDay");
                 });
@@ -1564,20 +1599,20 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Client.ClientProfile", b =>
                 {
+                    b.Navigation("BodyStatLogs");
+
                     b.Navigation("Subscriptions");
+
+                    b.Navigation("WorkoutLogs");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Identity.AppUser", b =>
                 {
-                    b.Navigation("BodyStatLogs");
-
                     b.Navigation("ClientProfile");
 
                     b.Navigation("Subscriptions");
 
                     b.Navigation("TrainerProfile");
-
-                    b.Navigation("WorkoutLogs");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Messaging.MessageThread", b =>
