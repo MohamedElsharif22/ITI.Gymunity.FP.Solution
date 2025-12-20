@@ -5,10 +5,11 @@ using ITI.Gymunity.FP.Infrastructure.DTOs.Notifications;
 using ITI.Gymunity.FP.Infrastructure.DTOs.User.Payment;
 using ITI.Gymunity.FP.Infrastructure.DTOs.User.Subscribe;
 using ITI.Gymunity.FP.Domain.Models;
+using ITI.Gymunity.FP.Domain.Models.Client;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
 
-namespace ITI.Gymunity.FP.Infrastructure.Mapping
+namespace ITI.Gymunity.FP.Application.Mapping
 {
     internal class MappingProfile : Profile
     {

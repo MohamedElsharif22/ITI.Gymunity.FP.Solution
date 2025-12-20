@@ -50,6 +50,16 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
                 .WithOne()
                 .HasForeignKey("ClientProfileId")
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(cp => cp.BodyStatLogs)
+                .WithOne(c => c.ClientProfile)
+                .HasForeignKey(bs => bs.ClientProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(cp => cp.WorkoutLogs)
+                .WithOne(c => c.ClientProfile)
+                .HasForeignKey(wo => wo.ClientProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

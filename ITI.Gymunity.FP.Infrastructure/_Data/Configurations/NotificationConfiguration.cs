@@ -14,8 +14,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
 
             // Property Configurations
             builder.Property(n => n.UserId)
-                .IsRequired()
-                .HasMaxLength(256);
+                .IsRequired();
 
             builder.Property(n => n.Title)
                 .IsRequired()

@@ -1,7 +1,6 @@
 ﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Infrastructure.DTOs.Account;
 using ITI.Gymunity.FP.Infrastructure.DTOs.Email;
-using ITI.Gymunity.FP.Infrastructure.Mapping;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
@@ -13,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ITI.Gymunity.FP.Application.Mapping;
 
 namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 {

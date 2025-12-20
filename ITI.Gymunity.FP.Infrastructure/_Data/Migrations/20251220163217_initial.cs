@@ -165,36 +165,6 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "BodyStatLogs",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ClientId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    LoggedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    WeightKg = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: true),
-                    BodyFatPercent = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: true),
-                    MeasurementsJson = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    PhotoFrontUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    PhotoSideUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    PhotoBackUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_BodyStatLogs", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_BodyStatLogs_AspNetUsers_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "ClientProfiles",
                 columns: table => new
                 {
@@ -206,6 +176,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     Gender = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     Goal = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ExperienceLevel = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
+                    IsOnboardingCompleted = table.Column<bool>(type: "bit", nullable: false),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
@@ -282,6 +253,33 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Notifications",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Title = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Message = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    RelatedEntityId = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Notifications", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Notifications_AspNetUsers_UserId",
+                        column: x => x.UserId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Packages",
                 columns: table => new
                 {
@@ -328,6 +326,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     RatingAverage = table.Column<decimal>(type: "decimal(3,2)", precision: 3, scale: 2, nullable: false, defaultValue: 0m),
                     TotalClients = table.Column<int>(type: "int", nullable: false, defaultValue: 0),
                     YearsExperience = table.Column<int>(type: "int", nullable: false),
+                    StatusImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    StatusDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
@@ -339,6 +339,36 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         name: "FK_TrainerProfiles_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BodyStatLogs",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ClientProfileId = table.Column<int>(type: "int", maxLength: 450, nullable: false),
+                    LoggedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    WeightKg = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: true),
+                    BodyFatPercent = table.Column<decimal>(type: "decimal(5,2)", precision: 5, scale: 2, nullable: true),
+                    MeasurementsJson = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    PhotoFrontUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PhotoSideUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PhotoBackUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Notes = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BodyStatLogs", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BodyStatLogs_ClientProfiles_ClientProfileId",
+                        column: x => x.ClientProfileId,
+                        principalTable: "ClientProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -465,16 +495,27 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     SubscriptionId = table.Column<int>(type: "int", nullable: false),
-                    PaymobTransactionId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    PayPalPaymentId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    ClientId = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Amount = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Currency = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "EGP"),
                     PlatformFee = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     TrainerPayout = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
+                    Method = table.Column<int>(type: "int", nullable: false),
+                    PaymobOrderId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymobTransactionId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    PaymobIntegrationId = table.Column<int>(type: "int", nullable: true),
+                    PayPalOrderId = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
+                    PayPalPayerId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PayPalCaptureId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PaymentMethodType = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FailureReason = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    IpAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UserAgent = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     PaidAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FailedAt = table.Column<DateTime>(type: "datetime2", nullable: true),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
@@ -609,7 +650,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 {
                     Id = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ClientId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    ClientProfileId = table.Column<int>(type: "int", nullable: false),
                     ProgramDayId = table.Column<int>(type: "int", nullable: false),
                     CompletedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: true),
@@ -623,9 +664,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 {
                     table.PrimaryKey("PK_WorkoutLogs", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_WorkoutLogs_AspNetUsers_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "AspNetUsers",
+                        name: "FK_WorkoutLogs_ClientProfiles_ClientProfileId",
+                        column: x => x.ClientProfileId,
+                        principalTable: "ClientProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -700,14 +741,14 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BodyStatLogs_ClientId",
+                name: "IX_BodyStatLogs_ClientProfileId",
                 table: "BodyStatLogs",
-                column: "ClientId");
+                column: "ClientProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_BodyStatLogs_ClientId_LoggedAt",
+                name: "IX_BodyStatLogs_ClientProfileId_LoggedAt",
                 table: "BodyStatLogs",
-                columns: new[] { "ClientId", "LoggedAt" });
+                columns: new[] { "ClientProfileId", "LoggedAt" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_BodyStatLogs_LoggedAt",
@@ -802,6 +843,26 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 column: "TrainerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Notifications_CreatedAt",
+                table: "Notifications",
+                column: "CreatedAt");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_Type",
+                table: "Notifications",
+                column: "Type");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_UserId",
+                table: "Notifications",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Notifications_UserId_IsRead",
+                table: "Notifications",
+                columns: new[] { "UserId", "IsRead" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_PackagePrograms_PackageId",
                 table: "PackagePrograms",
                 column: "PackageId");
@@ -845,11 +906,11 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 filter: "[PaymobTransactionId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Payments_PayPalPaymentId",
+                name: "IX_Payments_PayPalOrderId",
                 table: "Payments",
-                column: "PayPalPaymentId",
+                column: "PayPalOrderId",
                 unique: true,
-                filter: "[PayPalPaymentId] IS NOT NULL");
+                filter: "[PayPalOrderId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_Status",
@@ -974,14 +1035,19 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkoutLogs_ClientId",
+                name: "IX_WorkoutLogs_ClientProfileId",
                 table: "WorkoutLogs",
-                column: "ClientId");
+                column: "ClientProfileId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_WorkoutLogs_ClientId_CompletedAt",
+                name: "IX_WorkoutLogs_ClientProfileId_CompletedAt",
                 table: "WorkoutLogs",
-                columns: new[] { "ClientId", "CompletedAt" });
+                columns: new[] { "ClientProfileId", "CompletedAt" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkoutLogs_ClientProfileId_ProgramDayId",
+                table: "WorkoutLogs",
+                columns: new[] { "ClientProfileId", "ProgramDayId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_WorkoutLogs_CompletedAt",
@@ -1017,6 +1083,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "Messages");
+
+            migrationBuilder.DropTable(
+                name: "Notifications");
 
             migrationBuilder.DropTable(
                 name: "PackagePrograms");
