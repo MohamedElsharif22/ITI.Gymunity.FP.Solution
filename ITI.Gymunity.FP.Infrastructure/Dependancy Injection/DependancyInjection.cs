@@ -108,7 +108,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddScoped<IWeekRepository, WeekRepository>();
             services.AddScoped<IDayRepository, DayRepository>();
             services.AddScoped<IDayExerciseRepository, DayExerciseRepository>();
-            services.AddScoped<IChatRepository, ChatRepository>();
+           
             //services.AddScoped<IClientRepository, ClientRepository>();
 
             //packages
