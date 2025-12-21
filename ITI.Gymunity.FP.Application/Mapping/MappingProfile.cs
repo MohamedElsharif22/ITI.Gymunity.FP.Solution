@@ -26,10 +26,22 @@ namespace ITI.Gymunity.FP.Application.Mapping
         public MappingProfile()
         {
 
-            // Client Mapping
-            CreateMap<ClientProfile, ClientProfileResponse>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(cp => cp.User.UserName));
+            //*********************     Client Profile Mapping       ******************************//
             CreateMap<ClientProfileRequest, ClientProfile>();
+            CreateMap<ClientProfile, ClientProfileResponse>()
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(cp => cp.User.UserName))
+                .ForMember(dest => dest.BodyStateLog, opt => opt.MapFrom(src => src.BodyStatLogs
+                .OrderByDescending(b => b.LoggedAt).FirstOrDefault()));
+
+            //*********************     BodyStateLog Mapping       ******************************//
+            CreateMap<CreateBodyStateLogRequest, BodyStatLog>();
+            CreateMap<BodyStatLog, BodyStateLogResponse>();
+
+            //*********************     BodyStateLog Mapping       ******************************//
+            CreateMap<WorkoutLogRequest, WorkoutLog>();
+            CreateMap<WorkoutLog, WorkoutLogResponse>();
+
+
             // TrainerProfile to List Response (excludes status fields)
             CreateMap<TrainerProfile, TrainerProfileListResponse>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(tp => tp.User.UserName));
