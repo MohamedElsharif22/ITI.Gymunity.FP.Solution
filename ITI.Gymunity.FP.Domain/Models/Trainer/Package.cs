@@ -24,6 +24,10 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
         public string? ThumbnailUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // New properties
+        public bool IsAnnual { get; set; } = false;
+        public string? PromoCode { get; set; }
+
         public AppUser Trainer { get; set; } = null!;
 
         // Many-to-many with Program

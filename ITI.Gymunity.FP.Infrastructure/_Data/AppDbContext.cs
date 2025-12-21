@@ -24,6 +24,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
         // User & Profiles
         public DbSet<TrainerProfile> TrainerProfiles { get; set; }
         public DbSet<ClientProfile> ClientProfiles { get; set; }
+        public DbSet<TrainerReview> TrainerReviews { get; set; }
 
         // Programs
         public DbSet<Program> Programs { get; set; }
@@ -32,15 +33,18 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
         public DbSet<ProgramDayExercise> ProgramDayExercises { get; set; }
         public DbSet<Exercise> Exercises { get; set; }
 
+
         // Packages & Subscriptions
         public DbSet<Package> Packages { get; set; }
         public DbSet<PackageProgram> PackagePrograms { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Payment> Payments { get; set; }
 
+
         // Client Logs
         public DbSet<WorkoutLog> WorkoutLogs { get; set; }
         public DbSet<BodyStatLog> BodyStatLogs { get; set; }
+
 
         // Messaging
         public DbSet<MessageThread> MessageThreads { get; set; }

@@ -37,6 +37,12 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
         public async Task<T?> GetByIdAsync(int id)
             => await _Context.Set<T>().FindAsync(id);
 
+        //start amr edit
+        // New long overload to support entities with long primary keys (e.g., Message)
+        public async Task<T?> GetByIdAsync(long id)
+            => await _Context.Set<T>().FindAsync((object)id);
+        //end amr edit
+
         public async Task<IEnumerable<T>> GetAllAsync()
             => await _Context.Set<T>().ToListAsync();
 

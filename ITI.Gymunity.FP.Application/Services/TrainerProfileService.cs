@@ -6,6 +6,8 @@ using ITI.Gymunity.FP.Infrastructure.Specefications;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.Specefications;
 
 namespace ITI.Gymunity.FP.Infrastructure.Services
 {
@@ -18,16 +20,25 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
         private readonly IMapper _mapper = mapper;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
 
-        public async Task<IEnumerable<TrainerProfileListResponse>> GetAllProfiles()
+        //public async Task<IEnumerable<TrainerProfileListResponse>> GetAllProfiles()
+        //{
+        //    var profileSpecs = new TrainerWithUsersAndProgramsSpecs();
+
+        //    var trainerProfiles = (await _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>()
+        //                                           .GetAllWithSpecsAsync(profileSpecs))
+        //                                           .Where(tp => !tp.IsDeleted)
+        //                                           .Select(tp => _mapper.Map<TrainerProfileListResponse>(tp));
+
+        //    return trainerProfiles;
+        //}
+
+        public async Task<IEnumerable<TrainerReviewResponse>?> GetAllReviews(int trainerProfileId)
         {
-            var profileSpecs = new TrainerWithUsersAndProgramsSpecs();
-
-            var trainerProfiles = (await _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>()
-                                                   .GetAllWithSpecsAsync(profileSpecs))
-                                                   .Where(tp => !tp.IsDeleted)
-                                                   .Select(tp => _mapper.Map<TrainerProfileListResponse>(tp));
-
-            return trainerProfiles;
+            var reviewsSpecs = new TrainerProfileByIdSpecs(trainerProfileId);
+            var trainerReviews = (await _unitOfWork.Repository<TrainerProfile>()
+                                                   .GetWithSpecsAsync(reviewsSpecs))?
+                                                   .TrainerReviews.Select(tr => _mapper.Map<TrainerReviewResponse>(tr));
+            return trainerReviews;
         }
 
         public async Task<TrainerProfileDetailResponse?> GetProfileByUserId(string userId)

@@ -18,7 +18,8 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 UserName = user.UserName,
                 Email = user.Email,
                 Role = user.Role.ToString(),
-                Token = token
+                Token = token,
+                Id = user.Id, // amr edit
             };
         }
     }

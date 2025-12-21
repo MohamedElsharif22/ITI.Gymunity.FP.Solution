@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251220163217_initial")]
-    partial class initial
+    [Migration("20251220203336_SeedData")]
+    partial class SeedData
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -659,6 +659,51 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("IsCustom", "TrainerId");
 
                     b.ToTable("Exercises");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Category = "Strength",
+                            CreatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Equipment = "Barbell",
+                            IsCustom = false,
+                            IsDeleted = false,
+                            MuscleGroup = "Chest",
+                            Name = "Bench Press",
+                            ThumbnailUrl = "https://example.com/images/bench-press.jpg",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            VideoDemoUrl = "https://example.com/videos/bench-press.mp4"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Category = "Strength",
+                            CreatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Equipment = "Barbell",
+                            IsCustom = false,
+                            IsDeleted = false,
+                            MuscleGroup = "Legs",
+                            Name = "Squat",
+                            ThumbnailUrl = "https://example.com/images/squat.jpg",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            VideoDemoUrl = "https://example.com/videos/squat.mp4"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Category = "Strength",
+                            CreatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Equipment = "Machine",
+                            IsCustom = true,
+                            IsDeleted = false,
+                            MuscleGroup = "Legs",
+                            Name = "Custom Leg Press",
+                            ThumbnailUrl = "https://example.com/images/leg-press.jpg",
+                            TrainerId = "29302cc1-6bc6-4534-8269-de75ef3650a7",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            VideoDemoUrl = "https://example.com/videos/leg-press.mp4"
+                        });
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.ProgramAggregate.Program", b =>
@@ -737,6 +782,54 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("TrainerId", "IsPublic");
 
                     b.ToTable("Programs", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc),
+                            Description = "A comprehensive 12-week program designed to build muscle mass and strength",
+                            DurationWeeks = 12,
+                            IsDeleted = false,
+                            IsPublic = true,
+                            MaxClients = 50,
+                            Price = 499.99m,
+                            ThumbnailUrl = "https://example.com/images/muscle-building.jpg",
+                            Title = "12-Week Muscle Building Program",
+                            TrainerId = "29302cc1-6bc6-4534-8269-de75ef3650a7",
+                            Type = 1,
+                            UpdatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc),
+                            Description = "An intense 8-week program focused on fat loss and cardio conditioning",
+                            DurationWeeks = 8,
+                            IsDeleted = false,
+                            IsPublic = true,
+                            MaxClients = 100,
+                            Price = 299.99m,
+                            ThumbnailUrl = "https://example.com/images/fat-loss.jpg",
+                            Title = "8-Week Fat Loss Program",
+                            TrainerId = "29302cc1-6bc6-4534-8269-de75ef3650a7",
+                            Type = 1,
+                            UpdatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc),
+                            Description = "A detailed nutrition plan for optimal health and performance",
+                            DurationWeeks = 4,
+                            IsDeleted = false,
+                            IsPublic = true,
+                            ThumbnailUrl = "https://example.com/images/nutrition.jpg",
+                            Title = "Complete Nutrition Guide",
+                            TrainerId = "29302cc1-6bc6-4534-8269-de75ef3650a7",
+                            Type = 2,
+                            UpdatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.ProgramAggregate.ProgramDay", b =>
@@ -1017,6 +1110,11 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("IsAnnual")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1034,6 +1132,13 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.Property<decimal?>("PriceYearly")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("PromoCode")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("");
 
                     b.Property<string>("ThumbnailUrl")
                         .HasMaxLength(500)
@@ -1056,6 +1161,43 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("TrainerId", "IsActive");
 
                     b.ToTable("Packages", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc),
+                            Currency = "EGP",
+                            Description = "Entry-level training package with essential features",
+                            FeaturesJson = "{\"formChecksPerWeek\": 2, \"priorityMessaging\": false, \"monthlyVideoCall\": false}",
+                            IsActive = true,
+                            IsAnnual = false,
+                            IsDeleted = false,
+                            Name = "Basic Package",
+                            PriceMonthly = 99.99m,
+                            PriceYearly = 999.90m,
+                            ThumbnailUrl = "https://example.com/images/basic-package.jpg",
+                            TrainerId = "29302cc1-6bc6-4534-8269-de75ef3650a7",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc),
+                            Currency = "EGP",
+                            Description = "Advanced training package with all features",
+                            FeaturesJson = "{\"formChecksPerWeek\": 4, \"priorityMessaging\": true, \"monthlyVideoCall\": true, \"customProgramEveryWeeks\": 4, \"earlyAccess\": true}",
+                            IsActive = true,
+                            IsAnnual = false,
+                            IsDeleted = false,
+                            Name = "Premium Package",
+                            PriceMonthly = 299.99m,
+                            PriceYearly = 2999.90m,
+                            PromoCode = "PREMIUM20",
+                            ThumbnailUrl = "https://example.com/images/premium-package.jpg",
+                            TrainerId = "29302cc1-6bc6-4534-8269-de75ef3650a7",
+                            UpdatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        });
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Trainer.PackageProgram", b =>
@@ -1182,6 +1324,63 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .IsUnique();
 
                     b.ToTable("TrainerProfiles", (string)null);
+                });
+
+            modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerReview", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("ApprovedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Comment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTimeOffset?>("EditedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TrainerId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("TrainerId");
+
+                    b.HasIndex("ClientId", "TrainerId")
+                        .IsUnique();
+
+                    b.ToTable("TrainerReviews", t =>
+                        {
+                            t.HasCheckConstraint("CK_TrainerReviews_Rating", "[Rating] BETWEEN 1 AND 5");
+                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -1436,11 +1635,13 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", null)
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", "TrainerProfile")
                         .WithMany("Programs")
                         .HasForeignKey("TrainerProfileId");
 
                     b.Navigation("Trainer");
+
+                    b.Navigation("TrainerProfile");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.ProgramAggregate.ProgramDay", b =>
@@ -1549,6 +1750,25 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerReview", b =>
+                {
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Client.ClientProfile", "Client")
+                        .WithMany("TrainerReviews")
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", "Trainer")
+                        .WithMany("TrainerReviews")
+                        .HasForeignKey("TrainerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Trainer");
+                });
+
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -1606,6 +1826,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.Navigation("Subscriptions");
 
+                    b.Navigation("TrainerReviews");
+
                     b.Navigation("WorkoutLogs");
                 });
 
@@ -1655,6 +1877,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", b =>
                 {
                     b.Navigation("Programs");
+
+                    b.Navigation("TrainerReviews");
                 });
 #pragma warning restore 612, 618
         }

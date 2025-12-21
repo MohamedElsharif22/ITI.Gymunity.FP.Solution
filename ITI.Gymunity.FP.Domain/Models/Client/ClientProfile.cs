@@ -1,4 +1,5 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Identity;
+using ITI.Gymunity.FP.Domain.Models.Trainer;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,5 +22,8 @@ namespace ITI.Gymunity.FP.Domain.Models.Client
         public ICollection<WorkoutLog>? WorkoutLogs { get; set; }
         public AppUser User { get; set; } = null!;
         public ICollection<Subscription> Subscriptions { get; set; } = [];
+
+        public ICollection<TrainerReview> TrainerReviews { get; set; } = new List<TrainerReview>();
+
     }
 }

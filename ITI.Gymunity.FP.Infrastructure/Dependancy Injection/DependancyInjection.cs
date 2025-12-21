@@ -82,6 +82,31 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
 
             services.AddScoped<ITrainerProfileRepository, TrainerProfileRepository>();
 
+            //amr start
+            // Register Repositories 
+            services.AddScoped<IExerciseLibraryRepository, ExerciseLibraryRepository>();
+            services.AddScoped<IProgramRepository, ProgramRepository>();
+            services.AddScoped<IWeekRepository, WeekRepository>();
+            services.AddScoped<IDayRepository, DayRepository>();
+            services.AddScoped<IDayExerciseRepository, DayExerciseRepository>();
+           
+            //services.AddScoped<IClientRepository, ClientRepository>();
+
+            //packages
+
+            services.AddScoped<IPackageRepository, PackageRepository>();
+
+            // Register trainer review repo
+            services.AddScoped<ITrainerReviewRepository, TrainerReviewRepository>();
+            
+            // ensure repositories
+            services.AddScoped<IReviewClientRepository, ReviewClientRepository>();
+            services.AddScoped<IReviewTrainerRepository, ReviewTrainerRepository>();
+            services.AddScoped<IReviewAdminRepository, ReviewAdminRepository>();
+            services.AddScoped<IGuestReviewRepository, GuestReviewRepository>();
+
+            //amr end
+
             // Register External Services
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IEmailService, EmailService>();
@@ -94,6 +119,9 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddSingleton<ISignalRConnectionManager, SignalRConnectionManager>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<INotificationService, NotificationService>();
+
+
+
 
             return services;
         }

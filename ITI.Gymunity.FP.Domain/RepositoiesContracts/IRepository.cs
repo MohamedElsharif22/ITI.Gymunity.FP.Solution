@@ -12,6 +12,7 @@ namespace ITI.Gymunity.FP.Domain.RepositoiesContracts
     {
         Task<TEntity?> GetWithSpecsAsync(ISpecification<TEntity> specs);
         Task<TEntity?> GetByIdAsync(int id);
+        Task<TEntity?> GetByIdAsync(long id); //amr edit
         Task<IEnumerable<TEntity>> GetAllWithSpecsAsync(ISpecification<TEntity> specs);
         Task<IEnumerable<TEntity>> GetAllAsync();
         Task<int> GetCountWithspecsAsync(ISpecification<TEntity> specs);

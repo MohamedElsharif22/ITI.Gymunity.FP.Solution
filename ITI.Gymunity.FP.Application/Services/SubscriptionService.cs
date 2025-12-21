@@ -57,15 +57,15 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
                     return ServiceResult<SubscriptionResponse>.Failure(
                         "You are already subscribed to this package");
 
-                // 3. Validate Trainer is verified and active
-                var trainerSpec = new TrainerByUserIdSpecs(package.TrainerId);
-                var trainer = await _unitOfWork
-                    .Repository<TrainerProfile>()
-                    .GetWithSpecsAsync(trainerSpec);
+                //// 3. Validate Trainer is verified and active
+                //var trainerSpec = new TrainerByUserIdSpecs(package.TrainerId);
+                //var trainer = await _unitOfWork
+                //    .Repository<TrainerProfile>()
+                //    .GetWithSpecsAsync(trainerSpec);
 
-                if (trainer == null || !trainer.IsVerified)
-                    return ServiceResult<SubscriptionResponse>.Failure(
-                        "Trainer is not available");
+                //if (trainer == null || !trainer.IsVerified)
+                //    return ServiceResult<SubscriptionResponse>.Failure(
+                //        "Trainer is not available");
 
                 // 4. Calculate amount and period
                 decimal amount = request.IsAnnual

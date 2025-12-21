@@ -295,6 +295,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     IsActive = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
                     ThumbnailUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
+                    IsAnnual = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    PromoCode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: ""),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
@@ -486,6 +488,42 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         column: x => x.TrainerProfileId,
                         principalTable: "TrainerProfiles",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TrainerReviews",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TrainerId = table.Column<int>(type: "int", nullable: false),
+                    ClientId = table.Column<int>(type: "int", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    IsEdited = table.Column<bool>(type: "bit", nullable: false),
+                    EditedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    IsApproved = table.Column<bool>(type: "bit", nullable: false),
+                    ApprovedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TrainerReviews", x => x.Id);
+                    table.CheckConstraint("CK_TrainerReviews_Rating", "[Rating] BETWEEN 1 AND 5");
+                    table.ForeignKey(
+                        name: "FK_TrainerReviews_ClientProfiles_ClientId",
+                        column: x => x.ClientId,
+                        principalTable: "ClientProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TrainerReviews_TrainerProfiles_TrainerId",
+                        column: x => x.TrainerId,
+                        principalTable: "TrainerProfiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1035,6 +1073,22 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TrainerReviews_ClientId",
+                table: "TrainerReviews",
+                column: "ClientId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrainerReviews_ClientId_TrainerId",
+                table: "TrainerReviews",
+                columns: new[] { "ClientId", "TrainerId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TrainerReviews_TrainerId",
+                table: "TrainerReviews",
+                column: "TrainerId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_WorkoutLogs_ClientProfileId",
                 table: "WorkoutLogs",
                 column: "ClientProfileId");
@@ -1095,6 +1149,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProgramDayExercises");
+
+            migrationBuilder.DropTable(
+                name: "TrainerReviews");
 
             migrationBuilder.DropTable(
                 name: "WorkoutLogs");
