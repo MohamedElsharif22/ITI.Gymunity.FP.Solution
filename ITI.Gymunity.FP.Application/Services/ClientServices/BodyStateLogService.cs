@@ -8,9 +8,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Application.Services.ClientServices
@@ -29,6 +31,8 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             if (profile == null)
                 throw new InvalidOperationException("Client profile not found");
+
+            ValidateMeasurementsJson(request.MeasurementsJson);
 
             var bodyStateLog = _mapper.Map<BodyStatLog>(request);
             bodyStateLog.ClientProfileId = profile.Id;
@@ -84,5 +88,22 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             return _mapper.Map<BodyStateLogResponse>(lastLog);
         }
+
+        private void ValidateMeasurementsJson(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return;
+
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind != JsonValueKind.Object)
+                    throw new ValidationException("Measurements must be a valid JSON object");
+            }
+            catch (JsonException)
+            {
+                throw new ValidationException("Measurements must be a valid JSON object");
+            }
+        }
+
     }
 }
