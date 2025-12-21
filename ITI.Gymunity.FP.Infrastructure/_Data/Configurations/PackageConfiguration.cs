@@ -54,6 +54,17 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
                 .IsRequired()
                 .HasDefaultValue(new DateTime());
 
+            // New properties
+            builder.Property(p => p.IsAnnual)
+                .IsRequired()
+                .HasDefaultValue(false);
+
+            // Ensure PromoCode has a default value to prevent NULL inserts
+            builder.Property(p => p.PromoCode)
+                .HasMaxLength(20)
+                .IsRequired()
+                .HasDefaultValue(string.Empty);
+
             // Soft Delete
             builder.Property(p => p.IsDeleted)
                 .HasDefaultValue(false);

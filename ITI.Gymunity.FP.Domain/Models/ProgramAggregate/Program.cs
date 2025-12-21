@@ -26,5 +26,9 @@ namespace ITI.Gymunity.FP.Domain.Models.ProgramAggregate
         public AppUser Trainer { get; set; } = null!;
         public ICollection<ProgramWeek> Weeks { get; set; } = [];
         public ICollection<PackageProgram> PackagePrograms { get; set; } = [];
+
+        // Optional relation to TrainerProfile
+        public int? TrainerProfileId { get; set; }
+        public TrainerProfile? TrainerProfile { get; set; }
     }
 }

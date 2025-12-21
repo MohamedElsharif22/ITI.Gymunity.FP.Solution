@@ -10,19 +10,19 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
     {
         private readonly TrainerProfileService _trainerProfileService = trainerProfileService;
 
-        // GET: api/trainer/trainerprofile/getallprofiles
-        [HttpGet("AllProfiles")]
-        [ProducesResponseType(typeof(IEnumerable<TrainerProfileListResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetAllProfiles()
-        {
-            var profiles = await _trainerProfileService.GetAllProfiles();
+        //// GET: api/trainer/trainerprofile/getallprofiles
+        //[HttpGet("AllProfiles")]
+        //[ProducesResponseType(typeof(IEnumerable<TrainerProfileListResponse>), StatusCodes.Status200OK)]
+        //[ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        //public async Task<IActionResult> GetAllProfiles()
+        //{
+        //    var profiles = await _trainerProfileService.GetAllProfiles();
 
-            if (!profiles.Any())
-                return NotFound(new ApiResponse(404, "No trainer profiles found."));
+        //    if (!profiles.Any())
+        //        return NotFound(new ApiResponse(404, "No trainer profiles found."));
 
-            return Ok(profiles);
-        }
+        //    return Ok(profiles);
+        //}
 
         // GET: api/trainer/trainerprofile/getbyuserid/{userId}
         [HttpGet("UserId/{userId}")]
@@ -43,6 +43,8 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 
             return Ok(profile);
         }
+
+
 
         // GET: api/trainer/trainerprofile/getbyid/{id}
         [HttpGet("Id/{id}")]

@@ -13,5 +13,7 @@ namespace ITI.Gymunity.FP.Infrastructure.DTOs.Account
         public string Email { get; set; } = string.Empty;
         public string Role { get; set; } = null!;
         public string Token { get; set; } = null!;
+
+        public string Id { get; set; } = null!; //amr edit
     }
 }

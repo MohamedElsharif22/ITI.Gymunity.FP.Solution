@@ -155,6 +155,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         {
             if (!await IsEmailUniqueAsync(request.Email))
             {
+
                 throw new Exception("Email is already registered.");
             }
             if (!await IsUserNameUniqueAsync(request.UserName))

@@ -117,6 +117,8 @@ namespace ITI.Gymunity.FP.APIs
             app.UseAuthorization();
             app.UseMiddleware<WebhookSecurityMiddleware>();
 
+            app.MapControllers();
+
             app.Run();
         }
     }

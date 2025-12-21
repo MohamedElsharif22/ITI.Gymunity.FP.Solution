@@ -1,7 +1,7 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.Specification;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications
+namespace ITI.Gymunity.FP.Application.Specefications
 {
     public class TrainerProfileByIdSpecs : BaseSpecification<TrainerProfile>
     {
@@ -10,7 +10,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Specefications
         {
             // Include User
             AddInclude(tp => tp.User);
-
+            AddInclude(tp => tp.TrainerReviews);
             // Include Programs
             AddInclude(tp => tp.Programs);
         }
