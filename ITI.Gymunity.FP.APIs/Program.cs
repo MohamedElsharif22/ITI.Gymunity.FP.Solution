@@ -80,6 +80,7 @@ namespace ITI.Gymunity.FP.APIs
             builder.Services.AddApplicationServices();
 
             builder.Services.AddAuthenticationServices(builder.Configuration);
+
             builder.Services.AddMemoryCache();
             //Confiure Api Invalid Model State Response
             builder.Services.AddApiInvalidModelStateConfiguration();
@@ -93,10 +94,13 @@ namespace ITI.Gymunity.FP.APIs
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                //app.MapOpenApi();
+                //app.UseSwagger();
+                //app.UseSwaggerUI();
             }
+            app.MapOpenApi();
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
             app.UseStatusCodePagesWithReExecute("/errors/{0}");
 

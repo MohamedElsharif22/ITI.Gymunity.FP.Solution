@@ -21,6 +21,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ITI.Gymunity.FP.Infrastructure.Services;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 
 namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
 {
@@ -114,6 +115,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             services.AddScoped<IAuthService, AuthService>();
             //services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
+            services.AddScoped<IImageUrlResolver, ImageUrlResolver>();
 
             // Register SignalR Services
             services.AddSingleton<ISignalRConnectionManager, SignalRConnectionManager>();

@@ -13,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ITI.Gymunity.FP.Application.Mapping;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 
 namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 {
@@ -23,7 +24,8 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         IGoogleAuthService googleAuthService,
         IEmailService emailService,
         ILogger<AccountService> logger,
-        IConfiguration configuration) : IAccountService
+        IConfiguration configuration,
+        IImageUrlResolver imageUrlResolver) : IAccountService
     {
         private readonly UserManager<AppUser> _userManager = userManager;
         private readonly SignInManager<AppUser> _signInManager = signInManager;
@@ -33,6 +35,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         private readonly IEmailService _emailService = emailService;
         private readonly ILogger<AccountService> _logger = logger;
         private readonly IConfiguration _configuration = configuration;
+        private readonly IImageUrlResolver _imageUrlResolver = imageUrlResolver;
 
         public async Task<UserResponse> GoogleAuthAsync(GoogleAuthRequest request)
         {
@@ -121,7 +124,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 
             await _emailService.SendEmailAsync(emailRequset);
 
-            return user.ToUserResponse(token);
+            return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
 
 
@@ -148,7 +151,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 Body = "You succesfully Signed in to Gymunity!"
             };
             await _emailService.SendEmailAsync(emailRequset);
-            return user.ToUserResponse(token);
+            return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
 
         public async Task<UserResponse> RegisterAsync(RegisterRequest request)
@@ -197,7 +200,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             };
 
             await _emailService.SendEmailAsync(emailRequset);
-            return user.ToUserResponse(token);
+            return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
 
         private async Task<bool> IsUserNameUniqueAsync(string handel)
@@ -280,7 +283,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 Body = "You succesfully Updated your profile in Gymunity!"
             };
             await _emailService.SendEmailAsync(emailRequset);
-            return user.ToUserResponse(token);
+            return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
 
         public async Task<UserResponse> ChangePasswordAsync(string userId, ChangePasswordRequest request)
@@ -304,7 +307,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 Body = "You succesfully Changed your password in Gymunity!"
             };
 
-            return user.ToUserResponse(token);
+            return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
 
         public async Task<bool> SendResetPasswordLinkAsync(ForgetPasswordRequest request)
@@ -348,7 +351,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 Body = "You succesfully Reset your password in Gymunity!"
             };
             await _emailService.SendEmailAsync(emailRequset);
-            return user.ToUserResponse(token);
+            return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
     }
 }
