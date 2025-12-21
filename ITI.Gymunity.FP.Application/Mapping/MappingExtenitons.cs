@@ -10,16 +10,17 @@ namespace ITI.Gymunity.FP.Application.Mapping
 {
     public static class MappingExtenitons
     {
-        public static UserResponse ToUserResponse(this AppUser user, string token)
+        public static UserResponse ToUserResponse(this AppUser user, string token, string profilePhotoUrl)
         {
             return new UserResponse
             {
+                //Id = user.Id, // amr edit
                 Name = user.FullName,
                 UserName = user.UserName,
                 Email = user.Email,
                 Role = user.Role.ToString(),
+                ProfilePhotoUrl = profilePhotoUrl,
                 Token = token,
-                Id = user.Id, // amr edit
             };
         }
     }
