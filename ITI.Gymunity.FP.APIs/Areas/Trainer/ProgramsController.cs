@@ -43,14 +43,14 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
  }
 
  [HttpPost]
- public async Task<IActionResult> Create([FromBody] ProgramCreateRequest request)
+ public async Task<IActionResult> Create([FromBody] ITI.Gymunity.FP.Application.DTOs.Program.ProgramCreateRequest request)
  {
  var created = await _service.CreateAsync(request);
  return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
  }
 
  [HttpPut("{id:int}")]
- public async Task<IActionResult> Update(int id, [FromBody] ProgramUpdateRequest request)
+ public async Task<IActionResult> Update(int id, [FromBody] ITI.Gymunity.FP.Application.DTOs.Program.ProgramUpdateRequest request)
  {
  var ok = await _service.UpdateAsync(id, request);
  if (!ok) return NotFound();
