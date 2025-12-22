@@ -1,6 +1,7 @@
 ﻿using ITI.Gymunity.FP.APIs.Responses;
 using ITI.Gymunity.FP.Infrastructure.DTOs.Trainer;
 using ITI.Gymunity.FP.Infrastructure.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,7 +27,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 
         // GET: api/trainer/trainerprofile/getbyuserid/{userId}
         [HttpGet("UserId/{userId}")]
-        // [Authorize] // Uncomment when authentication is ready
+        [Authorize] // Uncomment when authentication is ready
         [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetByUserId(string userId)

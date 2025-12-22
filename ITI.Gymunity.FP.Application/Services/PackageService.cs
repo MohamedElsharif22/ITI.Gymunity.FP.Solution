@@ -4,6 +4,7 @@ using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -81,9 +82,13 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<bool> UpdateAsync(int id, PackageCreateRequest request)
  {
- var repo = _unitOfWork.Repository<Package>();
- var entity = await repo.GetByIdAsync(id);
+ try
+ {
+ // load package with related PackagePrograms to sync correctly
+ var packageRepo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
+ var entity = await packageRepo.GetByIdWithProgramsAsync(id);
  if (entity == null) return false;
+
  entity.Name = request.Name;
  entity.Description = request.Description;
  entity.PriceMonthly = request.PriceMonthly;
@@ -92,23 +97,52 @@ namespace ITI.Gymunity.FP.Application.Services
  entity.ThumbnailUrl = request.ThumbnailUrl;
  entity.IsAnnual = request.IsAnnual;
  entity.PromoCode = request.PromoCode ?? entity.PromoCode ?? string.Empty;
- repo.Update(entity);
- await _unitOfWork.CompleteAsync();
 
- // sync package programs: remove existing, add provided
- var existing = (await _unitOfWork.Repository<PackageProgram>().GetAllAsync()).Where(x => x.PackageId == id).ToList();
- foreach (var ex in existing) _unitOfWork.Repository<PackageProgram>().Delete(ex);
- await _unitOfWork.CompleteAsync();
- if (request.ProgramIds != null && request.ProgramIds.Length >0)
+ // use loaded navigation collection to avoid duplicates
+ var existingProgramLinks = entity.PackagePrograms?.Where(pp => !pp.IsDeleted).ToList() ?? new List<PackageProgram>();
+ var existingProgramIds = existingProgramLinks.Select(x => x.ProgramId).ToHashSet();
+ var requestedIds = request.ProgramIds != null ? request.ProgramIds.ToHashSet() : new HashSet<int>();
+
+ var packageProgramRepo = _unitOfWork.Repository<PackageProgram>();
+
+ // remove links that are not requested
+ var toRemove = existingProgramLinks.Where(ep => !requestedIds.Contains(ep.ProgramId)).ToList();
+ foreach (var ex in toRemove)
  {
- foreach (var pid in request.ProgramIds)
+ packageProgramRepo.Delete(ex);
+ }
+
+ // add links that don't exist yet (handle soft-deleted ones by reviving)
+ var allPackagePrograms = (await packageProgramRepo.GetAllAsync()).Where(pp => pp.PackageId == id).ToList();
+ foreach (var pid in requestedIds.Where(pid => !existingProgramIds.Contains(pid)))
  {
- _unitOfWork.Repository<PackageProgram>().Add(new PackageProgram { PackageId = id, ProgramId = pid });
+ var existingRow = allPackagePrograms.FirstOrDefault(pp => pp.ProgramId == pid);
+ if (existingRow != null)
+ {
+ if (existingRow.IsDeleted)
+ {
+ existingRow.IsDeleted = false;
+ packageProgramRepo.Update(existingRow);
  }
+ // if exists and not deleted, nothing to do
+ }
+ else
+ {
+ packageProgramRepo.Add(new PackageProgram { PackageId = id, ProgramId = pid });
+ }
+ }
+
+ // update package entity
+ _unitOfWork.Repository<Package>().Update(entity);
  await _unitOfWork.CompleteAsync();
- }
 
  return true;
+ }
+ catch (DbUpdateException dbEx)
+ {
+ // wrap to provide clearer message for controller/middleware
+ throw new InvalidOperationException("Database update conflict while updating package. Possible duplicate program link.", dbEx);
+ }
  }
 
  public async Task<bool> DeleteAsync(int id)

@@ -63,8 +63,22 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
 
         public async Task<TrainerProfileDetailResponse> CreateProfile(CreateTrainerProfileRequest request)
         {
-            // Check if handle already exists
+            // Get repository
             var repository = _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>();
+
+            // Check if user already has a trainer profile
+            if (!string.IsNullOrEmpty(request.UserId))
+            {
+                var existingProfile = await repository.GetWithSpecsAsync(
+                    new TrainerWithUsersAndProgramsSpecs(tp => tp.UserId == request.UserId && !tp.IsDeleted));
+
+                if (existingProfile != null)
+                {
+                    throw new InvalidOperationException($"User '{request.UserId}' already has a trainer profile.");
+                }
+            }
+
+            // Check if handle already exists
             if (await repository.HandleExistsAsync(request.Handle))
             {
                 throw new InvalidOperationException($"Handle '{request.Handle}' already exists.");

@@ -175,7 +175,8 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(p => new DateTimeOffset(p.CreatedAt)))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(p => p.UpdatedAt))
                 .ForMember(dest => dest.IsAnnual, opt => opt.MapFrom(p => p.IsAnnual))
-                .ForMember(dest => dest.PromoCode, opt => opt.MapFrom(p => p.PromoCode));
+                .ForMember(dest => dest.PromoCode, opt => opt.MapFrom(p => p.PromoCode))
+                .ForMember(dest => dest.ProgramIds, opt => opt.MapFrom(p => p.PackagePrograms != null ? p.PackagePrograms.Where(pp => !pp.IsDeleted).Select(pp => pp.ProgramId).ToArray() : new int[0]));
 
             CreateMap<PackageCreateRequest, Package>()
                 .ForMember(dest => dest.Id, opt => opt.Ignore())
