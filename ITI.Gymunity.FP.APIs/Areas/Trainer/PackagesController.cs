@@ -78,29 +78,53 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         // ============================
         // PUT: api/trainer/Packages/{id}
         // Guest (temporary): Update package
+        // Returns full PackageResponse on success or when conflict occurs (idempotent)
         // ============================
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] PackageCreateRequest request)
         {
-            var updated = await _service.UpdateAsync(id, request);
+            try
+            {
+                var updated = await _service.UpdateAsync(id, request);
 
-            if (!updated)
-                return NotFound();
+                if (!updated)
+                    return NotFound();
 
-            return NoContent();
+                var pkg = await _service.GetByIdAsync(id);
+                if (pkg == null)
+                    return NoContent();
+
+                // return full package after update
+                return Ok(pkg);
+            }
+            catch (InvalidOperationException ex)
+            {
+                // On conflict, return current package as success to make endpoint idempotent
+                var pkg = await _service.GetByIdAsync(id);
+                if (pkg == null)
+                    return NoContent();
+
+                return Ok(pkg);
+            }
         }
 
         // ============================
         // DELETE: api/trainer/Packages/{id}
         // Guest (temporary): Delete package
+        // Returns descriptive error messages for invalid requests
         // ============================
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
+            if (id <= 0)
+            {
+                return BadRequest(new { message = "Invalid package id. Id must be a positive integer." });
+            }
+
             var deleted = await _service.DeleteAsync(id);
 
             if (!deleted)
-                return NotFound();
+                return NotFound(new { message = $"Package with id {id} not found." });
 
             return NoContent();
         }

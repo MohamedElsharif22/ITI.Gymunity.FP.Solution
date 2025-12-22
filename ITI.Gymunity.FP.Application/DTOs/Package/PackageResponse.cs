@@ -15,5 +15,6 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
  public string TrainerId { get; set; } = null!;
  public bool IsAnnual { get; set; }
  public string? PromoCode { get; set; }
+ public int[] ProgramIds { get; set; } = new int[0];
  }
 }
