@@ -4,9 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
- [Area("Trainer")]
- [Route("api/trainer/[controller]")]
- [ApiController]
+
  public class WeeksController : TrainerBaseController
  {
  private readonly IWeekService _service;
