@@ -79,6 +79,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 user = new AppUser
                 {
                     FullName = $"{googleUser.FirstName} {googleUser.LastName}",
+                    ProfilePhotoUrl = googleUser.Picture,
                     Email = googleUser.Email,
                     UserName = googleUser.Email,
                     EmailConfirmed = true // Google email is already verified
