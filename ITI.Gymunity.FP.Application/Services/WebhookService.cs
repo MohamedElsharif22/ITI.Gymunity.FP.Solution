@@ -25,9 +25,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             _configuration = configuration;
         }
 
-        /// <summary>
         /// Process Paymob webhook
-        /// </summary>
         public async Task<WebhookResponse> ProcessPaymobWebhookAsync(
             PaymobWebhookPayload payload,
             string receivedHmac)
@@ -153,9 +151,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             }
         }
 
-        /// <summary>
         /// Process PayPal webhook
-        /// </summary>
         public async Task<WebhookResponse> ProcessPayPalWebhookAsync(
             PayPalWebhookPayload payload)
         {
@@ -254,9 +250,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             }
         }
 
-        /// <summary>
         /// Verify Paymob HMAC signature
-        /// </summary>
         private bool VerifyPaymobHmac(
             PaymobWebhookPayload payload,
             string receivedHmac,

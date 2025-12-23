@@ -1,11 +1,12 @@
 ﻿using AutoMapper;
+using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Domain;
+using ITI.Gymunity.FP.Domain.Models;
+using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Infrastructure.Common;
 using ITI.Gymunity.FP.Infrastructure.DTOs.User.Payment;
 using ITI.Gymunity.FP.Infrastructure.Specefications.Payment;
 using ITI.Gymunity.FP.Infrastructure.Specefications.Subscription;
-using ITI.Gymunity.FP.Domain;
-using ITI.Gymunity.FP.Domain.Models;
-using ITI.Gymunity.FP.Domain.Models.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace ITI.Gymunity.FP.Infrastructure.Services
@@ -15,44 +16,42 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<PaymentService> _logger;
+        private readonly PayPalService _paypalService;
 
         public PaymentService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<PaymentService> logger)
+            ILogger<PaymentService> logger,
+            PayPalService paypalService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _paypalService = paypalService;
         }
 
-        /// Step 2: Initiate payment for a subscription
         public async Task<ServiceResult<PaymentResponse>> InitiatePaymentAsync(
             string clientId,
             InitiatePaymentRequest request)
         {
             try
             {
-                // 1. Validate Subscription belongs to client and is Unpaid
+                // 1. Validate Subscription
                 var subSpec = new ClientSubscriptionByIdSpecs(request.SubscriptionId, clientId);
                 var subscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(subSpec);
 
                 if (subscription == null)
-                    return ServiceResult<PaymentResponse>.Failure(
-                        "Subscription not found");
+                    return ServiceResult<PaymentResponse>.Failure("Subscription not found");
 
-                //  Check subscription status
                 if (subscription.Status == SubscriptionStatus.Active)
-                    return ServiceResult<PaymentResponse>.Failure(
-                        "Subscription is already active and paid");
+                    return ServiceResult<PaymentResponse>.Failure("Subscription is already active and paid");
 
                 if (subscription.Status == SubscriptionStatus.Canceled)
-                    return ServiceResult<PaymentResponse>.Failure(
-                        "Cannot pay for a canceled subscription");
+                    return ServiceResult<PaymentResponse>.Failure("Cannot pay for a canceled subscription");
 
-                // 2. Check if payment already exists and pending
+                // 2. Check existing pending payment
                 var existingPaymentSpec = new PaymentBySubscriptionSpecs(subscription.Id);
                 var existingPayments = await _unitOfWork
                     .Repository<Payment>()
@@ -64,18 +63,16 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
 
                 if (pendingPayment != null)
                 {
-                    // Return existing payment info
                     var existingResponse = _mapper.Map<PaymentResponse>(pendingPayment);
                     existingResponse.PaymentUrl = GeneratePaymentUrl(pendingPayment);
-
                     return ServiceResult<PaymentResponse>.Success(existingResponse);
                 }
 
-                // 3. Create new Payment record
+                // 3. Create new Payment
                 var payment = new Payment
                 {
                     SubscriptionId = request.SubscriptionId,
-                    ClientId = clientId, 
+                    ClientId = clientId,
                     Amount = subscription.AmountPaid,
                     Currency = subscription.Currency,
                     Status = PaymentStatus.Pending,
@@ -83,39 +80,52 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
                     CreatedAt = DateTime.UtcNow
                 };
 
-                //  Calculate platform fees
                 payment.CalculateFees(subscription.PlatformFeePercentage);
 
                 _unitOfWork.Repository<Payment>().Add(payment);
                 await _unitOfWork.CompleteAsync();
 
-                // 4. Generate payment gateway order ID
+                // 4. Generate payment URL
                 string? paymentUrl = null;
 
                 switch (request.PaymentMethod)
                 {
                     case PaymentMethod.Paymob:
-                        //  Generate Paymob order
                         payment.PaymobOrderId = $"ORDER_{payment.Id}_{DateTime.UtcNow.Ticks}";
-                        // TODO: Call Paymob API to create real order
                         paymentUrl = await GeneratePaymobPaymentUrlAsync(payment, request.ReturnUrl);
                         break;
 
                     case PaymentMethod.PayPal:
-                        //  Generate PayPal order
-                        payment.PayPalOrderId = $"PAYPAL_{payment.Id}_{DateTime.UtcNow.Ticks}";
-                        // TODO: Call PayPal API to create real order
-                        paymentUrl = await GeneratePayPalPaymentUrlAsync(payment, request.ReturnUrl);
+                        var returnUrl = request.ReturnUrl ?? "http://localhost:5000/api/payment/paypal/return";
+                        var cancelUrl = "http://localhost:5000/api/payment/paypal/cancel";
+
+                        var paypalResult = await _paypalService.CreateOrderAsync(
+                            payment,
+                            returnUrl,
+                            cancelUrl);
+
+                        if (!paypalResult.Success)
+                        {
+                            _logger.LogError(
+                                "Failed to create PayPal order for payment {PaymentId}: {Error}",
+                                payment.Id,
+                                paypalResult.ErrorMessage);
+
+                            return ServiceResult<PaymentResponse>.Failure(
+                                $"Failed to create PayPal order: {paypalResult.ErrorMessage}");
+                        }
+
+                        payment.PayPalOrderId = paypalResult.OrderId;
+                        paymentUrl = paypalResult.ApprovalUrl;
                         break;
 
                     default:
-                        return ServiceResult<PaymentResponse>.Failure(
-                            "Payment method not supported");
+                        return ServiceResult<PaymentResponse>.Failure("Payment method not supported");
                 }
 
                 await _unitOfWork.CompleteAsync();
 
-                // 5. Map and return response
+                // 5. Return response
                 var response = _mapper.Map<PaymentResponse>(payment);
                 response.PaymentUrl = paymentUrl;
 
@@ -138,7 +148,6 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             }
         }
 
-        /// Step 3: Confirm payment (called by webhook)
         public async Task<ServiceResult<bool>> ConfirmPaymentAsync(
             int paymentId,
             string transactionId)
@@ -155,12 +164,11 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
                 if (payment.Status == PaymentStatus.Completed)
                 {
                     _logger.LogWarning(
-                        "Payment {PaymentId} already completed. Ignoring duplicate webhook.",
+                        "Payment {PaymentId} already completed. Ignoring duplicate.",
                         paymentId);
                     return ServiceResult<bool>.Success(true);
                 }
 
-                //  Update payment status
                 payment.Status = PaymentStatus.Completed;
                 payment.PaidAt = DateTime.UtcNow;
 
@@ -169,7 +177,6 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
                 else if (payment.Method == PaymentMethod.PayPal)
                     payment.PayPalCaptureId = transactionId;
 
-                //  Activate subscription
                 var subscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetByIdAsync(payment.SubscriptionId);
@@ -178,7 +185,6 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
                 {
                     subscription.Status = SubscriptionStatus.Active;
 
-                    //  Update subscription payment IDs
                     if (payment.Method == PaymentMethod.Paymob)
                     {
                         subscription.PaymobOrderId = payment.PaymobOrderId;
@@ -210,7 +216,6 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             }
         }
 
-        /// Handle failed payment
         public async Task<ServiceResult<bool>> FailPaymentAsync(
             int paymentId,
             string reason)
@@ -248,7 +253,6 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             }
         }
 
-        /// Get payment history for client
         public async Task<ServiceResult<PaymentHistoryResponse>> GetPaymentHistoryAsync(
             string clientId,
             PaymentStatus? status = null)
@@ -283,7 +287,6 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             }
         }
 
-        /// Get payment details by ID
         public async Task<ServiceResult<PaymentResponse>> GetPaymentByIdAsync(
             int id,
             string clientId)
@@ -296,8 +299,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
                     .GetWithSpecsAsync(spec);
 
                 if (payment == null)
-                    return ServiceResult<PaymentResponse>.Failure(
-                        "Payment not found");
+                    return ServiceResult<PaymentResponse>.Failure("Payment not found");
 
                 var response = _mapper.Map<PaymentResponse>(payment);
                 response.PaymentUrl = GeneratePaymentUrl(payment);
@@ -323,28 +325,16 @@ namespace ITI.Gymunity.FP.Infrastructure.Services
             return payment.Method switch
             {
                 PaymentMethod.Paymob => $"https://paymob.com/checkout/{payment.PaymobOrderId}",
-                PaymentMethod.PayPal => $"https://paypal.com/checkout/{payment.PayPalOrderId}",
+                PaymentMethod.PayPal => $"https://www.sandbox.paypal.com/checkoutnow?token={payment.PayPalOrderId}",
                 _ => string.Empty
             };
         }
 
         private async Task<string> GeneratePaymobPaymentUrlAsync(Payment payment, string? returnUrl)
         {
-            // TODO: Implement real Paymob integration
-            // 1. Create Paymob order
-            // 2. Get payment token
-            // 3. Return iframe URL
+            // TODO: Implement Paymob integration
             await Task.CompletedTask;
             return $"https://paymob.com/iframe/{payment.PaymobOrderId}";
-        }
-
-        private async Task<string> GeneratePayPalPaymentUrlAsync(Payment payment, string? returnUrl)
-        {
-            // TODO: Implement real PayPal integration
-            // 1. Create PayPal order
-            // 2. Get approval link
-            await Task.CompletedTask;
-            return $"https://paypal.com/checkoutnow?token={payment.PayPalOrderId}";
         }
 
         #endregion
