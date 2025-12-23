@@ -9,17 +9,17 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
 {
     public class Package : BaseEntity
     {
-        public string TrainerId { get; set; } = null!;
+        public int TrainerId { get; set; } 
+
+        public TrainerProfile Trainer { get; set; } = null!;
+
         public string Name { get; set; } = null!;
         public string Description { get; set; } = string.Empty;
         public decimal PriceMonthly { get; set; }
         public decimal? PriceYearly { get; set; }
         public string Currency { get; set; } = "EGP";
 
-        // Only non-program features here now
         public string FeaturesJson { get; set; } = "{}";
-        // Example: {"formChecksPerWeek":4,"priorityMessaging":true,"monthlyVideoCall":true}
-
         public bool IsActive { get; set; } = true;
         public string? ThumbnailUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -27,8 +27,6 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
         // New properties
         public bool IsAnnual { get; set; } = false;
         public string? PromoCode { get; set; }
-
-        public AppUser Trainer { get; set; } = null!;
 
         // Many-to-many with Program
         public ICollection<PackageProgram> PackagePrograms { get; set; } = [];

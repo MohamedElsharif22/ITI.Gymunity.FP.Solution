@@ -86,7 +86,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
 
  // GET: api/homeclient/packages/byTrainerUser/{trainerUserId}
  [HttpGet("packages/byTrainerUser/{trainerUserId}")]
- public async Task<ActionResult<IEnumerable<PackageClientResponse>>> GetPackagesByTrainerUserId(string trainerUserId)
+ public async Task<ActionResult<IEnumerable<PackageClientResponse>>> GetPackagesByTrainerUserId(int trainerUserId)
  {
  var packages = await _homeService.GetPackagesByTrainerAsync(trainerUserId);
  return Ok(packages);

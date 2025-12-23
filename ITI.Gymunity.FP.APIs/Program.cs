@@ -78,7 +78,7 @@ namespace ITI.Gymunity.FP.APIs
 
             builder.Services.AddInfrastructureServices();
 
-            builder.Services.AddApplicationServices();
+            builder.Services.AddApplicationServices(builder.Configuration);
 
             // register image resolver for DI (used by AutoMapper resolver)
 

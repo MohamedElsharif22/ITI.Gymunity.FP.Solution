@@ -10,7 +10,6 @@ namespace ITI.Gymunity.FP.Application.Specefications.Subscriptions
         {
             AddInclude(s => s.Package);
             AddInclude(s => s.Package.Trainer);        
-            AddInclude(s => s.Package.Trainer);
         }
     }
 }

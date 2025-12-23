@@ -29,7 +29,6 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 
         // TrainerId added so controller can accept trainer id in request for dev/testing
         [Required(ErrorMessage = "TrainerId is required.")]
-        [StringLength(450, ErrorMessage = "TrainerId length must be <= 450 characters")]
-        public string? TrainerId { get; set; }
+        public int TrainerId { get; set; }
     }
 }
