@@ -31,37 +31,31 @@
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.HasAccessToTrainer(System.String)">
             Check if client has access to a specific trainer's content
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.PayPalCallbackController.PayPalReturn(System.String)">
+            PayPal return URL (after user approves payment)
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.PayPalCallbackController.PayPalCancel(System.String)">
+            PayPal cancel URL
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.PaymobWebhook(ITI.Gymunity.FP.Infrastructure.DTOs.User.Webhook.PaymobWebhookPayload)">
-            <summary>
             Paymob webhook endpoint
             Called by Paymob after payment completion/failure
-            </summary>
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.PayPalWebhook(ITI.Gymunity.FP.Infrastructure.DTOs.User.Webhook.PayPalWebhookPayload)">
-            <summary>
             PayPal webhook endpoint
             Called by PayPal for various payment events
-            </summary>
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestWebhook">
-            <summary>
             Test endpoint for webhook validation (Development only!)
-            </summary>
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendConfirmationEmail(System.String)">
-            <summary>
-            ✅ NEW: Manual email test endpoint (Development only!)
-            </summary>
+             NEW: Manual email test endpoint (Development only!)
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendTrainerNotification(System.String)">
-            <summary>
-            ✅ NEW: Manual trainer notification test (Development only!)
-            </summary>
+             NEW: Manual trainer notification test (Development only!)
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendFailureEmail(System.String)">
-            <summary>
-            ✅ NEW: Test payment failure email (Development only!)
-            </summary>
+             NEW: Test payment failure email (Development only!)
         </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.AccountController">
             <summary>

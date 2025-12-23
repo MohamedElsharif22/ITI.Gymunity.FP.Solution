@@ -12,23 +12,21 @@ namespace ITI.Gymunity.FP.APIs.Controllers
     public class WebhooksController : ControllerBase
     {
         private readonly WebhookService _webhookService;
-        private readonly EmailTemplateService _emailService; // ✅ Added
+        private readonly EmailTemplateService _emailService; 
         private readonly ILogger<WebhooksController> _logger;
 
         public WebhooksController(
             WebhookService webhookService,
-            EmailTemplateService emailService, // ✅ Added
+            EmailTemplateService emailService, 
             ILogger<WebhooksController> logger)
         {
             _webhookService = webhookService;
-            _emailService = emailService; // ✅ Added
+            _emailService = emailService; 
             _logger = logger;
         }
 
-        /// <summary>
         /// Paymob webhook endpoint
         /// Called by Paymob after payment completion/failure
-        /// </summary>
         [HttpPost("paymob")]
         [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status400BadRequest)]
@@ -50,7 +48,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                 payload.Obj?.Currency,
                 !string.IsNullOrEmpty(hmac));
 
-            // ✅ Process webhook (this already sends emails internally)
+            //  Process webhook (this already sends emails internally)
             var result = await _webhookService.ProcessPaymobWebhookAsync(payload, hmac);
 
             if (!result.Success)
@@ -67,16 +65,14 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                 result.PaymentId,
                 result.Message);
 
-            // ✅ Note: Emails are already sent in WebhookService.CompletePaymentAsync()
+            //  Note: Emails are already sent in WebhookService.CompletePaymentAsync()
             // No need to send here unless you want additional notifications
 
             return Ok(result);
         }
 
-        /// <summary>
         /// PayPal webhook endpoint
         /// Called by PayPal for various payment events
-        /// </summary>
         [HttpPost("paypal")]
         [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status400BadRequest)]
@@ -112,9 +108,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             return Ok(result);
         }
 
-        /// <summary>
         /// Test endpoint for webhook validation (Development only!)
-        /// </summary>
         [HttpGet("test")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult TestWebhook()
@@ -137,9 +131,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             });
         }
 
-        /// <summary>
-        /// ✅ NEW: Manual email test endpoint (Development only!)
-        /// </summary>
+        ///  NEW: Manual email test endpoint (Development only!)
         [HttpPost("test/send-confirmation-email")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> TestSendConfirmationEmail([FromQuery] string email)
@@ -191,9 +183,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             }
         }
 
-        /// <summary>
-        /// ✅ NEW: Manual trainer notification test (Development only!)
-        /// </summary>
+        ///  NEW: Manual trainer notification test (Development only!)
         [HttpPost("test/send-trainer-notification")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> TestSendTrainerNotification([FromQuery] string email)
@@ -244,9 +234,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             }
         }
 
-        /// <summary>
-        /// ✅ NEW: Test payment failure email (Development only!)
-        /// </summary>
+        ///  NEW: Test payment failure email (Development only!)
         [HttpPost("test/send-failure-email")]
         [ApiExplorerSettings(IgnoreApi = true)]
         public async Task<IActionResult> TestSendFailureEmail([FromQuery] string email)

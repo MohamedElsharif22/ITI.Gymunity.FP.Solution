@@ -37,23 +37,24 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             CreateMap<Subscription, SubscriptionResponse>()
-                .ForMember(d => d.PackageName,
-                    o => o.MapFrom(s => s.Package.Name))
-                .ForMember(d => d.PackageDescription,
-                    o => o.MapFrom(s => s.Package.Description ?? ""))
-                // Trainer Info
-                .ForMember(d => d.TrainerId,
-                    o => o.MapFrom(s => s.Package.TrainerId))
-                .ForMember(d => d.TrainerName,
-                    o => o.MapFrom(s => s.Package.Trainer.FullName))
-                .ForMember(d => d.TrainerHandle,
-                    o => o.MapFrom(s => s.Package.Trainer.UserName))
-                .ForMember(d => d.TrainerPhotoUrl,
-                    o => o.MapFrom(s => s.Package.Trainer.ProfilePhotoUrl))
-                .ForMember(d => d.IsAnnual,
-                    o => o.MapFrom(s => (s.CurrentPeriodEnd - s.StartDate).Days > 31));
-                //.ForMember(d => d.FeaturesIncluded,
-                //    o => o.MapFrom(s => ParseFeatures(s.Package.FeaturesJSON)));
+           .ForMember(d => d.PackageName,
+               o => o.MapFrom(s => s.Package.Name))
+           .ForMember(d => d.PackageDescription,
+               o => o.MapFrom(s => s.Package.Description ?? ""))
+
+           // Trainer Info (من TrainerProfile)
+           .ForMember(d => d.TrainerId,
+               o => o.MapFrom(s => s.Package.Trainer.UserId))
+           .ForMember(d => d.TrainerName,
+               o => o.MapFrom(s => s.Package.Trainer.User.FullName))
+           .ForMember(d => d.TrainerHandle,
+               o => o.MapFrom(s => s.Package.Trainer.Handle))
+           .ForMember(d => d.TrainerPhotoUrl,
+               o => o.MapFrom(s => s.Package.Trainer.User.ProfilePhotoUrl))
+           .ForMember(d => d.IsAnnual,
+               o => o.MapFrom(s =>
+                   (s.CurrentPeriodEnd - s.StartDate).Days > 31));
+
 
 
             // Message mappings
