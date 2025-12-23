@@ -1,6 +1,6 @@
 ﻿using ITI.Gymunity.FP.APIs.Responses;
-using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Infrastructure.DTOs.Account;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Application.DTOs.Account;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;

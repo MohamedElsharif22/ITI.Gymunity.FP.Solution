@@ -1,4 +1,4 @@
-namespace ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices
+namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
 {
     /// <summary>
     /// Interface for managing SignalR connections and notifications

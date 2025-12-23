@@ -3,7 +3,7 @@ using ITI.Gymunity.FP.Domain.Specification;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications
+namespace ITI.Gymunity.FP.Application.Specefications
 {
     internal class TrainerWithUsersAndProgramsSpecs : BaseSpecification<TrainerProfile>
     {

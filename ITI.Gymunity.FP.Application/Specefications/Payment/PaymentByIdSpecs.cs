@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using ITI.Gymunity.FP.Domain.Specification;
 using Microsoft.EntityFrameworkCore; 
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications.Payment
+namespace ITI.Gymunity.FP.Application.Specefications.Payment
 {
     public class PaymentByIdSpecs : BaseSpecification<Domain.Models.Payment>
     {

@@ -1,7 +1,7 @@
-using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using System.Collections.Concurrent;
 
-namespace ITI.Gymunity.FP.Infrastructure.Services
+namespace ITI.Gymunity.FP.Application.Services
 {
     /// <summary>
     /// Manages SignalR connections for real-time communication

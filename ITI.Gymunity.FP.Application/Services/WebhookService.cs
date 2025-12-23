@@ -1,13 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
-using ITI.Gymunity.FP.Infrastructure.DTOs.User.Webhook;
+using ITI.Gymunity.FP.Application.DTOs.User.Webhook;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
+using ITI.Gymunity.FP.Application.DTOs.User.Webhook;
 
-namespace ITI.Gymunity.FP.Infrastructure.Services
+namespace ITI.Gymunity.FP.Application.Services
 {
     public class WebhookService
     {

@@ -1,5 +1,5 @@
-﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
-using ITI.Gymunity.FP.Infrastructure.DTOs.Email;
+﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Application.DTOs.Email;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;

@@ -2,7 +2,7 @@
 using ITI.Gymunity.FP.Application.Mapping;
 using ITI.Gymunity.FP.Application.Services;
 using ITI.Gymunity.FP.Application.Services.ClientServices;
-using ITI.Gymunity.FP.Infrastructure.Services;
+using ITI.Gymunity.FP.Application.Services;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ITI.Gymunity.FP.Application.DependencyInjection

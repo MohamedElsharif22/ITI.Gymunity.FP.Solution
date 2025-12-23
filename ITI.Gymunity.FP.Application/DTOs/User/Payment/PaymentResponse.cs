@@ -1,6 +1,6 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Enums;
 
-namespace ITI.Gymunity.FP.Infrastructure.DTOs.User.Payment
+namespace ITI.Gymunity.FP.Application.DTOs.User.Payment
 {
     public class PaymentResponse
     {

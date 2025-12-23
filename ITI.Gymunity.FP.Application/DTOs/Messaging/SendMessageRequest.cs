@@ -1,7 +1,7 @@
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using System.ComponentModel;
 
-namespace ITI.Gymunity.FP.Infrastructure.DTOs.Messaging
+namespace ITI.Gymunity.FP.Application.DTOs.Messaging
 {
     public class SendMessageRequest
     {

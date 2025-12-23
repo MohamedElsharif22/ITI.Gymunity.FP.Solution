@@ -1,7 +1,7 @@
 ﻿using ITI.Gymunity.FP.APIs.Responses;
 using ITI.Gymunity.FP.Domain.Models.Enums;
-using ITI.Gymunity.FP.Infrastructure.DTOs.User.Payment;
-using ITI.Gymunity.FP.Infrastructure.Services;
+using ITI.Gymunity.FP.Application.DTOs.User.Payment;
+using ITI.Gymunity.FP.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Linq;

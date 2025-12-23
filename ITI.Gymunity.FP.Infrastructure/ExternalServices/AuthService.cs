@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;

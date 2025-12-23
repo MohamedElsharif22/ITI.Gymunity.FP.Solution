@@ -4,7 +4,7 @@
         <name>ITI.Gymunity.FP.APIs</name>
     </assembly>
     <members>
-        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.PaymentsController.InitiatePayment(ITI.Gymunity.FP.Infrastructure.DTOs.User.Payment.InitiatePaymentRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.PaymentsController.InitiatePayment(ITI.Gymunity.FP.Application.DTOs.User.Payment.InitiatePaymentRequest)">
             Initiate payment for a subscription
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.PaymentsController.GetPaymentHistory(System.Nullable{ITI.Gymunity.FP.Domain.Models.Enums.PaymentStatus})">
@@ -13,7 +13,7 @@
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.PaymentsController.GetPayment(System.Int32)">
             Get payment details by ID
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.Subscribe(ITI.Gymunity.FP.Infrastructure.DTOs.User.Subscribe.SubscribePackageRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.Subscribe(ITI.Gymunity.FP.Application.DTOs.User.Subscribe.SubscribePackageRequest)">
             Subscribe to a trainer's package
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.GetMySubscriptions(System.Nullable{ITI.Gymunity.FP.Domain.Models.Enums.SubscriptionStatus})">
@@ -31,38 +31,6 @@
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.HasAccessToTrainer(System.String)">
             Check if client has access to a specific trainer's content
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.PaymobWebhook(ITI.Gymunity.FP.Infrastructure.DTOs.User.Webhook.PaymobWebhookPayload)">
-            <summary>
-            Paymob webhook endpoint
-            Called by Paymob after payment completion/failure
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.PayPalWebhook(ITI.Gymunity.FP.Infrastructure.DTOs.User.Webhook.PayPalWebhookPayload)">
-            <summary>
-            PayPal webhook endpoint
-            Called by PayPal for various payment events
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestWebhook">
-            <summary>
-            Test endpoint for webhook validation (Development only!)
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendConfirmationEmail(System.String)">
-            <summary>
-            ✅ NEW: Manual email test endpoint (Development only!)
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendTrainerNotification(System.String)">
-            <summary>
-            ✅ NEW: Manual trainer notification test (Development only!)
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendFailureEmail(System.String)">
-            <summary>
-            ✅ NEW: Test payment failure email (Development only!)
-            </summary>
-        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.AccountController">
             <summary>
             Provides API endpoints for user account registration and authentication operations.
@@ -72,7 +40,7 @@
             responses based on the outcome of the requested operation.</remarks>
             <param name="accountService">The account service used to perform user registration and authentication operations. Cannot be null.</param>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.#ctor(ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices.IAccountService)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.#ctor(ITI.Gymunity.FP.Application.Contracts.ExternalServices.IAccountService)">
             <summary>
             Provides API endpoints for user account registration and authentication operations.
             </summary>
@@ -81,7 +49,7 @@
             responses based on the outcome of the requested operation.</remarks>
             <param name="accountService">The account service used to perform user registration and authentication operations. Cannot be null.</param>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.Register(ITI.Gymunity.FP.Infrastructure.DTOs.Account.RegisterRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.Register(ITI.Gymunity.FP.Application.DTOs.Account.RegisterRequest)">
             <summary>
             Registers a new user account using the provided registration details.
             </summary>
@@ -93,16 +61,16 @@
             <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing the newly created user's information if registration
             is successful; otherwise, a bad request response with error details.</returns>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.Login(ITI.Gymunity.FP.Infrastructure.DTOs.Account.LoginRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.Login(ITI.Gymunity.FP.Application.DTOs.Account.LoginRequest)">
             <summary>
             Authenticates a user with the provided login credentials and returns user information if authentication is
             successful.
             </summary>
             <param name="request">The login credentials submitted by the client. Must include valid username and password values.</param>
-            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Infrastructure.DTOs.Account.UserResponse"/> if authentication succeeds;
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UserResponse"/> if authentication succeeds;
             otherwise, a bad request response with error details.</returns>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.GoogleAuth(ITI.Gymunity.FP.Infrastructure.DTOs.Account.GoogleAuthRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.GoogleAuth(ITI.Gymunity.FP.Application.DTOs.Account.GoogleAuthRequest)">
             <summary>
             Authenticates a user using Google credentials and returns user information if authentication is successful.
             </summary>
@@ -110,17 +78,17 @@
             <returns>An ActionResult containing the authenticated user's information if successful; otherwise, a BadRequest
             result with error details.</returns>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.UpdateProfile(ITI.Gymunity.FP.Infrastructure.DTOs.Account.UpdateProfileRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.UpdateProfile(ITI.Gymunity.FP.Application.DTOs.Account.UpdateProfileRequest)">
             <summary>
             Updates the authenticated user's profile with the specified information.
             </summary>
             <remarks>This endpoint requires authentication. Only the currently authenticated user's
             profile can be updated using this method.</remarks>
-            <param name="request">An <see cref="T:ITI.Gymunity.FP.Infrastructure.DTOs.Account.UpdateProfileRequest"/> object containing the new profile details to apply. Cannot be null.</param>
+            <param name="request">An <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UpdateProfileRequest"/> object containing the new profile details to apply. Cannot be null.</param>
             <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing the updated user profile if the update is successful;
             otherwise, a bad request response with error details.</returns>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.ChangePassword(ITI.Gymunity.FP.Infrastructure.DTOs.Account.ChangePasswordRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.ChangePassword(ITI.Gymunity.FP.Application.DTOs.Account.ChangePasswordRequest)">
             <summary>
             Changes the current user's password using the specified password change request.
             </summary>
@@ -130,7 +98,7 @@
             <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a UserResponse if the password change is successful; otherwise, a BadRequest
             result with error details.</returns>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.SendResetPasswordLink(ITI.Gymunity.FP.Infrastructure.DTOs.Account.ForgetPasswordRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.SendResetPasswordLink(ITI.Gymunity.FP.Application.DTOs.Account.ForgetPasswordRequest)">
             <summary>
             Sends a password reset link to the email address specified in the request.
             </summary>
@@ -139,12 +107,12 @@
             response if the reset password email was sent; otherwise, returns a bad request response with an error
             message.</returns>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.ResetPassword(ITI.Gymunity.FP.Infrastructure.DTOs.Account.ResetPasswordRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.ResetPassword(ITI.Gymunity.FP.Application.DTOs.Account.ResetPasswordRequest)">
             <summary>
             Resets the user's password using the information provided in the request.
             </summary>
             <param name="request">The request containing the user's password reset information. Must not be null.</param>
-            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Infrastructure.DTOs.Account.UserResponse"/> if the password reset is
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UserResponse"/> if the password reset is
             successful; otherwise, a bad request response with error details.</returns>
         </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatController">
@@ -156,7 +124,7 @@
             threads as read. Most endpoints return results in a standard response format indicating success or failure. For
             real-time messaging, consider using SignalR in addition to these endpoints.</remarks>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.#ctor(ITI.Gymunity.FP.Infrastructure.Contracts.Services.IChatService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.ChatController})">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.IChatService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.ChatController})">
             <summary>
             Provides API endpoints for managing chat threads and messages for authenticated users.
             </summary>
@@ -175,7 +143,7 @@
             Get messages for a specific thread
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.SendMessage(System.Int32,ITI.Gymunity.FP.Infrastructure.DTOs.Messaging.SendMessageRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.SendMessage(System.Int32,ITI.Gymunity.FP.Application.DTOs.Messaging.SendMessageRequest)">
             <summary>
             Sends a new message to the specified chat thread.
             </summary>
@@ -206,7 +174,7 @@
             retrieve notifications, get the count of unread notifications, and mark notifications as read. It is intended to
             be used by client applications to manage notification state for the current user.</remarks>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.NotificationsController.#ctor(ITI.Gymunity.FP.Infrastructure.Contracts.Services.INotificationService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.NotificationsController})">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.NotificationsController.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.INotificationService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.NotificationsController})">
             <summary>
             API controller that manages user notifications, including retrieving, counting, and updating notification status
             for the authenticated user.
@@ -235,6 +203,38 @@
             Mark all notifications as read
             </summary>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.PaymobWebhook(ITI.Gymunity.FP.Application.DTOs.User.Webhook.PaymobWebhookPayload)">
+            <summary>
+            Paymob webhook endpoint
+            Called by Paymob after payment completion/failure
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.PayPalWebhook(ITI.Gymunity.FP.Application.DTOs.User.Webhook.PayPalWebhookPayload)">
+            <summary>
+            PayPal webhook endpoint
+            Called by PayPal for various payment events
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestWebhook">
+            <summary>
+            Test endpoint for webhook validation (Development only!)
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendConfirmationEmail(System.String)">
+            <summary>
+            ✅ NEW: Manual email test endpoint (Development only!)
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendTrainerNotification(System.String)">
+            <summary>
+            ✅ NEW: Manual trainer notification test (Development only!)
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendFailureEmail(System.String)">
+            <summary>
+            ✅ NEW: Test payment failure email (Development only!)
+            </summary>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Hubs.ChatHub">
             <summary>
             SignalR Hub for real-time messaging
@@ -251,7 +251,7 @@
             Called when a user disconnects from the hub
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.SendMessage(System.Int32,ITI.Gymunity.FP.Infrastructure.DTOs.Messaging.SendMessageRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.ChatHub.SendMessage(System.Int32,ITI.Gymunity.FP.Application.DTOs.Messaging.SendMessageRequest)">
             <summary>
             Send a message to a specific thread
             </summary>
@@ -292,7 +292,7 @@
             Handles notification delivery and management
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.#ctor(ITI.Gymunity.FP.Infrastructure.Contracts.Services.INotificationService,ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices.ISignalRConnectionManager,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Hubs.NotificationHub})">
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.NotificationHub.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.INotificationService,ITI.Gymunity.FP.Application.Contracts.ExternalServices.ISignalRConnectionManager,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Hubs.NotificationHub})">
             <summary>
             SignalR Hub for real-time notifications
             Handles notification delivery and management

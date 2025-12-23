@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.DTOs.User.Webhook
+namespace ITI.Gymunity.FP.Application.DTOs.User.Webhook
 {
     public class WebhookResponse
     {
