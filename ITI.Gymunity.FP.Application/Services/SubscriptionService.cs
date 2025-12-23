@@ -1,15 +1,15 @@
 ﻿using AutoMapper;
-using ITI.Gymunity.FP.Infrastructure.Common;
-using ITI.Gymunity.FP.Infrastructure.DTOs.User.Subscribe;
-using ITI.Gymunity.FP.Infrastructure.Specefications.Subscription;
-using ITI.Gymunity.FP.Infrastructure.Specefications.Trainer;
+using ITI.Gymunity.FP.Application.Common;
+using ITI.Gymunity.FP.Application.Specefications.Subscriptions;
+using ITI.Gymunity.FP.Application.Specefications.Trainer;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using Microsoft.Extensions.Logging;
+using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 
-namespace ITI.Gymunity.FP.Infrastructure.Services
+namespace ITI.Gymunity.FP.Application.Services
 {
     public class SubscriptionService
     {

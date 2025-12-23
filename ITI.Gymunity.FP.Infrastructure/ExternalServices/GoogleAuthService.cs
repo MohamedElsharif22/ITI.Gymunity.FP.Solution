@@ -1,5 +1,5 @@
 ﻿using Google.Apis.Auth;
-using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;

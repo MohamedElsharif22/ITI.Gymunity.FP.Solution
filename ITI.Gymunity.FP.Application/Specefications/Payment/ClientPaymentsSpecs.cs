@@ -3,7 +3,7 @@ using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Specification;
 using Microsoft.EntityFrameworkCore; 
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications.Payment
+namespace ITI.Gymunity.FP.Application.Specefications.Payment
 {
     public class ClientPaymentsSpecs : BaseSpecification<Domain.Models.Payment>
     {

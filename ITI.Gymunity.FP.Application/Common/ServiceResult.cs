@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.Common
+namespace ITI.Gymunity.FP.Application.Common
 {
     public class ServiceResult<T>
     {

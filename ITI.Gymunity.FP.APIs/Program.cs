@@ -3,12 +3,13 @@ using ITI.Gymunity.FP.APIs.Extensions;
 using ITI.Gymunity.FP.APIs.Hubs;
 using ITI.Gymunity.FP.APIs.Middlewares;
 using ITI.Gymunity.FP.Application.DependencyInjection;
-using ITI.Gymunity.FP.Infrastructure._Data;
-using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using ITI.Gymunity.FP.Infrastructure._Data;
+using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
 
 namespace ITI.Gymunity.FP.APIs
 {
@@ -78,6 +79,8 @@ namespace ITI.Gymunity.FP.APIs
             builder.Services.AddInfrastructureServices();
 
             builder.Services.AddApplicationServices();
+
+            // register image resolver for DI (used by AutoMapper resolver)
 
             builder.Services.AddAuthenticationServices(builder.Configuration);
 

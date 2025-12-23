@@ -1,7 +1,9 @@
-﻿using ITI.Gymunity.FP.Infrastructure.DTOs.Email;
-using ITI.Gymunity.FP.Infrastructure.DTOs.User.Webhook;
-using ITI.Gymunity.FP.Infrastructure.ExternalServices;
-using ITI.Gymunity.FP.Infrastructure.Services;
+﻿using ITI.Gymunity.FP.Application.DTOs.Email;
+using ITI.Gymunity.FP.Application.DTOs.User.Webhook;
+using ITI.Gymunity.FP.Application.DTOs.Email;
+using ITI.Gymunity.FP.Application.DTOs.User.Webhook;
+using ITI.Gymunity.FP.Application.ExternalServices;
+using ITI.Gymunity.FP.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ITI.Gymunity.FP.APIs.Controllers

@@ -4,8 +4,8 @@ using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain;
 using System.Threading.Tasks;
-using ITI.Gymunity.FP.Infrastructure.DTOs.Trainer;
-using ITI.Gymunity.FP.Infrastructure.Specefications;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.Specefications;
 
 namespace ITI.Gymunity.FP.Application.Services
 {

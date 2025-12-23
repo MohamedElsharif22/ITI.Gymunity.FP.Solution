@@ -1,7 +1,7 @@
 ﻿using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Specification;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications.Payment
+namespace ITI.Gymunity.FP.Application.Specefications.Payment
 {
     public class PaymentByGatewayOrderSpecs : BaseSpecification<Domain.Models.Payment>
     {

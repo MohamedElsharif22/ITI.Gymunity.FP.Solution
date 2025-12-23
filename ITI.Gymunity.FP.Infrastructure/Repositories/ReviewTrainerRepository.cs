@@ -1,7 +1,7 @@
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
-using ITI.Gymunity.FP.Infrastructure._Data;
 using Microsoft.EntityFrameworkCore;
+using ITI.Gymunity.FP.Infrastructure._Data;
 
 namespace ITI.Gymunity.FP.Infrastructure.Repositories
 {

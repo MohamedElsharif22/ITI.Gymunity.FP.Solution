@@ -1,8 +1,6 @@
 ﻿using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
-using ITI.Gymunity.FP.Infrastructure._Data;
-using ITI.Gymunity.FP.Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Concurrent;
@@ -10,6 +8,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ITI.Gymunity.FP.Infrastructure._Data;
+using ITI.Gymunity.FP.Infrastructure.Repositories;
 
 namespace ITI.Gymunity.FP.Infrastructure
 {

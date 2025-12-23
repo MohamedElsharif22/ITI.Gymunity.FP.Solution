@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Infrastructure.Contracts.ExternalServices;
+﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System;

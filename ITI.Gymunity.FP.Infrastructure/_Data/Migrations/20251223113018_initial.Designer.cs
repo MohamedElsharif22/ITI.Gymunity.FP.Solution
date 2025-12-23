@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251221113506_initial")]
+    [Migration("20251223113018_initial")]
     partial class initial
     {
         /// <inheritdoc />

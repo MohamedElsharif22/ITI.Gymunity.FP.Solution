@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Infrastructure.DTOs.Account;
+﻿using ITI.Gymunity.FP.Application.DTOs.Account;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using System;
 using System.Collections.Generic;

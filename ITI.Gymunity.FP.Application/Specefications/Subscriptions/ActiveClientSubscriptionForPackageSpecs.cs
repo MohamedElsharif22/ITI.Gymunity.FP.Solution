@@ -2,7 +2,7 @@
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Specification;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications.Subscription
+namespace ITI.Gymunity.FP.Application.Specefications.Subscriptions
 {
     public class ActiveClientSubscriptionForPackageSpecs : BaseSpecification<Domain.Models.Subscription>
     {

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -26,18 +27,29 @@ namespace ITI.Gymunity.FP.Application.Services
  {
  private readonly IUnitOfWork _unitOfWork;
  private readonly IMapper _mapper;
+ private readonly IImageUrlResolver _imageResolver;
 
- public PackageService(IUnitOfWork unitOfWork, IMapper mapper)
+ public PackageService(IUnitOfWork unitOfWork, IMapper mapper, IImageUrlResolver imageResolver)
  {
  _unitOfWork = unitOfWork;
  _mapper = mapper;
+ _imageResolver = imageResolver;
  }
 
  public async Task<IReadOnlyList<PackageResponse>> GetAllForTrainerAsync(string trainerId)
  {
  var repo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
  var list = await repo.GetByTrainerIdAsync(trainerId);
- return list.Select(p => _mapper.Map<PackageResponse>(p)).ToList();
+ var mapped = list.Select(p => _mapper.Map<PackageResponse>(p)).ToList();
+
+ // Resolve thumbnail urls to absolute
+ foreach (var pkg in mapped)
+ {
+ if (!string.IsNullOrWhiteSpace(pkg.ThumbnailUrl))
+ pkg.ThumbnailUrl = _imageResolver.ResolveImageUrl(pkg.ThumbnailUrl);
+ }
+
+ return mapped;
  }
 
  public async Task<PackageResponse?> GetByIdAsync(int id)
@@ -45,7 +57,10 @@ namespace ITI.Gymunity.FP.Application.Services
  var repo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
  var p = await repo.GetByIdWithProgramsAsync(id);
  if (p == null) return null;
- return _mapper.Map<PackageResponse>(p);
+ var mapped = _mapper.Map<PackageResponse>(p);
+ if (!string.IsNullOrWhiteSpace(mapped.ThumbnailUrl))
+ mapped.ThumbnailUrl = _imageResolver.ResolveImageUrl(mapped.ThumbnailUrl);
+ return mapped;
  }
 
  public async Task<PackageResponse> CreateAsync(string trainerId, PackageCreateRequest request)
@@ -77,7 +92,11 @@ namespace ITI.Gymunity.FP.Application.Services
  await _unitOfWork.CompleteAsync();
  }
 
- return _mapper.Map<PackageResponse>(entity);
+ var mapped = _mapper.Map<PackageResponse>(entity);
+ if (!string.IsNullOrWhiteSpace(mapped.ThumbnailUrl))
+ mapped.ThumbnailUrl = _imageResolver.ResolveImageUrl(mapped.ThumbnailUrl);
+
+ return mapped;
  }
 
  public async Task<bool> UpdateAsync(int id, PackageCreateRequest request)
@@ -170,7 +189,15 @@ namespace ITI.Gymunity.FP.Application.Services
  {
  var repo = _unitOfWork.Repository<Package>();
  var list = await repo.GetAllAsync();
- return list.Select(p => _mapper.Map<PackageResponse>(p)).ToList();
+ var mapped = list.Select(p => _mapper.Map<PackageResponse>(p)).ToList();
+
+ foreach (var pkg in mapped)
+ {
+ if (!string.IsNullOrWhiteSpace(pkg.ThumbnailUrl))
+ pkg.ThumbnailUrl = _imageResolver.ResolveImageUrl(pkg.ThumbnailUrl);
+ }
+
+ return mapped;
  }
  }
 }

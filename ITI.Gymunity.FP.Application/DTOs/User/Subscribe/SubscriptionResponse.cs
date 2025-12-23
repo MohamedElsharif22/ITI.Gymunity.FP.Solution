@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.DTOs.User.Subscribe
+namespace ITI.Gymunity.FP.Application.DTOs.User.Subscribe
 {
     public class SubscriptionResponse
     {

@@ -1,6 +1,6 @@
-using ITI.Gymunity.FP.Infrastructure.DTOs.Notifications;
+using ITI.Gymunity.FP.Application.DTOs.Notifications;
 
-namespace ITI.Gymunity.FP.Infrastructure.Contracts.Services
+namespace ITI.Gymunity.FP.Application.Contracts.Services
 {
     public interface INotificationService
     {

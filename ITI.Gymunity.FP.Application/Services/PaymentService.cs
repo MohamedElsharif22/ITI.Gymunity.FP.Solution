@@ -1,14 +1,14 @@
 ﻿using AutoMapper;
-using ITI.Gymunity.FP.Infrastructure.Common;
-using ITI.Gymunity.FP.Infrastructure.DTOs.User.Payment;
-using ITI.Gymunity.FP.Infrastructure.Specefications.Payment;
-using ITI.Gymunity.FP.Infrastructure.Specefications.Subscription;
+using ITI.Gymunity.FP.Application.Common;
+using ITI.Gymunity.FP.Application.DTOs.User.Payment;
+using ITI.Gymunity.FP.Application.Specefications.Payment;
+using ITI.Gymunity.FP.Application.Specefications.Subscriptions;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using Microsoft.Extensions.Logging;
 
-namespace ITI.Gymunity.FP.Infrastructure.Services
+namespace ITI.Gymunity.FP.Application.Services
 {
     public class PaymentService
     {

@@ -1,14 +1,14 @@
-using ITI.Gymunity.FP.Infrastructure.Contracts.Services;
-using ITI.Gymunity.FP.Infrastructure.DTOs.Messaging;
+using ITI.Gymunity.FP.Application.Contracts.Services;
+using ITI.Gymunity.FP.Application.DTOs.Messaging;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.AspNetCore.Identity;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
-using ITI.Gymunity.FP.Infrastructure.Specefications.Chat;
+using ITI.Gymunity.FP.Application.Specefications.Chat;
 
-namespace ITI.Gymunity.FP.Infrastructure.Services
+namespace ITI.Gymunity.FP.Application.Services
 {
     public class ChatService(IUnitOfWork unitOfWork, 
             UserManager<AppUser> userManager, 

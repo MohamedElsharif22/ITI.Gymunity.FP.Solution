@@ -4,7 +4,7 @@ using ITI.Gymunity.FP.Application.DTOs.ClientDto;
 using ITI.Gymunity.FP.Application.Services.ClientServices;
 using ITI.Gymunity.FP.Application.Specefications.ClientSpecification;
 using ITI.Gymunity.FP.Domain.Models.Client;
-using ITI.Gymunity.FP.Infrastructure;
+using ITI.Gymunity.FP.Application;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;

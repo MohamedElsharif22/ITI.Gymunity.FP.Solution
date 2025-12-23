@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
 
-namespace ITI.Gymunity.FP.Infrastructure.DTOs.Trainer
+namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 {
     public class CreateTrainerProfileRequest
     {

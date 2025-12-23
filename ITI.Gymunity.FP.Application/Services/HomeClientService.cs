@@ -4,7 +4,7 @@ using ITI.Gymunity.FP.Application.DTOs.Client;
 using ITI.Gymunity.FP.Application.Specefications;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
-using ITI.Gymunity.FP.Infrastructure.Specefications;
+using ITI.Gymunity.FP.Application.Specefications;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;

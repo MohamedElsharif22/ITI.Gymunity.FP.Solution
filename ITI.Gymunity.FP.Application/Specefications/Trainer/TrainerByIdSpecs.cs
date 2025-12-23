@@ -2,7 +2,7 @@
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.Specification;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications.Trainer
+namespace ITI.Gymunity.FP.Application.Specefications.Trainer
 {
     public class TrainerByUserIdSpecs : BaseSpecification<TrainerProfile>
     {

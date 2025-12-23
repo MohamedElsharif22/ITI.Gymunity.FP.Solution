@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications.Chat
+namespace ITI.Gymunity.FP.Application.Specefications.Chat
 {
     internal class MessageWithSenderAndTreadSpecs : BaseSpecification<Message>
     {

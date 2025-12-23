@@ -1,7 +1,7 @@
 ﻿using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Specification;
 
-namespace ITI.Gymunity.FP.Infrastructure.Specefications.Subscription
+namespace ITI.Gymunity.FP.Application.Specefications.Subscriptions
 {
     public class ClientSubscriptionByIdSpecs : BaseSpecification<Domain.Models.Subscription>
     {
