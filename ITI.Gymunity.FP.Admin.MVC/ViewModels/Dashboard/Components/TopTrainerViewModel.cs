@@ -1,0 +1,14 @@
+namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Dashboard.Components
+{
+    /// <summary>
+    /// Represents a trainer in the top trainers list.
+    /// </summary>
+    public class TopTrainerViewModel
+    {
+        public int TrainerId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int ClientCount { get; set; }
+        public decimal Rating { get; set; }
+        public string? ImageUrl { get; set; }
+    }
+}

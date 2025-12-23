@@ -328,6 +328,12 @@
             Mark all notifications as read
             </summary>
         </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Responses.ApiResponse">
+            <summary>
+            Represents a standard response returned by an API, including an HTTP status code and an optional message
+            describing the result.
+            </summary>
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Responses.ApiResponse.#ctor(System.Int32,System.String)">
             <summary>
             Initializes a new instance of the ApiResponse class with the specified status code and an optional message.

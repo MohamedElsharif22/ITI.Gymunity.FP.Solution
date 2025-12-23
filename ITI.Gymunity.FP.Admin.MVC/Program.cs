@@ -1,5 +1,6 @@
 using ITI.Gymunity.FP.Application.DependencyInjection;
 using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
+using ITI.Gymunity.FP.Admin.MVC.Services;
 
 namespace ITI.Gymunity.FP.Admin.MVC
 {
@@ -21,6 +22,9 @@ namespace ITI.Gymunity.FP.Admin.MVC
             builder.Services.AddDbContextServices(builder.Configuration);
             builder.Services.AddApplicationServices();
             builder.Services.AddInfrastructureServices();
+
+            // Add Dashboard Service
+            builder.Services.AddScoped<DashboardStatisticsService>();
 
             var app = builder.Build();
 
