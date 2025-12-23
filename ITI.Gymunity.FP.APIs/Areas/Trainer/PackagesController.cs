@@ -46,10 +46,8 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         // Guest: Get packages by trainer profile
         // ============================
         [HttpGet("byTrainer/{trainerId}")]
-        public async Task<IActionResult> GetByTrainer(string trainerId)
+        public async Task<IActionResult> GetByTrainer(int trainerId)
         {
-            if (string.IsNullOrWhiteSpace(trainerId))
-                return BadRequest("trainerId is required.");
 
             var list = await _service.GetAllForTrainerAsync(trainerId);
             return Ok(list);
@@ -63,8 +61,6 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PackageCreateRequest request)
         {
-            if (string.IsNullOrWhiteSpace(request.TrainerId))
-                return BadRequest("TrainerId is required.");
 
             var created = await _service.CreateAsync(request.TrainerId, request);
 

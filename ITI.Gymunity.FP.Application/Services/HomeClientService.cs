@@ -89,7 +89,7 @@ namespace ITI.Gymunity.FP.Application.Services
  var trainer = await _unitOfWork.Repository<TrainerProfile>().GetByIdAsync(trainerProfileId);
  if (trainer == null) return new List<PackageClientResponse>();
  var list = await _unitOfWork.Repository<Package>().GetAllAsync();
- var byTrainer = list.Where(p => p.TrainerId == trainer.UserId).ToList();
+ var byTrainer = list.Where(p => p.TrainerId == trainer.Id).ToList();
  return byTrainer.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
  }
 
@@ -113,7 +113,7 @@ namespace ITI.Gymunity.FP.Application.Services
  }
 
  // New: packages by trainer user id
- public async Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerAsync(string trainerUserId)
+ public async Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerAsync(int trainerUserId)
  {
  var list = await _unitOfWork.Repository<Package>().GetAllAsync();
  var byTrainer = list.Where(p => p.TrainerId == trainerUserId).ToList();

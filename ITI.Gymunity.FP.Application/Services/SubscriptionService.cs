@@ -27,9 +27,7 @@ namespace ITI.Gymunity.FP.Application.Services
             _logger = logger;
         }
 
-        /// <summary>
         /// Subscribe to a trainer's package
-        /// </summary>
         public async Task<ServiceResult<SubscriptionResponse>> SubscribeAsync(
             string clientId,
             SubscribePackageRequest request)
@@ -114,9 +112,7 @@ namespace ITI.Gymunity.FP.Application.Services
             }
         }
 
-        /// <summary>
         /// Get all client's subscriptions with optional status filter
-        /// </summary>
         public async Task<ServiceResult<IEnumerable<SubscriptionResponse>>> GetMySubscriptionsAsync(
             string clientId,
             SubscriptionStatus? status = null)
@@ -143,9 +139,7 @@ namespace ITI.Gymunity.FP.Application.Services
             }
         }
 
-        /// <summary>
         /// Get single subscription by ID for current client
-        /// </summary>
         public async Task<ServiceResult<SubscriptionResponse>> GetSubscriptionByIdAsync(
             int id,
             string clientId)
@@ -176,9 +170,7 @@ namespace ITI.Gymunity.FP.Application.Services
             }
         }
 
-        /// <summary>
         /// Cancel subscription (client keeps access until period end)
-        /// </summary>
         public async Task<ServiceResult<bool>> CancelAsync(int id, string clientId)
         {
             try
@@ -220,9 +212,7 @@ namespace ITI.Gymunity.FP.Application.Services
             }
         }
 
-        /// <summary>
         /// Reactivate a canceled subscription (if not expired)
-        /// </summary>
         public async Task<ServiceResult<bool>> ReactivateAsync(int id, string clientId)
         {
             try
@@ -267,12 +257,10 @@ namespace ITI.Gymunity.FP.Application.Services
             }
         }
 
-        /// <summary>
         /// Check if client has active subscription to a specific trainer
-        /// </summary>
         public async Task<bool> HasActiveSubscriptionToTrainerAsync(
             string clientId,
-            string trainerId)
+            int trainerId)
         {
             try
             {

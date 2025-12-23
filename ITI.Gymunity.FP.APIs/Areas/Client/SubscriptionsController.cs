@@ -132,7 +132,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
         /// Check if client has access to a specific trainer's content
         [HttpGet("access/trainer/{trainerId}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        public async Task<IActionResult> HasAccessToTrainer(string trainerId)
+        public async Task<IActionResult> HasAccessToTrainer(int trainerId)
         {
             var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
             var hasAccess = await _service.HasActiveSubscriptionToTrainerAsync(

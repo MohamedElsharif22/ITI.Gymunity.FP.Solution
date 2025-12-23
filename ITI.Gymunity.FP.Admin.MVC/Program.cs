@@ -20,7 +20,7 @@ namespace ITI.Gymunity.FP.Admin.MVC
                     config.LoginPath = "/Auth/Login";
                 });
             builder.Services.AddDbContextServices(builder.Configuration);
-            builder.Services.AddApplicationServices();
+            builder.Services.AddApplicationServices(builder.Configuration);
             builder.Services.AddInfrastructureServices();
 
             // Add Dashboard Service

@@ -19,7 +19,7 @@ namespace ITI.Gymunity.FP.Application.Contracts
 
  // Program client endpoints
  Task<IReadOnlyList<ProgramClientResponse>> GetProgramsByTrainerIdAsync(string trainerId);
- Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerAsync(string trainerUserId);
+ Task<IReadOnlyList<PackageClientResponse>> GetPackagesByTrainerAsync(int trainerUserId);
  Task<IReadOnlyList<ProgramClientResponse>> GetProgramsByTrainerProfileIdAsync(int trainerProfileId);
  }
 }

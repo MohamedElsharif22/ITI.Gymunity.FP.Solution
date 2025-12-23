@@ -6,7 +6,7 @@ namespace ITI.Gymunity.FP.Application.Specefications.Subscriptions
 {
     public class ActiveClientSubscriptionToTrainerSpecs : BaseSpecification<Domain.Models.Subscription>
     {
-        public ActiveClientSubscriptionToTrainerSpecs(string clientId, string trainerId)
+        public ActiveClientSubscriptionToTrainerSpecs(string clientId, int trainerId)
             : base(s => s.ClientId == clientId
                      && s.Package.TrainerId == trainerId
                      && s.Status == SubscriptionStatus.Active

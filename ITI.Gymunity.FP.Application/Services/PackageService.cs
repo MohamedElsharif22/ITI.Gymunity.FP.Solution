@@ -14,9 +14,9 @@ namespace ITI.Gymunity.FP.Application.Services
 {
  public interface IPackageService
  {
- Task<IReadOnlyList<PackageResponse>> GetAllForTrainerAsync(string trainerId);
+ Task<IReadOnlyList<PackageResponse>> GetAllForTrainerAsync(int trainerId);
  Task<PackageResponse?> GetByIdAsync(int id);
- Task<PackageResponse> CreateAsync(string trainerId, PackageCreateRequest request);
+ Task<PackageResponse> CreateAsync(int trainerId, PackageCreateRequest request);
  Task<bool> UpdateAsync(int id, PackageCreateRequest request);
  Task<bool> DeleteAsync(int id);
  Task<bool> ToggleActiveAsync(int id);
@@ -36,7 +36,7 @@ namespace ITI.Gymunity.FP.Application.Services
  _imageResolver = imageResolver;
  }
 
- public async Task<IReadOnlyList<PackageResponse>> GetAllForTrainerAsync(string trainerId)
+ public async Task<IReadOnlyList<PackageResponse>> GetAllForTrainerAsync(int trainerId)
  {
  var repo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
  var list = await repo.GetByTrainerIdAsync(trainerId);
@@ -63,7 +63,7 @@ namespace ITI.Gymunity.FP.Application.Services
  return mapped;
  }
 
- public async Task<PackageResponse> CreateAsync(string trainerId, PackageCreateRequest request)
+ public async Task<PackageResponse> CreateAsync(int trainerId, PackageCreateRequest request)
  {
  var entity = new Package
  {

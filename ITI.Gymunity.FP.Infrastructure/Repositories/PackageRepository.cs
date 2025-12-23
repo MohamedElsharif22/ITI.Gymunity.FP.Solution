@@ -10,7 +10,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
 {
  internal class PackageRepository(AppDbContext dbContext) : Repository<Package>(dbContext), IPackageRepository
  {
- public async Task<IReadOnlyList<Package>> GetByTrainerIdAsync(string trainerId)
+ public async Task<IReadOnlyList<Package>> GetByTrainerIdAsync(int trainerId)
  {
  return await _Context.Packages
  .Where(p => p.TrainerId == trainerId && !p.IsDeleted)

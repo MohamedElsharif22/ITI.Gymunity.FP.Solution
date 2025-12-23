@@ -1048,10 +1048,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("TrainerId")
-                        .IsRequired()
+                    b.Property<int>("TrainerId")
                         .HasMaxLength(450)
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("int");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -1578,7 +1577,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Trainer.Package", b =>
                 {
-                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Identity.AppUser", "Trainer")
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", "Trainer")
                         .WithMany()
                         .HasForeignKey("TrainerId")
                         .OnDelete(DeleteBehavior.Cascade)
