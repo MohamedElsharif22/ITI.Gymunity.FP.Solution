@@ -1,5 +1,9 @@
 ﻿namespace ITI.Gymunity.FP.APIs.Responses
 {
+    /// <summary>
+    /// Represents a standard response returned by an API, including an HTTP status code and an optional message
+    /// describing the result.
+    /// </summary>
     public class ApiResponse
     {
         public int StatusCode { get; set; }

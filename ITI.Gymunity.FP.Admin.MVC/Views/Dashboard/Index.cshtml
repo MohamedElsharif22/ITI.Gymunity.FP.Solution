@@ -1,0 +1,564 @@
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header mb-4">
+        <div class="row align-items-center">
+            <div class="col">
+                <h1 class="h2 fw-700 mb-1">Dashboard</h1>
+                <p class="text-muted mb-0">Welcome back, <strong>@User.Identity?.Name</strong></p>
+            </div>
+            <div class="col-auto">
+                <button type="button" class="btn btn-outline-primary btn-sm" id="refreshBtn" data-bs-toggle="tooltip" title="Refresh data">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Users Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">Total Users</p>
+                        <h3 class="stats-card-value primary mb-1">1,248</h3>
+                        <p class="stats-card-subtitle">
+                            <i class="fas fa-arrow-up text-success"></i> <strong class="text-success">+12%</strong> from last month
+                        </p>
+                    </div>
+                    <div class="stats-icon primary">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Trainers Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">Active Trainers</p>
+                        <h3 class="stats-card-value success mb-1">347</h3>
+                        <p class="stats-card-subtitle">
+                            <i class="fas fa-arrow-up text-success"></i> <strong class="text-success">+8%</strong> from last month
+                        </p>
+                    </div>
+                    <div class="stats-icon success">
+                        <i class="fas fa-dumbbell"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Active Subscriptions Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">Active Subscriptions</p>
+                        <h3 class="stats-card-value success mb-1">892</h3>
+                        <p class="stats-card-subtitle">
+                            <i class="fas fa-arrow-up text-success"></i> <strong class="text-success">+24%</strong> from last month
+                        </p>
+                    </div>
+                    <div class="stats-icon success">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Revenue Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">Total Revenue</p>
+                        <h3 class="stats-card-value primary mb-1">EGP 285.4K</h3>
+                        <p class="stats-card-subtitle">
+                            <i class="fas fa-arrow-up text-success"></i> <strong class="text-success">+15%</strong> from last month
+                        </p>
+                    </div>
+                    <div class="stats-icon primary">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Secondary Stats Row -->
+    <div class="row g-4 mb-4">
+        <!-- Pending Reviews Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">Pending Reviews</p>
+                        <h3 class="stats-card-value danger mb-1">24</h3>
+                        <p class="stats-card-subtitle">
+                            <a href="/admin/reviews" class="text-danger text-decoration-none small">
+                                View all <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </p>
+                    </div>
+                    <div class="stats-icon danger">
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Unverified Trainers Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">Unverified Trainers</p>
+                        <h3 class="stats-card-value warning mb-1">18</h3>
+                        <p class="stats-card-subtitle">
+                            <a href="/admin/trainers" class="text-warning text-decoration-none small">
+                                View all <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </p>
+                    </div>
+                    <div class="stats-icon warning">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Failed Payments Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">Failed Payments</p>
+                        <h3 class="stats-card-value danger mb-1">7</h3>
+                        <p class="stats-card-subtitle">
+                            <a href="/admin/payments" class="text-danger text-decoration-none small">
+                                View all <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </p>
+                    </div>
+                    <div class="stats-icon danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Health Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="stats-card">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="stats-card-title">System Health</p>
+                        <h3 class="stats-card-value success mb-1">98%</h3>
+                        <p class="stats-card-subtitle">
+                            <i class="fas fa-check-circle text-success"></i> All systems operational
+                        </p>
+                    </div>
+                    <div class="stats-icon success">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Revenue Chart -->
+        <div class="col-xl-8">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Revenue Overview (Last 30 Days)</h5>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <input type="radio" class="btn-check" name="chartRange" id="chart7d" value="7">
+                            <label class="btn btn-outline-primary" for="chart7d">7D</label>
+                            <input type="radio" class="btn-check" name="chartRange" id="chart30d" value="30" checked>
+                            <label class="btn btn-outline-primary" for="chart30d">30D</label>
+                            <input type="radio" class="btn-check" name="chartRange" id="chart90d" value="90">
+                            <label class="btn btn-outline-primary" for="chart90d">90D</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div style="height: 300px;">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Trainers -->
+        <div class="col-xl-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Top Trainers</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                            <div>
+                                <h6 class="mb-1 fw-600">Ahmed Hassan</h6>
+                                <small class="text-muted">234 clients</small>
+                            </div>
+                            <span class="badge bg-success">4.9★</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                            <div>
+                                <h6 class="mb-1 fw-600">Fatima Noor</h6>
+                                <small class="text-muted">187 clients</small>
+                            </div>
+                            <span class="badge bg-success">4.8★</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                            <div>
+                                <h6 class="mb-1 fw-600">Muhammad Ali</h6>
+                                <small class="text-muted">156 clients</small>
+                            </div>
+                            <span class="badge bg-success">4.7★</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                            <div>
+                                <h6 class="mb-1 fw-600">Leila Ahmed</h6>
+                                <small class="text-muted">142 clients</small>
+                            </div>
+                            <span class="badge bg-success">4.6★</span>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                            <div>
+                                <h6 class="mb-1 fw-600">Omar Ibrahim</h6>
+                                <small class="text-muted">128 clients</small>
+                            </div>
+                            <span class="badge bg-success">4.5★</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Activity & Performance Row -->
+    <div class="row g-4 mb-4">
+        <!-- Recent Activity -->
+        <div class="col-xl-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="activity-timeline">
+                        <!-- Activity Item -->
+                        <div class="activity-item p-4 border-bottom">
+                            <div class="d-flex gap-3">
+                                <div class="activity-icon">
+                                    <i class="fas fa-user-plus text-success"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">New User Registration</h6>
+                                    <p class="mb-2 text-muted small">Ahmed Mohammed registered as a new client</p>
+                                    <small class="text-muted">2 minutes ago</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Item -->
+                        <div class="activity-item p-4 border-bottom">
+                            <div class="d-flex gap-3">
+                                <div class="activity-icon">
+                                    <i class="fas fa-money-bill-wave text-primary"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Payment Received</h6>
+                                    <p class="mb-2 text-muted small">Payment of EGP 299 from Sarah Ali for subscription</p>
+                                    <small class="text-muted">5 minutes ago</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Item -->
+                        <div class="activity-item p-4 border-bottom">
+                            <div class="d-flex gap-3">
+                                <div class="activity-icon">
+                                    <i class="fas fa-star text-warning"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">New Review Submitted</h6>
+                                    <p class="mb-2 text-muted small">5-star review pending approval for Trainer Ahmed</p>
+                                    <small class="text-muted">15 minutes ago</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Item -->
+                        <div class="activity-item p-4 border-bottom">
+                            <div class="d-flex gap-3">
+                                <div class="activity-icon">
+                                    <i class="fas fa-check-circle text-success"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Trainer Verified</h6>
+                                    <p class="mb-2 text-muted small">Fatima Noor has been verified as a trainer</p>
+                                    <small class="text-muted">1 hour ago</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Activity Item -->
+                        <div class="activity-item p-4">
+                            <div class="d-flex gap-3">
+                                <div class="activity-icon">
+                                    <i class="fas fa-exclamation-circle text-danger"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">Payment Failed</h6>
+                                    <p class="mb-2 text-muted small">Payment of EGP 399 failed for Mohammed Hassan</p>
+                                    <small class="text-muted">2 hours ago</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- User Distribution & System Stats -->
+        <div class="col-xl-6">
+            <div class="row g-4">
+                <!-- User Distribution -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">User Distribution</h5>
+                        </div>
+                        <div class="card-body">
+                            <div style="height: 200px;">
+                                <canvas id="userDistributionChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Quick Actions</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="/admin/users" class="btn btn-outline-primary text-start">
+                                    <i class="fas fa-users me-2"></i> Manage Users
+                                </a>
+                                <a href="/admin/reviews" class="btn btn-outline-primary text-start">
+                                    <i class="fas fa-star me-2"></i> Approve Reviews (24)
+                                </a>
+                                <a href="/admin/trainers" class="btn btn-outline-primary text-start">
+                                    <i class="fas fa-user-check me-2"></i> Verify Trainers (18)
+                                </a>
+                                <a href="/admin/payments" class="btn btn-outline-primary text-start">
+                                    <i class="fas fa-credit-card me-2"></i> View Payments
+                                </a>
+                                <a href="/admin/analytics" class="btn btn-outline-primary text-start">
+                                    <i class="fas fa-chart-bar me-2"></i> View Analytics
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Styles for Activity Timeline -->
+<style>
+    .activity-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f8f9fa;
+        flex-shrink: 0;
+    }
+
+    .activity-item {
+        transition: background-color 0.2s ease;
+    }
+
+    .activity-item:hover {
+        background-color: #f8f9fa;
+    }
+</style>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Initialize tooltips
+        document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
+            new bootstrap.Tooltip(el);
+        });
+
+        // Revenue Chart
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            const revenueChart = new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Day 1', 'Day 2', 'Day 3', 'Day 4', 'Day 5', 'Day 6', 'Day 7', 'Day 8', 'Day 9', 'Day 10',
+                        'Day 11', 'Day 12', 'Day 13', 'Day 14', 'Day 15', 'Day 16', 'Day 17', 'Day 18', 'Day 19', 'Day 20',
+                        'Day 21', 'Day 22', 'Day 23', 'Day 24', 'Day 25', 'Day 26', 'Day 27', 'Day 28', 'Day 29', 'Day 30'],
+                    datasets: [
+                        {
+                            label: 'Revenue (EGP)',
+                            data: [8000, 9200, 7800, 10200, 11500, 9800, 12000, 11200, 13500, 12800,
+                                14200, 13800, 15000, 14500, 16200, 15800, 17000, 16500, 18200, 17800,
+                                19000, 18500, 20000, 19500, 21000, 20500, 22000, 21500, 23000, 22500],
+                            borderColor: '#0D6EFD',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointBackgroundColor: '#0D6EFD',
+                            pointBorderColor: '#fff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 16,
+                                font: { size: 13, weight: '500' },
+                                color: '#6C757D'
+                            }
+                        },
+                        filler: {
+                            propagate: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: '#e9ecef',
+                                drawTicks: false
+                            },
+                            ticks: {
+                                color: '#6C757D',
+                                font: { size: 12 },
+                                callback: function (value) {
+                                    return 'EGP ' + value.toLocaleString();
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#6C757D',
+                                font: { size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // User Distribution Chart
+        const userDistributionCtx = document.getElementById('userDistributionChart');
+        if (userDistributionCtx) {
+            const userDistributionChart = new Chart(userDistributionCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Clients', 'Trainers', 'Admins'],
+                    datasets: [{
+                        data: [901, 347, 0],
+                        backgroundColor: [
+                            'rgba(13, 110, 253, 0.8)',
+                            'rgba(25, 135, 84, 0.8)',
+                            'rgba(220, 53, 69, 0.8)'
+                        ],
+                        borderColor: [
+                            '#0D6EFD',
+                            '#198754',
+                            '#DC3545'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 16,
+                                font: { size: 13, weight: '500' },
+                                color: '#6C757D'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Refresh button
+        document.getElementById('refreshBtn').addEventListener('click', function () {
+            const btn = this;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                btn.innerHTML = originalHTML;
+                btn.disabled = false;
+                showNotification('Data refreshed successfully', 'success', 3000);
+            }, 1500);
+        });
+
+        function showNotification(message, type = 'info', duration = 3000) {
+            const alertClass = `alert-${type}`;
+            const alertHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert" style="position: fixed; bottom: 20px; right: 20px; z-index: 1050; max-width: 400px;">
+                    <i class="fas fa-info-circle me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+            const container = document.createElement('div');
+            container.innerHTML = alertHTML;
+            document.body.appendChild(container);
+
+            const alert = container.querySelector('.alert');
+            setTimeout(() => {
+                alert.remove();
+            }, duration);
+        }
+    </script>
+}

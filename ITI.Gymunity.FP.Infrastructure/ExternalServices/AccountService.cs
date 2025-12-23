@@ -152,7 +152,8 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 Body = "You succesfully Signed in to Gymunity!"
             };
             await _emailService.SendEmailAsync(emailRequset);
-            return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
+            var profilePhotoUrl = _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? "");
+            return user.ToUserResponse(token, profilePhotoUrl);
         }
 
         public async Task<UserResponse> RegisterAsync(RegisterRequest request)
