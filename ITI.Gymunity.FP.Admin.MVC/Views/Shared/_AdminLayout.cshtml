@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Gymunity Admin</title>
 
-    <!-- Bootstrap 5.3 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Font Awesome 6.4 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -19,165 +19,179 @@
     
     @await RenderSectionAsync("Styles", required: false)
 </head>
-<body>
-    <div class="wrapper">
+<body style="font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;">
+    <div class="flex h-screen bg-gray-50">
         <!-- Sidebar Navigation -->
-        <nav class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <div class="logo-section">
-                    <h5 class="logo-text">
-                        <i class="fas fa-dumbbell"></i> Gymunity
+        <nav id="sidebar" class="fixed top-0 left-0 w-72 h-screen bg-white border-r border-gray-200 overflow-y-auto transition-all duration-300 z-50 shadow-sm lg:shadow-none lg:relative lg:z-auto sidebar-menu">
+            <!-- Sidebar Header -->
+            <div class="border-b border-gray-200 p-6">
+                <div class="flex flex-col gap-1">
+                    <h5 class="text-lg font-bold text-blue-600 flex items-center gap-2 whitespace-nowrap">
+                        <i class="fas fa-dumbbell"></i>
+                        <span>Gymunity</span>
                     </h5>
-                    <small class="text-muted">Admin Panel</small>
+                    <small class="text-gray-500 text-xs">Admin Panel</small>
                 </div>
-                <button class="btn btn-link sidebar-toggle d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                    <i class="fas fa-times"></i>
+                <button class="hidden lg:hidden absolute right-4 top-6 text-gray-600 hover:text-gray-900 transition sidebar-toggle-mobile" type="button">
+                    <i class="fas fa-times text-lg"></i>
                 </button>
             </div>
 
-            <ul class="nav flex-column sidebar-nav" id="navbarNav">
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Dashboard" asp-action="Index">
-                        <i class="nav-icon fas fa-chart-line"></i>
-                        <span class="nav-text">Dashboard</span>
+            <!-- Sidebar Navigation Items -->
+            <ul class="flex flex-col gap-1 p-3">
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Dashboard" asp-action="Index">
+                        <i class="nav-icon fas fa-chart-line w-5 text-center"></i>
+                        <span class="nav-text flex-1">Dashboard</span>
                     </a>
                 </li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Users" asp-action="Index">
-                        <i class="nav-icon fas fa-users"></i>
-                        <span class="nav-text">Users</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Users" asp-action="Index">
+                        <i class="nav-icon fas fa-users w-5 text-center"></i>
+                        <span class="nav-text flex-1">Users</span>
                     </a>
                 </li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Trainers" asp-action="Index">
-                        <i class="nav-icon fas fa-dumbbell"></i>
-                        <span class="nav-text">Trainers</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Trainers" asp-action="Index">
+                        <i class="nav-icon fas fa-dumbbell w-5 text-center"></i>
+                        <span class="nav-text flex-1">Trainers</span>
                     </a>
                 </li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Reviews" asp-action="Index">
-                        <i class="nav-icon fas fa-star"></i>
-                        <span class="nav-text">Reviews</span>
-                        <span class="badge bg-danger rounded-pill ms-auto d-none" id="reviewBadge">0</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Reviews" asp-action="Index">
+                        <i class="nav-icon fas fa-star w-5 text-center"></i>
+                        <span class="nav-text flex-1">Reviews</span>
+                        <span class="badge hidden px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded-full" id="reviewBadge">0</span>
                     </a>
                 </li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Subscriptions" asp-action="Index">
-                        <i class="nav-icon fas fa-credit-card"></i>
-                        <span class="nav-text">Subscriptions</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Subscriptions" asp-action="Index">
+                        <i class="nav-icon fas fa-credit-card w-5 text-center"></i>
+                        <span class="nav-text flex-1">Subscriptions</span>
                     </a>
                 </li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Payments" asp-action="Index">
-                        <i class="nav-icon fas fa-money-bill-wave"></i>
-                        <span class="nav-text">Payments</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Payments" asp-action="Index">
+                        <i class="nav-icon fas fa-money-bill-wave w-5 text-center"></i>
+                        <span class="nav-text flex-1">Payments</span>
                     </a>
                 </li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Programs" asp-action="Index">
-                        <i class="nav-icon fas fa-list-check"></i>
-                        <span class="nav-text">Programs</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Programs" asp-action="Index">
+                        <i class="nav-icon fas fa-list-check w-5 text-center"></i>
+                        <span class="nav-text flex-1">Programs</span>
                     </a>
                 </li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Analytics" asp-action="Index">
-                        <i class="nav-icon fas fa-chart-bar"></i>
-                        <span class="nav-text">Analytics</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Analytics" asp-action="Index">
+                        <i class="nav-icon fas fa-chart-bar w-5 text-center"></i>
+                        <span class="nav-text flex-1">Analytics</span>
                     </a>
                 </li>
 
-                <hr class="my-3 sidebar-divider">
+                <li class="my-2 border-t border-gray-200"></li>
 
-                <li class="nav-item sidebar-item">
-                    <a class="nav-link" asp-area="" asp-controller="Settings" asp-action="Index">
-                        <i class="nav-icon fas fa-cog"></i>
-                        <span class="nav-text">Settings</span>
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Settings" asp-action="Index">
+                        <i class="nav-icon fas fa-cog w-5 text-center"></i>
+                        <span class="nav-text flex-1">Settings</span>
                     </a>
                 </li>
             </ul>
 
-            <div class="sidebar-footer">
-                <a class="nav-link text-danger" asp-area="" asp-controller="Auth" asp-action="Logout">
-                    <i class="nav-icon fas fa-sign-out-alt"></i>
-                    <span class="nav-text">Logout</span>
+            <!-- Sidebar Footer -->
+            <div class="absolute bottom-0 w-full border-t border-gray-200 bg-white p-3">
+                <a class="nav-link flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition" 
+                   asp-area="" asp-controller="Auth" asp-action="Logout">
+                    <i class="nav-icon fas fa-sign-out-alt w-5 text-center"></i>
+                    <span class="nav-text flex-1">Logout</span>
                 </a>
             </div>
         </nav>
 
         <!-- Main Content Area -->
-        <div class="main-content">
+        <div class="flex-1 flex flex-col lg:ml-0 transition-all duration-300 sidebar-content">
             <!-- Top Navigation Bar -->
-            <nav class="topbar navbar navbar-expand-lg navbar-light">
-                <div class="container-fluid">
-                    <!-- Left Side: Menu Toggle & Breadcrumb -->
-                    <div class="navbar-left">
-                        <button class="btn btn-link sidebar-toggle-btn" id="sidebarToggle" type="button">
-                            <i class="fas fa-bars fs-5"></i>
-                        </button>
+            <nav class="sticky top-0 z-40 h-auto bg-white border-b border-gray-200 shadow-sm">
+                <div class="h-full px-4 md:px-6">
+                    <div class="flex items-center justify-between h-16 gap-4">
+                        <!-- Left Side: Menu Toggle & Breadcrumb -->
+                        <div class="flex items-center gap-4 flex-1">
+                            <button class="hidden lg:hidden sidebar-toggle-btn p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition" id="sidebarToggle" type="button">
+                                <i class="fas fa-bars text-lg"></i>
+                            </button>
 
-                        <nav aria-label="breadcrumb" class="d-none d-md-block ms-3">
-                            <ol class="breadcrumb mb-0 small">
-                                <li class="breadcrumb-item"><a href="/admin/dashboard">Dashboard</a></li>
-                                @if (ViewBag.BreadcrumbItems != null)
-                                {
-                                    @foreach (var item in ViewBag.BreadcrumbItems)
+                            <nav aria-label="breadcrumb" class="hidden md:block">
+                                <ol class="flex items-center gap-2 text-sm">
+                                    <li><a href="/admin/dashboard" class="text-blue-600 hover:text-blue-700">Dashboard</a></li>
+                                    @if (ViewBag.BreadcrumbItems != null)
                                     {
-                                        <li class="breadcrumb-item active">@item</li>
+                                        @foreach (var item in ViewBag.BreadcrumbItems)
+                                        {
+                                            <li class="text-gray-400">/</li>
+                                            <li class="text-gray-600">@item</li>
+                                        }
                                     }
-                                }
-                            </ol>
-                        </nav>
-                    </div>
+                                </ol>
+                            </nav>
+                        </div>
 
-                    <!-- Right Side: User Menu & Utilities -->
-                    <div class="navbar-right ms-auto">
-                        <div class="d-flex align-items-center gap-3">
+                        <!-- Right Side: User Menu & Utilities -->
+                        <div class="flex items-center gap-4">
                             <!-- Notifications -->
-                            <div class="dropdown">
-                                <button class="btn btn-link position-relative" type="button" data-bs-toggle="dropdown" title="Notifications">
-                                    <i class="fas fa-bell fs-5"></i>
-                                    <span class="position-absolute top-0 start-100 translate-middle badge badge-notification bg-danger rounded-pill d-none" id="notificationBadge">0</span>
+                            <div class="relative group">
+                                <button class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition" type="button" title="Notifications">
+                                    <i class="fas fa-bell text-lg"></i>
+                                    <span class="absolute top-1 right-1 hidden w-2 h-2 bg-red-500 rounded-full" id="notificationBadge"></span>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end notification-dropdown">
-                                    <li class="dropdown-header">
-                                        Notifications
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item small text-muted text-center py-3" href="#">No new notifications</a></li>
-                                </ul>
+                                <div class="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-50">
+                                    <div class="p-4 border-b border-gray-200 font-semibold text-gray-900">Notifications</div>
+                                    <div class="max-h-96 overflow-y-auto">
+                                        <div class="p-6 text-center text-sm text-gray-500">No new notifications</div>
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- User Menu -->
-                            <div class="dropdown">
-                                <button class="btn btn-link dropdown-toggle d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown">
-                                    <div class="user-avatar">
-                                        <i class="fas fa-user-circle fs-4"></i>
+                            <div class="relative group">
+                                <button class="flex items-center gap-2 p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition" type="button">
+                                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white text-sm">
+                                        <i class="fas fa-user"></i>
                                     </div>
-                                    <span class="d-none d-sm-inline small fw-500">@User.Identity?.Name</span>
+                                    <span class="hidden sm:inline text-sm font-medium text-gray-900">@User.Identity?.Name</span>
                                 </button>
-                                <ul class="dropdown-menu dropdown-menu-end">
-                                    <li class="dropdown-header">
-                                        @User.Identity?.Name
-                                    </li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="/admin/settings">
-                                        <i class="fas fa-cog me-2"></i> Settings
-                                    </a></li>
-                                    <li><a class="dropdown-item" href="/admin/profile">
-                                        <i class="fas fa-user me-2"></i> Profile
-                                    </a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item text-danger" asp-controller="Auth" asp-action="Logout">
-                                        <i class="fas fa-sign-out-alt me-2"></i> Logout
-                                    </a></li>
-                                </ul>
+                                <div class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-50">
+                                    <div class="p-4 border-b border-gray-200 font-semibold text-gray-900">@User.Identity?.Name</div>
+                                    <a href="/admin/settings" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 transition">
+                                        <i class="fas fa-cog w-4"></i>
+                                        <span>Settings</span>
+                                    </a>
+                                    <a href="/admin/profile" class="flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-gray-50 transition">
+                                        <i class="fas fa-user w-4"></i>
+                                        <span>Profile</span>
+                                    </a>
+                                    <div class="border-t border-gray-200"></div>
+                                    <a asp-controller="Auth" asp-action="Logout" class="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 transition">
+                                        <i class="fas fa-sign-out-alt w-4"></i>
+                                        <span>Logout</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -185,68 +199,110 @@
             </nav>
 
             <!-- Page Content -->
-            <div class="page-container">
-                <!-- Alert Messages -->
-                @if (!string.IsNullOrEmpty(TempData["SuccessMessage"]?.ToString()))
-                {
-                    <div class="container-fluid px-4 pt-4">
-                        <div class="alert alert-success alert-dismissible fade show" role="alert">
-                            <i class="fas fa-check-circle me-2"></i>
-                            @TempData["SuccessMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="flex-1 overflow-y-auto">
+                <div class="p-4 md:p-6 lg:p-8">
+                    <!-- Alert Messages -->
+                    @if (!string.IsNullOrEmpty(TempData["SuccessMessage"]?.ToString()))
+                    {
+                        <div class="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 flex items-start gap-3 animate-fadeIn">
+                            <i class="fas fa-check-circle flex-shrink-0 mt-0.5"></i>
+                            <div class="flex-grow">@TempData["SuccessMessage"]</div>
+                            <button type="button" class="text-green-400 hover:text-green-600 ml-2" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                    </div>
-                }
+                    }
 
-                @if (!string.IsNullOrEmpty(TempData["ErrorMessage"]?.ToString()))
-                {
-                    <div class="container-fluid px-4 pt-4">
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-circle me-2"></i>
-                            @TempData["ErrorMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    @if (!string.IsNullOrEmpty(TempData["ErrorMessage"]?.ToString()))
+                    {
+                        <div class="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 flex items-start gap-3 animate-fadeIn">
+                            <i class="fas fa-exclamation-circle flex-shrink-0 mt-0.5"></i>
+                            <div class="flex-grow">@TempData["ErrorMessage"]</div>
+                            <button type="button" class="text-red-400 hover:text-red-600 ml-2" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                    </div>
-                }
+                    }
 
-                @if (!string.IsNullOrEmpty(TempData["WarningMessage"]?.ToString()))
-                {
-                    <div class="container-fluid px-4 pt-4">
-                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            @TempData["WarningMessage"]
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    @if (!string.IsNullOrEmpty(TempData["WarningMessage"]?.ToString()))
+                    {
+                        <div class="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg text-yellow-700 flex items-start gap-3 animate-fadeIn">
+                            <i class="fas fa-exclamation-triangle flex-shrink-0 mt-0.5"></i>
+                            <div class="flex-grow">@TempData["WarningMessage"]</div>
+                            <button type="button" class="text-yellow-400 hover:text-yellow-600 ml-2" onclick="this.parentElement.remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
                         </div>
-                    </div>
-                }
+                    }
 
-                <!-- Main Page Content -->
-                <main class="page-content">
-                    @RenderBody()
-                </main>
+                    <!-- Main Page Content -->
+                    <main class="page-content">
+                        @RenderBody()
+                    </main>
+                </div>
             </div>
 
             <!-- Footer -->
-            <footer class="admin-footer">
-                <div class="container-fluid px-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <p class="mb-0 small text-muted">
-                            &copy; 2024 Gymunity. All rights reserved.
-                        </p>
-                        <div class="small text-muted">
-                            <span id="currentTime"></span>
-                        </div>
-                    </div>
+            <footer class="bg-white border-t border-gray-200 px-4 md:px-6 lg:px-8 py-4 mt-auto">
+                <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-500">
+                    <p class="mb-0">
+                        &copy; 2024 Gymunity. All rights reserved.
+                    </p>
+                    <div id="currentTime" class="text-gray-500"></div>
                 </div>
             </footer>
         </div>
     </div>
 
-    <!-- Bootstrap 5.3 Bundle JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Font Awesome JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
 
     <!-- Admin Custom JS -->
     <script src="~/js/admin.js" asp-append-version="true"></script>
+
+    <script>
+        // Sidebar toggle for mobile
+        document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('translate-x-full');
+            sidebar.classList.toggle('translate-x-0');
+        });
+
+        // Close sidebar on link click (mobile)
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function() {
+                if (window.innerWidth < 1024) {
+                    const sidebar = document.getElementById('sidebar');
+                    sidebar.classList.add('translate-x-full');
+                    sidebar.classList.remove('translate-x-0');
+                }
+            });
+        });
+
+        // Update current time
+        function updateTime() {
+            const now = new Date();
+            const timeEl = document.getElementById('currentTime');
+            if (timeEl) {
+                timeEl.textContent = now.toLocaleTimeString();
+            }
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        // Mark active navigation link
+        function setActiveNavLink() {
+            const currentUrl = window.location.pathname.toLowerCase();
+            document.querySelectorAll('.nav-link').forEach(link => {
+                const href = link.getAttribute('href')?.toLowerCase() || '';
+                if (currentUrl.includes(href) && href !== '/') {
+                    link.classList.add('bg-blue-50', 'text-blue-600', 'border-l-blue-600');
+                    link.classList.remove('text-gray-600', 'border-transparent');
+                }
+            });
+        }
+        setActiveNavLink();
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>
