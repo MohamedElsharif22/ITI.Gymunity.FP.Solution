@@ -1,31 +1,121 @@
-html {
-  font-size: 14px;
+/* ============================================
+   TAILWIND CSS CUSTOM STYLES
+   ============================================ */
+
+@layer base {
+    html {
+        @apply scroll-smooth;
+    }
+
+    body {
+        @apply font-sans antialiased;
+    }
 }
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+@layer components {
+    /* Focus states for form inputs */
+    .form-control:focus,
+    .form-select:focus {
+        @apply border-blue-500 ring-4 ring-blue-100 outline-none;
+    }
+
+    /* Custom focus ring for buttons */
+    .btn:focus,
+    .btn:active:focus {
+        @apply ring-4 ring-blue-300 outline-none;
+    }
+
+    /* Utility classes for common use cases */
+    .fw-500 {
+        @apply font-medium;
+    }
+
+    .fw-600 {
+        @apply font-semibold;
+    }
+
+    .fw-700 {
+        @apply font-bold;
+    }
+
+    .text-muted {
+        @apply text-gray-500;
+    }
+
+    .small {
+        @apply text-sm;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+@layer utilities {
+    /* Floating forms */
+    .form-floating > .form-control-plaintext::placeholder,
+    .form-floating > .form-control::placeholder {
+        color: var(--bs-secondary-color);
+    }
+
+    .form-floating > .form-control-plaintext:focus::placeholder,
+    .form-floating > .form-control:focus::placeholder {
+        text-align: start;
+    }
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+::-webkit-scrollbar {
+    @apply w-2 h-2;
 }
 
-body {
-  margin-bottom: 60px;
+::-webkit-scrollbar-track {
+    @apply bg-gray-100;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+::-webkit-scrollbar-thumb {
+    @apply bg-gray-400 rounded;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-600;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes fadeIn {
+    from {
+        @apply opacity-0 translate-y-2;
+    }
+    to {
+        @apply opacity-100 translate-y-0;
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        @apply opacity-0 -translate-x-5;
+    }
+    to {
+        @apply opacity-100 translate-x-0;
+    }
+}
+
+.fade-in {
+    @apply animate-fadeIn;
+}
+
+.slide-in-left {
+    @apply animate-slideInLeft;
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .no-print {
+        @apply hidden;
+    }
 }

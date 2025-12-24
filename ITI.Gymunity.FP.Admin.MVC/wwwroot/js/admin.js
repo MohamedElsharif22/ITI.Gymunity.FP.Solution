@@ -6,10 +6,8 @@ document.addEventListener('DOMContentLoaded', function () {
     // Initialize Components
     initSidebarToggle();
     initCurrentTime();
-    initTooltips();
-    initPopovers();
     setActiveNavLink();
-    initDarkMode();
+    initAlertDismiss();
 });
 
 /* ============================================
@@ -19,58 +17,33 @@ document.addEventListener('DOMContentLoaded', function () {
 function initSidebarToggle() {
     const sidebarToggle = document.getElementById('sidebarToggle');
     const sidebar = document.getElementById('sidebar');
-    const mainContent = document.querySelector('.main-content');
-    const pageContainer = document.querySelector('.page-container');
 
     if (!sidebarToggle || !sidebar) return;
 
-    // Check localStorage for sidebar state
-    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (sidebarCollapsed && window.innerWidth > 768) {
-        sidebar.classList.add('collapsed');
-        mainContent.classList.add('sidebar-collapsed');
-    }
-
-    // Desktop toggle
     sidebarToggle.addEventListener('click', function (e) {
         e.preventDefault();
-        if (window.innerWidth > 768) {
-            sidebar.classList.toggle('collapsed');
-            mainContent.classList.toggle('sidebar-collapsed');
-            localStorage.setItem('sidebarCollapsed', sidebar.classList.contains('collapsed'));
-        } else {
-            // Mobile: toggle show/hide
-            sidebar.classList.toggle('show');
-            pageContainer.style.position = sidebar.classList.contains('show') ? 'fixed' : 'relative';
-        }
+        sidebar.classList.toggle('translate-x-0');
+        sidebar.classList.toggle('translate-x-full');
     });
 
-    // Mobile: Close sidebar when clicking a link
+    // Close sidebar when clicking a link
     const navLinks = document.querySelectorAll('.sidebar-item .nav-link');
     navLinks.forEach(link => {
         link.addEventListener('click', function () {
-            if (window.innerWidth <= 768) {
-                sidebar.classList.remove('show');
-                pageContainer.style.position = 'relative';
+            if (window.innerWidth < 1024) {
+                sidebar.classList.add('translate-x-full');
+                sidebar.classList.remove('translate-x-0');
             }
         });
     });
 
     // Close sidebar when clicking outside on mobile
     document.addEventListener('click', function (e) {
-        if (window.innerWidth <= 768 && sidebar.classList.contains('show')) {
+        if (window.innerWidth < 1024 && !sidebar.classList.contains('translate-x-full')) {
             if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
-                sidebar.classList.remove('show');
-                pageContainer.style.position = 'relative';
+                sidebar.classList.add('translate-x-full');
+                sidebar.classList.remove('translate-x-0');
             }
-        }
-    });
-
-    // Handle window resize
-    window.addEventListener('resize', function () {
-        if (window.innerWidth > 768) {
-            sidebar.classList.remove('show');
-            pageContainer.style.position = 'relative';
         }
     });
 }
@@ -84,12 +57,14 @@ function setActiveNavLink() {
     const navLinks = document.querySelectorAll('.sidebar-item .nav-link');
 
     navLinks.forEach(link => {
-        const href = link.getAttribute('href').toLowerCase();
+        const href = link.getAttribute('href')?.toLowerCase() || '';
         if (currentUrl.includes(href) && href !== '/') {
-            link.classList.add('active');
+            link.classList.add('bg-blue-50', 'text-blue-600', 'border-l-blue-600');
+            link.classList.remove('text-gray-600', 'border-l-transparent');
             link.setAttribute('aria-current', 'page');
         } else {
-            link.classList.remove('active');
+            link.classList.remove('bg-blue-50', 'text-blue-600', 'border-l-blue-600');
+            link.classList.add('text-gray-600', 'border-l-transparent');
             link.removeAttribute('aria-current');
         }
     });
@@ -105,85 +80,28 @@ function initCurrentTime() {
 
     function updateTime() {
         const now = new Date();
-        const options = {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: true
-        };
-        timeElement.textContent = now.toLocaleDateString('en-US', options);
+        timeElement.textContent = now.toLocaleTimeString();
     }
 
     updateTime();
-    setInterval(updateTime, 60000); // Update every minute
-}
-
-/* ============================================
-   BOOTSTRAP TOOLTIPS
-   ============================================ */
-
-function initTooltips() {
-    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-}
-
-/* ============================================
-   BOOTSTRAP POPOVERS
-   ============================================ */
-
-function initPopovers() {
-    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-    popoverTriggerList.map(function (popoverTriggerEl) {
-        return new bootstrap.Popover(popoverTriggerEl);
-    });
-}
-
-/* ============================================
-   DARK MODE TOGGLE
-   ============================================ */
-
-function initDarkMode() {
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    if (!darkModeToggle) return;
-
-    // Check for saved preference or default to light mode
-    const currentTheme = localStorage.getItem('theme') || 'light';
-    applyTheme(currentTheme);
-
-    darkModeToggle.addEventListener('click', function () {
-        const newTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-        applyTheme(newTheme);
-        localStorage.setItem('theme', newTheme);
-    });
-}
-
-function applyTheme(theme) {
-    if (theme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.body.classList.add('dark-mode');
-    } else {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.body.classList.remove('dark-mode');
-    }
+    setInterval(updateTime, 1000);
 }
 
 /* ============================================
    ALERT AUTO-DISMISS
    ============================================ */
 
-document.addEventListener('DOMContentLoaded', function () {
-    const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+function initAlertDismiss() {
+    const alerts = document.querySelectorAll('[class*="bg-"][class*="-50"]');
     alerts.forEach(alert => {
-        setTimeout(() => {
-            const bsAlert = new bootstrap.Alert(alert);
-            bsAlert.close();
-        }, 5000); // Auto-dismiss after 5 seconds
+        const dismissBtn = alert.querySelector('[onclick*="remove"]') || alert.querySelector('button');
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', function () {
+                alert.remove();
+            });
+        }
     });
-});
+}
 
 /* ============================================
    FORM VALIDATION
@@ -198,7 +116,7 @@ function validateForm(formId) {
         event.stopPropagation();
     }
 
-    form.classList.add('was-validated');
+    form.classList.add('validated');
     return form.checkValidity();
 }
 
@@ -211,7 +129,7 @@ function showLoadingSpinner(buttonId = null) {
         const button = document.getElementById(buttonId);
         if (button) {
             const originalContent = button.innerHTML;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Loading...';
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Loading...';
             button.disabled = true;
             button.dataset.originalContent = originalContent;
         }
@@ -269,12 +187,22 @@ function copyToClipboard(text, feedbackId = null) {
    ============================================ */
 
 function showNotification(message, type = 'info', duration = 3000) {
-    const alertClass = `alert-${type}`;
+    const typeClasses = {
+        'success': { bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-700', icon: 'check-circle' },
+        'danger': { bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-700', icon: 'exclamation-circle' },
+        'warning': { bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-700', icon: 'exclamation-triangle' },
+        'info': { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', icon: 'info-circle' }
+    };
+
+    const config = typeClasses[type] || typeClasses['info'];
+
     const alertHTML = `
-        <div class="alert alert-${type} alert-dismissible fade show" role="alert" style="position: fixed; bottom: 20px; right: 20px; z-index: 1050; max-width: 400px;">
-            <i class="fas fa-${getIconForType(type)} me-2"></i>
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <div class="fixed bottom-5 right-5 z-50 ${config.bg} border ${config.border} rounded-lg ${config.text} p-4 flex items-start gap-3 max-w-sm animate-slideInUp shadow-lg">
+            <i class="fas fa-${config.icon} flex-shrink-0 mt-0.5"></i>
+            <div class="flex-grow">${message}</div>
+            <button class="text-current opacity-50 hover:opacity-75 ml-2" type="button" onclick="this.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     `;
 
@@ -282,22 +210,10 @@ function showNotification(message, type = 'info', duration = 3000) {
     container.innerHTML = alertHTML;
     document.body.appendChild(container);
 
-    const alert = container.querySelector('.alert');
-    const bsAlert = new bootstrap.Alert(alert);
-
+    const alert = container.querySelector('div');
     setTimeout(() => {
-        bsAlert.close();
+        alert.remove();
     }, duration);
-}
-
-function getIconForType(type) {
-    const icons = {
-        'success': 'check-circle',
-        'danger': 'exclamation-circle',
-        'warning': 'exclamation-triangle',
-        'info': 'info-circle'
-    };
-    return icons[type] || 'info-circle';
 }
 
 /* ============================================
@@ -309,17 +225,11 @@ function setupTableRowActions() {
 
     rows.forEach(row => {
         row.addEventListener('mouseenter', function () {
-            const actionButtons = this.querySelectorAll('.action-btn');
-            actionButtons.forEach(btn => {
-                btn.style.opacity = '1';
-            });
+            this.classList.add('bg-gray-50');
         });
 
         row.addEventListener('mouseleave', function () {
-            const actionButtons = this.querySelectorAll('.action-btn');
-            actionButtons.forEach(btn => {
-                btn.style.opacity = '0.7';
-            });
+            this.classList.remove('bg-gray-50');
         });
     });
 }
@@ -418,7 +328,6 @@ function printPage() {
    PAGE UTILITIES
    ============================================ */
 
-// Scroll to top
 function scrollToTop() {
     window.scrollTo({
         top: 0,
@@ -426,34 +335,21 @@ function scrollToTop() {
     });
 }
 
-// Create scroll to top button
+// Scroll to top button
 document.addEventListener('DOMContentLoaded', function () {
-    // Show/hide scroll to top button
     const scrollToTopBtn = document.createElement('button');
     scrollToTopBtn.id = 'scrollToTopBtn';
-    scrollToTopBtn.className = 'btn btn-primary btn-floating';
+    scrollToTopBtn.className = 'fixed bottom-5 right-5 hidden w-12 h-12 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition z-50 items-center justify-center shadow-lg';
     scrollToTopBtn.innerHTML = '<i class="fas fa-arrow-up"></i>';
-    scrollToTopBtn.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        display: none;
-        width: 50px;
-        height: 50px;
-        padding: 0;
-        border-radius: 50%;
-        z-index: 999;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    `;
     document.body.appendChild(scrollToTopBtn);
 
     window.addEventListener('scroll', function () {
         if (window.scrollY > 300) {
-            scrollToTopBtn.style.display = 'flex';
-            scrollToTopBtn.style.alignItems = 'center';
-            scrollToTopBtn.style.justifyContent = 'center';
+            scrollToTopBtn.classList.remove('hidden');
+            scrollToTopBtn.classList.add('flex');
         } else {
-            scrollToTopBtn.style.display = 'none';
+            scrollToTopBtn.classList.add('hidden');
+            scrollToTopBtn.classList.remove('flex');
         }
     });
 
@@ -525,5 +421,7 @@ window.adminUtils = {
     exportTableToCSV,
     printPage,
     scrollToTop,
-    fetchWithAuth
+    fetchWithAuth,
+    setupTableRowActions,
+    initSearchFilter
 };
