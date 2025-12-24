@@ -12,6 +12,9 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
     {
         private readonly UserManager<AppUser> userManager = userManager;
 
-
+        public async Task<IList<AppUser>> GetAllUsersAsync()
+        {
+            return userManager.Users.ToList();
+        }
     }
 }

@@ -1,11 +1,22 @@
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using System;
+using System.Text.Json.Serialization;
 
 namespace ITI.Gymunity.FP.Application.DTOs.Program
 {
  public class ProgramCreateRequest
  {
- public string TrainerId { get; set; } = null!;
+ [JsonPropertyName("trainerUserId")]
+ public string TrainerUserId { get; set; } = null!;
+
+ // Accept legacy JSON field name 'trainerId' for backward compatibility
+ [JsonPropertyName("trainerId")]
+ public string TrainerId
+ {
+ // write-only alias: when incoming JSON has 'trainerId' it will set TrainerUserId
+ set => TrainerUserId = value;
+ }
+
  public string Title { get; set; } = null!;
  public string Description { get; set; } = string.Empty;
  public ProgramType Type { get; set; }

@@ -9,6 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Domain.Models.Identity;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -65,6 +68,14 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<PackageResponse> CreateAsync(int trainerId, PackageCreateRequest request)
  {
+ // validate trainer profile exists
+ var profileRepo = _unitOfWork.Repository<TrainerProfile, ITI.Gymunity.FP.Domain.RepositoiesContracts.ITrainerProfileRepository>();
+ var profile = await profileRepo.GetByIdAsync(trainerId);
+ if (profile == null)
+ {
+ throw new InvalidOperationException($"Trainer profile with id {trainerId} not found.");
+ }
+
  var entity = new Package
  {
  Name = request.Name,

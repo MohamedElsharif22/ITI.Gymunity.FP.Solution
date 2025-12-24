@@ -222,37 +222,6 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "MessageThreads",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    ClientId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    TrainerId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    LastMessageAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
-                    IsPriority = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
-                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
-                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MessageThreads", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_MessageThreads_AspNetUsers_ClientId",
-                        column: x => x.ClientId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_MessageThreads_AspNetUsers_TrainerId",
-                        column: x => x.TrainerId,
-                        principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "Notifications",
                 columns: table => new
                 {
@@ -344,36 +313,40 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Messages",
+                name: "MessageThreads",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
+                    Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ThreadId = table.Column<int>(type: "int", nullable: false),
-                    SenderId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
-                    Content = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false, defaultValue: ""),
-                    MediaUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
-                    Type = table.Column<int>(type: "int", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    ClientId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    TrainerId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    LastMessageAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
+                    IsPriority = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    TrainerProfileId = table.Column<int>(type: "int", nullable: true),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.PrimaryKey("PK_MessageThreads", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Messages_AspNetUsers_SenderId",
-                        column: x => x.SenderId,
+                        name: "FK_MessageThreads_AspNetUsers_ClientId",
+                        column: x => x.ClientId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_Messages_MessageThreads_ThreadId",
-                        column: x => x.ThreadId,
-                        principalTable: "MessageThreads",
+                        name: "FK_MessageThreads_AspNetUsers_TrainerId",
+                        column: x => x.TrainerId,
+                        principalTable: "AspNetUsers",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_MessageThreads_TrainerProfiles_TrainerProfileId",
+                        column: x => x.TrainerProfileId,
+                        principalTable: "TrainerProfiles",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -394,6 +367,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
                     IsAnnual = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
                     PromoCode = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: ""),
+                    TrainerProfileId = table.Column<int>(type: "int", nullable: true),
                     UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
                 },
@@ -406,6 +380,11 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         principalTable: "TrainerProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Packages_TrainerProfiles_TrainerProfileId",
+                        column: x => x.TrainerProfileId,
+                        principalTable: "TrainerProfiles",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -478,6 +457,39 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         principalTable: "TrainerProfiles",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Messages",
+                columns: table => new
+                {
+                    Id = table.Column<long>(type: "bigint", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ThreadId = table.Column<int>(type: "int", nullable: false),
+                    SenderId = table.Column<string>(type: "nvarchar(450)", maxLength: 450, nullable: false),
+                    Content = table.Column<string>(type: "nvarchar(4000)", maxLength: 4000, nullable: false, defaultValue: ""),
+                    MediaUrl = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Type = table.Column<int>(type: "int", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IsRead = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    IsDeleted = table.Column<bool>(type: "bit", nullable: false, defaultValue: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Messages", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Messages_AspNetUsers_SenderId",
+                        column: x => x.SenderId,
+                        principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Messages_MessageThreads_ThreadId",
+                        column: x => x.ThreadId,
+                        principalTable: "MessageThreads",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -881,6 +893,11 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 column: "TrainerId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_MessageThreads_TrainerProfileId",
+                table: "MessageThreads",
+                column: "TrainerProfileId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Notifications_CreatedAt",
                 table: "Notifications",
                 column: "CreatedAt");
@@ -930,6 +947,11 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                 name: "IX_Packages_TrainerId_IsActive",
                 table: "Packages",
                 columns: new[] { "TrainerId", "IsActive" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Packages_TrainerProfileId",
+                table: "Packages",
+                column: "TrainerProfileId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Payments_PaidAt",
