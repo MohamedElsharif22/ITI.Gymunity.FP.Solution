@@ -11,16 +11,17 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
 {
     public class TrainerProfile : BaseEntity
     {
+        // Id comes from BaseEntity
         public string UserId { get; set; } = null!;
-        public string Handle { get; set; } = null!; // @wahidfitness  ==> unique
+        public string Handle { get; set; } = null!; // @wahidfitness ==> unique
         public string Bio { get; set; } = string.Empty;
         public string? CoverImageUrl { get; set; }
         public string? VideoIntroUrl { get; set; }
         public string? BrandingColors { get; set; } // JSON or hex string
         public bool IsVerified { get; set; } = false;
         public DateTime? VerifiedAt { get; set; }
-        public decimal RatingAverage { get; set; } = 0;
-        public int TotalClients { get; set; } = 0;
+        public decimal RatingAverage { get; set; } =0;
+        public int TotalClients { get; set; } =0;
         public int YearsExperience { get; set; }
 
         // New Properties for Status
@@ -29,9 +30,9 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
 
         // Navigation
         public AppUser User { get; set; } = null!;
-        public ICollection<Program> Programs { get; set; } = [];
-        ICollection<Package> Packages { get; set; } = [];
-        ICollection<MessageThread> MessageThreadsAsTrainer { get; set; } = [];
+        public ICollection<Program> Programs { get; set; } = new List<Program>();
+        public ICollection<Package> Packages { get; set; } = new List<Package>();
+        public ICollection<MessageThread> MessageThreadsAsTrainer { get; set; } = new List<MessageThread>();
 
         public ICollection<TrainerReview> TrainerReviews { get; set; } = new List<TrainerReview>();
 

@@ -6,6 +6,8 @@ using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -26,12 +28,14 @@ namespace ITI.Gymunity.FP.Application.Services
  private readonly IProgramRepository _repo;
  private readonly IUnitOfWork _unitOfWork;
  private readonly IMapper _mapper;
+ private readonly UserManager<AppUser> _userManager;
 
- public ProgramManagerService(IProgramRepository repo, IUnitOfWork unitOfWork, IMapper mapper)
+ public ProgramManagerService(IProgramRepository repo, IUnitOfWork unitOfWork, IMapper mapper, UserManager<AppUser> userManager)
  {
  _repo = repo;
  _unitOfWork = unitOfWork;
  _mapper = mapper;
+ _userManager = userManager;
  }
 
  public async Task<IReadOnlyList<ProgramGetAllResponse>> GetAllAsync()
@@ -49,16 +53,28 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<ProgramGetByIdResponse> CreateAsync(ProgramCreateRequest request)
  {
+ // validate trainer user exists
+ if (string.IsNullOrEmpty(request.TrainerUserId))
+ {
+ throw new InvalidOperationException("trainerUserId is required.");
+ }
+
+ var user = await _userManager.FindByIdAsync(request.TrainerUserId);
+ if (user == null)
+ {
+ throw new InvalidOperationException($"Trainer user '{request.TrainerUserId}' not found.");
+ }
+
  var entity = new Program
  {
- TrainerId = request.TrainerId,
+ TrainerId = request.TrainerUserId,
  Title = request.Title,
  Description = request.Description,
  Type = request.Type,
  DurationWeeks = request.DurationWeeks,
  Price = request.Price,
  // Newly created programs should be pending by default until admin approves
- IsPublic = false,
+ IsPublic = request.IsPublic, // follow client request now
  MaxClients = request.MaxClients,
  ThumbnailUrl = request.ThumbnailUrl
  };

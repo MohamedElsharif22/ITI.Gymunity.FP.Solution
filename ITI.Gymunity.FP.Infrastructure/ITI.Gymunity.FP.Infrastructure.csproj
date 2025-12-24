@@ -17,4 +17,8 @@
     <ProjectReference Include="..\ITI.Gymunity.FP.Application\ITI.Gymunity.FP.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="_Data\Migrations\" />
+  </ItemGroup>
+
 </Project>
