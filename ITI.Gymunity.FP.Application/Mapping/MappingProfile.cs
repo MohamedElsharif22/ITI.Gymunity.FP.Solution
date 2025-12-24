@@ -34,11 +34,23 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.BodyStateLog, opt => opt.MapFrom(src => src.BodyStatLogs
                 .OrderByDescending(b => b.LoggedAt).FirstOrDefault()));
 
+            CreateMap<ClientProfile, ClientProfileDashboardResponse>()
+                .ForMember(dest => dest.UserName,
+                    opt => opt.MapFrom(src => src.User != null ? src.User.UserName : "User"))
+                .ForMember(dest => dest.LastBodyState,
+                    opt => opt.MapFrom(src => src.BodyStatLogs != null && src.BodyStatLogs.Any()
+                        ? src.BodyStatLogs.OrderByDescending(b => b.LoggedAt).First()
+                        : null))
+                .ForMember(dest => dest.BodyStateHistory,
+                    opt => opt.MapFrom(src => src.BodyStatLogs != null
+                        ? src.BodyStatLogs.OrderByDescending(b => b.LoggedAt).ToList()
+                        : new List<BodyStatLog>()));
+
             //*********************     BodyStateLog Mapping       ******************************//
             CreateMap<CreateBodyStateLogRequest, BodyStatLog>();
             CreateMap<BodyStatLog, BodyStateLogResponse>();
 
-            //*********************     BodyStateLog Mapping       ******************************//
+            //*********************     Workout Log Mapping       ******************************//
             CreateMap<WorkoutLogRequest, WorkoutLog>();
             CreateMap<WorkoutLog, WorkoutLogResponse>();
 

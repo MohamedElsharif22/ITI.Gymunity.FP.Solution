@@ -20,6 +20,33 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
             return User.FindFirstValue(ClaimTypes.NameIdentifier);
         }
 
+        [HttpGet("dashboard")]
+        [ProducesResponseType(typeof(ClientProfileDashboardResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ClientProfileDashboardResponse>> GetDashboard()
+        {
+            var userId = GetUserId();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized(new ApiResponse(401, "Unauthorized"));
+
+            try
+            {
+                var dashboard = await _clientProfileService.GetDashboardAsync(userId);
+                return Ok(dashboard);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning("Dashboard not found for UserId: {UserId}", userId);
+                return NotFound(new ApiResponse(404, ex.Message));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving dashboard for UserId: {UserId}", userId);
+                return StatusCode(500, new ApiResponse(500, "An error occurred while retrieving dashboard"));
+            }
+        }
+
 
         [HttpGet]
         [ProducesResponseType(typeof(ClientProfileResponse), StatusCodes.Status200OK)]
