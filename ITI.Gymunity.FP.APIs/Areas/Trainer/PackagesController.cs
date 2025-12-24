@@ -59,10 +59,22 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         // trainerId comes from request body
         // ============================
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] PackageCreateRequest request)
+        public async Task<IActionResult> Create([FromBody] PackageCreateRequestV2 request)
         {
 
-            var created = await _service.CreateAsync(request.TrainerId, request);
+            var created = await _service.CreateAsync(request.TrainerProfileId, new PackageCreateRequest
+            {
+                Name = request.Name,
+                Description = request.Description,
+                PriceMonthly = request.PriceMonthly,
+                PriceYearly = request.PriceYearly,
+                IsActive = request.IsActive,
+                ThumbnailUrl = request.ThumbnailUrl,
+                ProgramIds = request.ProgramIds,
+                IsAnnual = request.IsAnnual,
+                PromoCode = request.PromoCode,
+                TrainerId = request.TrainerProfileId
+            });
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -77,11 +89,23 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         // Returns full PackageResponse on success or when conflict occurs (idempotent)
         // ============================
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] PackageCreateRequest request)
+        public async Task<IActionResult> Update(int id, [FromBody] PackageCreateRequestV2 request)
         {
             try
             {
-                var updated = await _service.UpdateAsync(id, request);
+                var updated = await _service.UpdateAsync(id, new PackageCreateRequest
+                {
+                    Name = request.Name,
+                    Description = request.Description,
+                    PriceMonthly = request.PriceMonthly,
+                    PriceYearly = request.PriceYearly,
+                    IsActive = request.IsActive,
+                    ThumbnailUrl = request.ThumbnailUrl,
+                    ProgramIds = request.ProgramIds,
+                    IsAnnual = request.IsAnnual,
+                    PromoCode = request.PromoCode,
+                    TrainerId = request.TrainerProfileId
+                });
 
                 if (!updated)
                     return NotFound();
@@ -112,7 +136,7 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {
-            if (id <= 0)
+            if (id <=0)
             {
                 return BadRequest(new { message = "Invalid package id. Id must be a positive integer." });
             }

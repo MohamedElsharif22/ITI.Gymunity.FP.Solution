@@ -14,7 +14,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
         {
             return new UserResponse
             {
-                //Id = user.Id, // amr edit
+                Id = user.Id, //amr edit i need it to test some end points
                 Name = user.FullName,
                 UserName = user.UserName,
                 Email = user.Email,

@@ -5,6 +5,7 @@ using ITI.Gymunity.FP.Application.Services.ClientServices;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using ITI.Gymunity.FP.Application.Configuration;
+using ITI.Gymunity.FP.Application.Services.Admin;
 
 namespace ITI.Gymunity.FP.Application.DependencyInjection
 {
@@ -46,6 +47,7 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             services.AddScoped<PaymentService>();
             services.AddScoped<WebhookService>();
             services.AddScoped<PayPalService>();
+            services.AddScoped<UsersService>();
 
             //amr start
 

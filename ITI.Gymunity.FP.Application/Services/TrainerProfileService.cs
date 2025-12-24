@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+using Microsoft.AspNetCore.Identity;
 
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Specefications;
@@ -8,17 +9,20 @@ using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Specefications;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
     public class TrainerProfileService(
         IUnitOfWork unitOfWork,
         IMapper mapper,
-        IFileUploadService fileUploadService)
+        IFileUploadService fileUploadService,
+        UserManager<AppUser> userManager)
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly IMapper _mapper = mapper;
         private readonly IFileUploadService _fileUploadService = fileUploadService;
+        private readonly UserManager<AppUser> _userManager = userManager;
 
         //public async Task<IEnumerable<TrainerProfileListResponse>> GetAllProfiles()
         //{
@@ -66,16 +70,25 @@ namespace ITI.Gymunity.FP.Application.Services
             // Get repository
             var repository = _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>();
 
-            // Check if user already has a trainer profile
-            if (!string.IsNullOrEmpty(request.UserId))
+            // Validate user exists to avoid FK conflict
+            if (string.IsNullOrEmpty(request.UserId))
             {
-                var existingProfile = await repository.GetWithSpecsAsync(
-                    new TrainerWithUsersAndProgramsSpecs(tp => tp.UserId == request.UserId && !tp.IsDeleted));
+                throw new InvalidOperationException("UserId is required.");
+            }
 
-                if (existingProfile != null)
-                {
-                    throw new InvalidOperationException($"User '{request.UserId}' already has a trainer profile.");
-                }
+            var user = await _userManager.FindByIdAsync(request.UserId);
+            if (user == null)
+            {
+                throw new InvalidOperationException($"User '{request.UserId}' not found.");
+            }
+
+            // Check if user already has a trainer profile
+            var existingProfile = await repository.GetWithSpecsAsync(
+                new TrainerWithUsersAndProgramsSpecs(tp => tp.UserId == request.UserId && !tp.IsDeleted));
+
+            if (existingProfile != null)
+            {
+                throw new InvalidOperationException($"User '{request.UserId}' already has a trainer profile.");
             }
 
             // Check if handle already exists
@@ -86,6 +99,10 @@ namespace ITI.Gymunity.FP.Application.Services
 
             // Map request to entity
             var profile = _mapper.Map<TrainerProfile>(request);
+
+            // Ensure FK and navigation are set to the existing user
+            profile.UserId = user.Id;
+            profile.User = user;
 
             // Handle cover image upload
             if (request.CoverImage != null)

@@ -2,7 +2,7 @@
 
 namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 {
-    public class UsersController : Controller
+    public class UsersController() : BaseAdminController
     {
         public IActionResult Index()
         {

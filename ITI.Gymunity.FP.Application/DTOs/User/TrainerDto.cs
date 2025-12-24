@@ -15,8 +15,6 @@ namespace ITI.Gymunity.FP.Application.DTOs.User
         public string UserName { get; set; }
         public string? ProfilePhotoUrl { get; set; }
         public bool IsVerified { get; set; } = false;
-        public string? StripeCustomerId { get; set; }
-        public string? StripeConnectAccountId { get; set; } // Only for trainers
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? LastLoginAt { get; set; }
     }

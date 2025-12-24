@@ -403,6 +403,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int?>("TrainerProfileId")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -415,6 +418,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("LastMessageAt");
 
                     b.HasIndex("TrainerId");
+
+                    b.HasIndex("TrainerProfileId");
 
                     b.HasIndex("ClientId", "TrainerId")
                         .IsUnique();
@@ -1052,6 +1057,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasMaxLength(450)
                         .HasColumnType("int");
 
+                    b.Property<int?>("TrainerProfileId")
+                        .HasColumnType("int");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -1060,6 +1068,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("IsActive");
 
                     b.HasIndex("TrainerId");
+
+                    b.HasIndex("TrainerProfileId");
 
                     b.HasIndex("TrainerId", "IsActive");
 
@@ -1456,6 +1466,10 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", null)
+                        .WithMany("MessageThreadsAsTrainer")
+                        .HasForeignKey("TrainerProfileId");
+
                     b.Navigation("Client");
 
                     b.Navigation("Trainer");
@@ -1582,6 +1596,10 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasForeignKey("TrainerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", null)
+                        .WithMany("Packages")
+                        .HasForeignKey("TrainerProfileId");
 
                     b.Navigation("Trainer");
                 });
@@ -1742,6 +1760,10 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Trainer.TrainerProfile", b =>
                 {
+                    b.Navigation("MessageThreadsAsTrainer");
+
+                    b.Navigation("Packages");
+
                     b.Navigation("Programs");
 
                     b.Navigation("TrainerReviews");
