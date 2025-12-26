@@ -6,16 +6,12 @@ namespace ITI.Gymunity.FP.Application.DTOs.Program
 {
  public class ProgramCreateRequest
  {
- [JsonPropertyName("trainerUserId")]
- public string TrainerUserId { get; set; } = null!;
+ [JsonPropertyName("trainerProfileId")]
+ public int TrainerProfileId { get; set; }
 
- // Accept legacy JSON field name 'trainerId' for backward compatibility
+ // Accept legacy trainerId (int)
  [JsonPropertyName("trainerId")]
- public string TrainerId
- {
- // write-only alias: when incoming JSON has 'trainerId' it will set TrainerUserId
- set => TrainerUserId = value;
- }
+ public int TrainerIdLegacy { set => TrainerProfileId = value; }
 
  public string Title { get; set; } = null!;
  public string Description { get; set; } = string.Empty;

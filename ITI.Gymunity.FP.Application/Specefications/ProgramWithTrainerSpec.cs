@@ -13,7 +13,7 @@ namespace ITI.Gymunity.FP.Application.Specefications
  {
  public ProgramWithTrainerSpec(string? searchTerm = null)
  {
- AddInclude(q => q.Include(p => p.Trainer).Include(p => p.TrainerProfile).ThenInclude(tp => tp.User));
+ AddInclude(q => q.Include(p => p.TrainerProfile).ThenInclude(tp => tp.User));
 
  if (!string.IsNullOrEmpty(searchTerm))
  {
