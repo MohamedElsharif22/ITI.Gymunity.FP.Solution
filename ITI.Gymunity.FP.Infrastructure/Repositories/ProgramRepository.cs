@@ -38,5 +38,12 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  query = query.Where(p => p.Title.Contains(term) || p.Description.Contains(term));
  return await query.ToListAsync();
  }
+
+ public async Task<bool> ExistsByTitleAsync(string title)
+ {
+ if (string.IsNullOrWhiteSpace(title)) return false;
+ var normalized = title.Trim();
+ return await _Context.Programs.AnyAsync(p => p.Title != null && p.Title.ToLower() == normalized.ToLower());
+ }
  }
 }

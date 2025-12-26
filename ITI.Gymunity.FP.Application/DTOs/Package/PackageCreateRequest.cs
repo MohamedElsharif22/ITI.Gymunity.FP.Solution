@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using ITI.Gymunity.FP.Application.Validation;
 
 namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 {
@@ -6,6 +7,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
     {
         [Required(ErrorMessage = "Name is required and must be between 3 and 100 characters.")]
         [StringLength(100, MinimumLength = 3, ErrorMessage = "Name must be between 3 and 100 characters.")]
+        [UniquePackageName]
         public string Name { get; set; } = null!;
 
         [StringLength(500, ErrorMessage = "Description must be at most 500 characters.")]

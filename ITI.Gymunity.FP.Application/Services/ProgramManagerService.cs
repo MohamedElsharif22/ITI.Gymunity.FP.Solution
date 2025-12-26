@@ -63,6 +63,15 @@ namespace ITI.Gymunity.FP.Application.Services
  throw new InvalidOperationException($"Trainer profile with id {request.TrainerProfileId} not found.");
  }
 
+ // Global duplicate title check using DB-side query
+ if (!string.IsNullOrWhiteSpace(request.Title))
+ {
+ if (await _repo.ExistsByTitleAsync(request.Title.Trim()))
+ {
+ throw new InvalidOperationException($"A program with title '{request.Title}' already exists.");
+ }
+ }
+
  // Ensure we have a non-null trainer user id for legacy column
  var trainerUserId = profile.UserId ?? string.Empty;
 
