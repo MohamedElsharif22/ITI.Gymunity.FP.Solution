@@ -14,9 +14,15 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  {
  }
 
- public async Task<IReadOnlyList<Program>> GetByTrainerAsync(string trainerId)
+ // legacy: still support trainerId as user id string by joining via TrainerProfile
+ public async Task<IReadOnlyList<Program>> GetByTrainerAsync(string trainerUserId)
  {
- return await _Context.Programs.Where(p => p.TrainerId == trainerId).ToListAsync();
+ return await _Context.Programs.Where(p => p.TrainerProfileId != null && p.TrainerProfile.UserId == trainerUserId).ToListAsync();
+ }
+
+ public async Task<IReadOnlyList<Program>> GetByTrainerAsyncProfileId(int trainerProfileId)
+ {
+ return await _Context.Programs.Where(p => p.TrainerProfileId == trainerProfileId).ToListAsync();
  }
 
  public async Task<Program?> GetByIdWithIncludesAsync(int id)

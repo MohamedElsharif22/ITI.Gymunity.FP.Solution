@@ -8,6 +8,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using ITI.Gymunity.FP.Domain.Models.Identity;
+using ITI.Gymunity.FP.Domain.Models.Trainer;
+using System;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -19,7 +21,6 @@ namespace ITI.Gymunity.FP.Application.Services
  Task<bool> UpdateAsync(int id, ProgramUpdateRequest request);
  Task<bool> DeleteAsync(int id);
  Task<IReadOnlyList<ProgramGetAllResponse>> SearchAsync(string? term);
- // added: get programs by trainer id
  Task<IReadOnlyList<ProgramGetAllResponse>> GetByTrainerAsync(string trainerId);
  }
 
@@ -28,14 +29,16 @@ namespace ITI.Gymunity.FP.Application.Services
  private readonly IProgramRepository _repo;
  private readonly IUnitOfWork _unitOfWork;
  private readonly IMapper _mapper;
+ private readonly ITrainerProfileRepository _trainerRepo;
  private readonly UserManager<AppUser> _userManager;
 
- public ProgramManagerService(IProgramRepository repo, IUnitOfWork unitOfWork, IMapper mapper, UserManager<AppUser> userManager)
+ public ProgramManagerService(IProgramRepository repo, IUnitOfWork unitOfWork, IMapper mapper, UserManager<AppUser> userManager, ITrainerProfileRepository trainerRepo)
  {
  _repo = repo;
  _unitOfWork = unitOfWork;
  _mapper = mapper;
  _userManager = userManager;
+ _trainerRepo = trainerRepo;
  }
 
  public async Task<IReadOnlyList<ProgramGetAllResponse>> GetAllAsync()
@@ -53,31 +56,33 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<ProgramGetByIdResponse> CreateAsync(ProgramCreateRequest request)
  {
- // validate trainer user exists
- if (string.IsNullOrEmpty(request.TrainerUserId))
+ // Validate trainer profile exists
+ var profile = await _trainerRepo.GetByIdAsync(request.TrainerProfileId);
+ if (profile == null)
  {
- throw new InvalidOperationException("trainerUserId is required.");
+ throw new InvalidOperationException($"Trainer profile with id {request.TrainerProfileId} not found.");
  }
 
- var user = await _userManager.FindByIdAsync(request.TrainerUserId);
- if (user == null)
- {
- throw new InvalidOperationException($"Trainer user '{request.TrainerUserId}' not found.");
- }
+ // Ensure we have a non-null trainer user id for legacy column
+ var trainerUserId = profile.UserId ?? string.Empty;
 
  var entity = new Program
  {
- TrainerId = request.TrainerUserId,
+ TrainerProfileId = request.TrainerProfileId,
+ TrainerProfile = profile,
+ TrainerId = trainerUserId,
  Title = request.Title,
  Description = request.Description,
  Type = request.Type,
  DurationWeeks = request.DurationWeeks,
  Price = request.Price,
- // Newly created programs should be pending by default until admin approves
- IsPublic = request.IsPublic, // follow client request now
+ IsPublic = request.IsPublic,
  MaxClients = request.MaxClients,
- ThumbnailUrl = request.ThumbnailUrl
+ ThumbnailUrl = request.ThumbnailUrl,
+ CreatedAt = DateTime.UtcNow,
+ UpdatedAt = DateTime.UtcNow
  };
+
  _repo.Add(entity);
  await _unitOfWork.CompleteAsync();
  return _mapper.Map<ProgramGetByIdResponse>(entity);
@@ -95,6 +100,9 @@ namespace ITI.Gymunity.FP.Application.Services
  entity.IsPublic = request.IsPublic;
  entity.MaxClients = request.MaxClients;
  entity.ThumbnailUrl = request.ThumbnailUrl;
+ entity.UpdatedAt = DateTime.UtcNow;
+
+ // if TrainerProfileId changed in future requests, update legacy TrainerId accordingly (not part of current DTO)
  _repo.Update(entity);
  await _unitOfWork.CompleteAsync();
  return true;
@@ -115,11 +123,18 @@ namespace ITI.Gymunity.FP.Application.Services
  return list.Select(p => _mapper.Map<ProgramGetAllResponse>(p)).ToList();
  }
 
- // new: get programs for a trainer
  public async Task<IReadOnlyList<ProgramGetAllResponse>> GetByTrainerAsync(string trainerId)
+ {
+ if (int.TryParse(trainerId, out var profileId))
+ {
+ var list = await _repo.GetByTrainerAsyncProfileId(profileId);
+ return list.Select(p => _mapper.Map<ProgramGetAllResponse>(p)).ToList();
+ }
+ else
  {
  var list = await _repo.GetByTrainerAsync(trainerId);
  return list.Select(p => _mapper.Map<ProgramGetAllResponse>(p)).ToList();
+ }
  }
  }
 }

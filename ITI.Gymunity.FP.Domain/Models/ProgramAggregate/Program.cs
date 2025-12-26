@@ -11,7 +11,14 @@ namespace ITI.Gymunity.FP.Domain.Models.ProgramAggregate
 {
     public class Program : BaseEntity
     {
-        public string TrainerId { get; set; } = null!;
+        // Legacy DB compatibility: keep TrainerId column (string) because database currently expects it.
+        // Prefer using TrainerProfileId as the new canonical reference.
+        public string TrainerId { get; set; } = string.Empty; // legacy, filled from TrainerProfile.UserId on create/update
+
+        // Use TrainerProfileId as the reference to the trainer profile
+        public int? TrainerProfileId { get; set; }
+        public TrainerProfile? TrainerProfile { get; set; }
+
         public string Title { get; set; } = null!;
         public string Description { get; set; } = string.Empty;
         public ProgramType Type { get; set; } // Workout, Nutrition, Hybrid, Challenge
@@ -23,12 +30,9 @@ namespace ITI.Gymunity.FP.Domain.Models.ProgramAggregate
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        public AppUser Trainer { get; set; } = null!;
-        public ICollection<ProgramWeek> Weeks { get; set; } = [];
-        public ICollection<PackageProgram> PackagePrograms { get; set; } = [];
+        public ICollection<ProgramWeek> Weeks { get; set; } = new List<ProgramWeek>();
+        public ICollection<PackageProgram> PackagePrograms { get; set; } = new List<PackageProgram>();
 
-        // Optional relation to TrainerProfile
-        public int? TrainerProfileId { get; set; }
-        public TrainerProfile? TrainerProfile { get; set; }
+        // Optional relation to TrainerProfile stored above
     }
 }
