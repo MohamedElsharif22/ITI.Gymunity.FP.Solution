@@ -64,6 +64,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             builder.HasIndex(p => p.IsPublic);
             builder.HasIndex(p => new { p.TrainerProfileId, p.IsPublic });
             builder.HasIndex(p => p.CreatedAt);
+            builder.HasIndex(p => p.Title).IsUnique();
 
             // Relationships
             builder.HasOne(p => p.TrainerProfile)

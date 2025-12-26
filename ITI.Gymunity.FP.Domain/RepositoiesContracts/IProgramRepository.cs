@@ -10,5 +10,6 @@ namespace ITI.Gymunity.FP.Domain.RepositoiesContracts
  Task<IReadOnlyList<Program>> GetByTrainerAsyncProfileId(int trainerProfileId);
  Task<Program?> GetByIdWithIncludesAsync(int id);
  Task<IReadOnlyList<Program>> SearchAsync(string? term);
+ Task<bool> ExistsByTitleAsync(string title);
  }
 }
