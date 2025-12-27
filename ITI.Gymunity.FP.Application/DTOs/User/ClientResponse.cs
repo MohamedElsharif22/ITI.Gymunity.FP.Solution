@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Application.DTOs.User
 {
-    public class ClientDto
+    public class ClientResponse
     {
         public string Id { get; set; }
         public string FullName { get; set; } = null!;

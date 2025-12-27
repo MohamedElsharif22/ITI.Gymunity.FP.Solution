@@ -39,6 +39,7 @@
 
             <!-- Sidebar Navigation Items -->
             <ul class="flex flex-col gap-1 p-3">
+                <!-- Dashboard -->
                 <li class="sidebar-item">
                     <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
                        asp-area="" asp-controller="Dashboard" asp-action="Index">
@@ -47,22 +48,36 @@
                     </a>
                 </li>
 
+                <!-- Users Management Section -->
+                <li class="mt-4 mb-2 px-4">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">User Management</p>
+                </li>
+
+                <!-- Clients -->
                 <li class="sidebar-item">
                     <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
-                       asp-area="" asp-controller="Users" asp-action="Index">
+                       asp-area="" asp-controller="Clients" asp-action="Index">
                         <i class="nav-icon fas fa-users w-5 text-center"></i>
-                        <span class="nav-text flex-1">Users</span>
+                        <span class="nav-text flex-1">Clients</span>
                     </a>
                 </li>
 
+                <!-- Trainers -->
                 <li class="sidebar-item">
                     <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
                        asp-area="" asp-controller="Trainers" asp-action="Index">
                         <i class="nav-icon fas fa-dumbbell w-5 text-center"></i>
                         <span class="nav-text flex-1">Trainers</span>
+                        <span class="badge hidden px-2 py-1 text-xs font-semibold bg-orange-500 text-white rounded-full" id="trainerBadge">0</span>
                     </a>
                 </li>
 
+                <!-- Content Management Section |
+                <li class="mt-4 mb-2 px-4">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Content Management</p>
+                </li>
+
+                <!-- Reviews -->
                 <li class="sidebar-item">
                     <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
                        asp-area="" asp-controller="Reviews" asp-action="Index">
@@ -72,22 +87,7 @@
                     </a>
                 </li>
 
-                <li class="sidebar-item">
-                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
-                       asp-area="" asp-controller="Subscriptions" asp-action="Index">
-                        <i class="nav-icon fas fa-credit-card w-5 text-center"></i>
-                        <span class="nav-text flex-1">Subscriptions</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-item">
-                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
-                       asp-area="" asp-controller="Payments" asp-action="Index">
-                        <i class="nav-icon fas fa-money-bill-wave w-5 text-center"></i>
-                        <span class="nav-text flex-1">Payments</span>
-                    </a>
-                </li>
-
+                <!-- Programs -->
                 <li class="sidebar-item">
                     <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
                        asp-area="" asp-controller="Programs" asp-action="Index">
@@ -96,6 +96,31 @@
                     </a>
                 </li>
 
+                <!-- Business Management Section -->
+                <li class="mt-4 mb-2 px-4">
+                    <p class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Business Management</p>
+                </li>
+
+                <!-- Subscriptions -->
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Subscriptions" asp-action="Index">
+                        <i class="nav-icon fas fa-credit-card w-5 text-center"></i>
+                        <span class="nav-text flex-1">Subscriptions</span>
+                    </a>
+                </li>
+
+                <!-- Payments -->
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Payments" asp-action="Index">
+                        <i class="nav-icon fas fa-money-bill-wave w-5 text-center"></i>
+                        <span class="nav-text flex-1">Payments</span>
+                        <span class="badge hidden px-2 py-1 text-xs font-semibold bg-red-500 text-white rounded-full" id="paymentBadge">0</span>
+                    </a>
+                </li>
+
+                <!-- Analytics -->
                 <li class="sidebar-item">
                     <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
                        asp-area="" asp-controller="Analytics" asp-action="Index">
@@ -104,8 +129,29 @@
                     </a>
                 </li>
 
+                <!-- System Section -->
                 <li class="my-2 border-t border-gray-200"></li>
 
+                <!-- Notifications -->
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Notifications" asp-action="Index">
+                        <i class="nav-icon fas fa-bell w-5 text-center"></i>
+                        <span class="nav-text flex-1">Notifications</span>
+                    </a>
+                </li>
+
+                <!-- Messages -->
+                <li class="sidebar-item">
+                    <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
+                       asp-area="" asp-controller="Chats" asp-action="Index">
+                        <i class="nav-icon fas fa-comments w-5 text-center"></i>
+                        <span class="nav-text flex-1">Messages</span>
+                        <span class="badge hidden px-2 py-1 text-xs font-semibold bg-blue-500 text-white rounded-full" id="chatBadgeSidebar">0</span>
+                    </a>
+                </li>
+
+                <!-- Settings -->
                 <li class="sidebar-item">
                     <a class="nav-link flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition border-l-4 border-transparent hover:border-blue-600" 
                        asp-area="" asp-controller="Settings" asp-action="Index">
@@ -154,19 +200,8 @@
 
                         <!-- Right Side: User Menu & Utilities -->
                         <div class="flex items-center gap-4">
-                            <!-- Notifications -->
-                            <div class="relative group">
-                                <button class="relative p-2 text-gray-600 hover:bg-gray-100 rounded-lg transition" type="button" title="Notifications">
-                                    <i class="fas fa-bell text-lg"></i>
-                                    <span class="absolute top-1 right-1 hidden w-2 h-2 bg-red-500 rounded-full" id="notificationBadge"></span>
-                                </button>
-                                <div class="absolute right-0 mt-2 w-72 bg-white rounded-lg shadow-lg border border-gray-200 hidden group-hover:block z-50">
-                                    <div class="p-4 border-b border-gray-200 font-semibold text-gray-900">Notifications</div>
-                                    <div class="max-h-96 overflow-y-auto">
-                                        <div class="p-6 text-center text-sm text-gray-500">No new notifications</div>
-                                    </div>
-                                </div>
-                            </div>
+                            <!-- Real-Time Notifications & Chat Widget -->
+                            @await Html.PartialAsync("_NotificationChatWidget")
 
                             <!-- User Menu -->
                             <div class="relative group">

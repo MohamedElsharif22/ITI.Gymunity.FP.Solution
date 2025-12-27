@@ -121,9 +121,15 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.Property<bool>("IsOnboardingCompleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("bit");
+
                     b.Property<decimal?>("StartingWeightKg")
                         .HasPrecision(5, 2)
                         .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime>("SuspendedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");
@@ -1149,6 +1155,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsVerified")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1165,6 +1174,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.Property<string>("StatusImageUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("SuspendedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("TotalClients")
                         .ValueGeneratedOnAdd()

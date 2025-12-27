@@ -1,0 +1,275 @@
+@using ITI.Gymunity.FP.Admin.MVC.ViewModels.Payments
+@using ITI.Gymunity.FP.Domain.Models.Enums
+@model PaymentsListViewModel
+
+@{
+    ViewData["Title"] = "Manage Payments";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="space-y-6">
+    <!-- Page Header & Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Total Revenue -->
+        <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-sm border border-blue-600 p-6 text-white">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium">Total Revenue</p>
+                    <h3 class="text-3xl font-bold mt-2">@Model.TotalRevenue.ToString("C")</h3>
+                    <p class="text-blue-100 text-xs mt-1">From displayed payments</p>
+                </div>
+                <i class="fas fa-money-bill-wave text-blue-300 text-3xl opacity-50"></i>
+            </div>
+        </div>
+
+        <!-- Payment Count -->
+        <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg shadow-sm border border-green-600 p-6 text-white">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-green-100 text-sm font-medium">Total Payments</p>
+                    <h3 class="text-3xl font-bold mt-2">@Model.TotalCount</h3>
+                    <p class="text-green-100 text-xs mt-1">All time</p>
+                </div>
+                <i class="fas fa-credit-card text-green-300 text-3xl opacity-50"></i>
+            </div>
+        </div>
+
+        <!-- Quick Filter -->
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <p class="text-gray-600 text-sm font-medium mb-3">Quick Filter</p>
+            <div class="space-y-2">
+                <a href="@Url.Action("Completed")" class="block px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition">
+                    <i class="fas fa-check-circle w-4 mr-2"></i>Completed Payments
+                </a>
+                <a href="@Url.Action("Failed")" class="block px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition">
+                    <i class="fas fa-exclamation-circle w-4 mr-2"></i>Failed Payments
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters & Search -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <form method="get" asp-action="Index" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
+                <!-- Status Filter -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select name="status" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <option value="">All Status</option>
+                        <option value="@((int)PaymentStatus.Pending)" selected="@(Model.StatusFilter == PaymentStatus.Pending ? "selected" : "")">Pending</option>
+                        <option value="@((int)PaymentStatus.Completed)" selected="@(Model.StatusFilter == PaymentStatus.Completed ? "selected" : "")">Completed</option>
+                        <option value="@((int)PaymentStatus.Failed)" selected="@(Model.StatusFilter == PaymentStatus.Failed ? "selected" : "")">Failed</option>
+                        <option value="@((int)PaymentStatus.Refunded)" selected="@(Model.StatusFilter == PaymentStatus.Refunded ? "selected" : "")">Refunded</option>
+                    </select>
+                </div>
+
+                <!-- Start Date -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">From</label>
+                    <input type="date" name="startDate" value="@Model.StartDate?.ToString("yyyy-MM-dd")"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+
+                <!-- End Date -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">To</label>
+                    <input type="date" name="endDate" value="@Model.EndDate?.ToString("yyyy-MM-dd")"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                </div>
+
+                <!-- Page Size -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Per Page</label>
+                    <select name="pageSize" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition">
+                        <option value="10" selected="@(Model.PageSize == 10 ? "selected" : "")">10</option>
+                        <option value="25" selected="@(Model.PageSize == 25 ? "selected" : "")">25</option>
+                        <option value="50" selected="@(Model.PageSize == 50 ? "selected" : "")">50</option>
+                    </select>
+                </div>
+
+                <!-- Search Button -->
+                <div>
+                    <button type="submit" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2">
+                        <i class="fas fa-search"></i>
+                        <span>Search</span>
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Payments Table -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Payment ID</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Client</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Amount</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Payment Method</th>
+                        <th class="px-6 py-4 text-left text-sm font-semibold text-gray-900">Date</th>
+                        <th class="px-6 py-4 text-right text-sm font-semibold text-gray-900">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    @if (Model.Payments.Any())
+                    {
+                        @foreach (var payment in Model.Payments)
+                        {
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-4 text-sm font-mono text-gray-900">
+                                    #@payment.Id.ToString().PadLeft(6, '0')
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    Client
+                                </td>
+                                <td class="px-6 py-4 text-sm font-semibold text-gray-900">
+                                    @payment.Amount.ToString("C")
+                                </td>
+                                <td class="px-6 py-4">
+                                    @{
+                                        var statusClass = payment.Status switch
+                                        {
+                                            PaymentStatus.Pending => "bg-yellow-50 text-yellow-700",
+                                            PaymentStatus.Completed => "bg-green-50 text-green-700",
+                                            PaymentStatus.Failed => "bg-red-50 text-red-700",
+                                            PaymentStatus.Refunded => "bg-purple-50 text-purple-700",
+                                            _ => "bg-gray-50 text-gray-700"
+                                        };
+                                        
+                                        var statusIcon = payment.Status switch
+                                        {
+                                            PaymentStatus.Pending => "fas fa-hourglass-half",
+                                            PaymentStatus.Completed => "fas fa-check-circle",
+                                            PaymentStatus.Failed => "fas fa-times-circle",
+                                            PaymentStatus.Refunded => "fas fa-undo",
+                                            _ => "fas fa-question-circle"
+                                        };
+                                    }
+                                    <span class="inline-flex items-center gap-2 px-3 py-1 @statusClass rounded-full text-sm font-medium">
+                                        <i class="@statusIcon"></i>
+                                        @payment.Status.ToString()
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    <i class="fas fa-@(payment.Method.ToString().ToLower()) mr-2"></i>
+                                    @payment.Method.ToString()
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">
+                                    @payment.CreatedAt.ToString("MMM dd, yyyy")
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <a href="@Url.Action("Details", new { id = payment.Id })" 
+                                           class="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                                           title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        
+                                        @if (payment.Status == PaymentStatus.Completed)
+                                        {
+                                            <button type="button" class="px-3 py-2 text-sm font-medium text-purple-600 hover:bg-purple-50 rounded-lg transition refund-btn"
+                                                    data-payment-id="@payment.Id" title="Process Refund">
+                                                <i class="fas fa-undo"></i>
+                                            </button>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="px-6 py-12 text-center">
+                                <div class="flex flex-col items-center justify-center gap-3">
+                                    <i class="fas fa-inbox text-4xl text-gray-300"></i>
+                                    <p class="text-gray-500 font-medium">No payments found</p>
+                                    <p class="text-sm text-gray-400">Try adjusting your filters or search criteria</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-sm text-gray-600">
+                    Showing page <span class="font-semibold">@Model.PageNumber</span> of 
+                    <span class="font-semibold">@Model.TotalPages</span>
+                    (<span class="font-semibold">@Model.TotalCount</span> total payments)
+                </p>
+                
+                <div class="flex items-center gap-2">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <a href="@Url.Action("Index", new { pageNumber = Model.PageNumber - 1, pageSize = Model.PageSize, status = Model.StatusFilter, startDate = Model.StartDate, endDate = Model.EndDate })" 
+                           class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                            <i class="fas fa-chevron-left mr-2"></i>Previous
+                        </a>
+                    }
+
+                    <div class="flex items-center gap-1">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            @if (i == Model.PageNumber)
+                            {
+                                <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">@i</span>
+                            }
+                            else if (i <= 3 || i > Model.TotalPages - 2 || (i > Model.PageNumber - 2 && i < Model.PageNumber + 2))
+                            {
+                                <a href="@Url.Action("Index", new { pageNumber = i, pageSize = Model.PageSize, status = Model.StatusFilter, startDate = Model.StartDate, endDate = Model.EndDate })" 
+                                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">@i</a>
+                            }
+                            else if (i == 4 || i == Model.TotalPages - 3)
+                            {
+                                <span class="px-2">...</span>
+                            }
+                        }
+                    </div>
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a href="@Url.Action("Index", new { pageNumber = Model.PageNumber + 1, pageSize = Model.PageSize, status = Model.StatusFilter, startDate = Model.StartDate, endDate = Model.EndDate })" 
+                           class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                            Next<i class="fas fa-chevron-right ml-2"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Process Refund
+        document.querySelectorAll('.refund-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const paymentId = this.dataset.paymentId;
+                if (confirm('Are you sure you want to refund this payment?')) {
+                    fetch(`/admin/payments/${paymentId}/refund`, { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(err => alert('Error processing refund'));
+                }
+            });
+        });
+    </script>
+}
