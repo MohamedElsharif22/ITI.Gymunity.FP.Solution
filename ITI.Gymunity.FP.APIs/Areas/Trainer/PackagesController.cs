@@ -68,19 +68,8 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         {
             try
             {
-                var created = await _service.CreateAsync(request.TrainerProfileId, new PackageCreateRequest
-                {
-                    Name = request.Name,
-                    Description = request.Description,
-                    PriceMonthly = request.PriceMonthly,
-                    PriceYearly = request.PriceYearly,
-                    IsActive = request.IsActive,
-                    ThumbnailUrl = request.ThumbnailUrl,
-                    ProgramIds = request.ProgramIds,
-                    IsAnnual = request.IsAnnual,
-                    PromoCode = request.PromoCode,
-                    TrainerId = request.TrainerProfileId
-                });
+                // Use the V2 creation method so ProgramNames from the request are resolved to program ids
+                var created = await _service.CreateAsyncV2(request.TrainerProfileId, request);
 
                 return CreatedAtAction(
                     nameof(GetById),
