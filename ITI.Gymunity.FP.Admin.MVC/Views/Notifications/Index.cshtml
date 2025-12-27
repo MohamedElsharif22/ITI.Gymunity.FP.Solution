@@ -1,0 +1,186 @@
+@using ITI.Gymunity.FP.Admin.MVC.ViewModels.Notifications
+@model NotificationsListViewModel
+
+@{
+    ViewData["Title"] = "Notifications";
+}
+
+<div class="container-fluid px-4 py-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold">Notifications</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            @if (Model.UnreadCount > 0)
+            {
+                <button class="btn btn-sm btn-primary" onclick="markAllAsRead()">
+                    Mark All as Read
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (Model.Notifications.Any())
+    {
+        <div class="row">
+            <div class="col-12">
+                <div id="notificationsList">
+                    @foreach (var notification in Model.Notifications.OrderByDescending(n => n.CreatedAt))
+                    {
+                        <div class="card mb-3 notification-item @(notification.IsRead ? "read" : "unread")" data-notification-id="@notification.Id">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <h5 class="card-title fw-bold">@notification.Title</h5>
+                                        <p class="card-text text-muted">@notification.Message</p>
+                                        <small class="text-secondary">
+                                            <i class="fas fa-clock"></i> @notification.CreatedAt.ToString("g")
+                                        </small>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        @if (!notification.IsRead)
+                                        {
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="markAsRead(@notification.Id)" 
+                                                    title="Mark as read">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">Read</span>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-bell-slash"></i> No notifications yet
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
+    <script>
+        const notificationHubConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/notifications", {
+                accessTokenFactory: () => localStorage.getItem('authToken') || ''
+            })
+            .withAutomaticReconnect()
+            .build();
+
+        notificationHubConnection.start().catch(err => console.error(err));
+
+        notificationHubConnection.on("UnreadNotifications", (notifications) => {
+            console.log("Unread notifications received:", notifications);
+        });
+
+        notificationHubConnection.on("UnreadNotificationCount", (count) => {
+            updateNotificationBadge(count);
+        });
+
+        notificationHubConnection.on("NotificationMarkedAsRead", (notificationId) => {
+            const element = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (element) {
+                element.classList.remove('unread');
+                element.classList.add('read');
+            }
+        });
+
+        notificationHubConnection.on("AllNotificationsMarkedAsRead", () => {
+            document.querySelectorAll('.notification-item').forEach(item => {
+                item.classList.remove('unread');
+                item.classList.add('read');
+            });
+            updateNotificationBadge(0);
+        });
+
+        function markAsRead(notificationId) {
+            fetch(`/admin/notifications/mark-as-read/${notificationId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationHubConnection.invoke("MarkNotificationAsRead", notificationId);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function markAllAsRead() {
+            fetch('/admin/notifications/mark-all-as-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    notificationHubConnection.invoke("MarkAllNotificationsAsRead");
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+
+        function updateNotificationBadge(count) {
+            const badge = document.querySelector('.notification-badge');
+            if (badge) {
+                if (count > 0) {
+                    badge.textContent = count > 9 ? '9+' : count;
+                    badge.style.display = 'block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+
+        // Load initial unread count
+        window.addEventListener('load', () => {
+            notificationHubConnection.invoke("GetUnreadNotificationCount");
+        });
+    </script>
+
+    <style>
+        .notification-item {
+            transition: all 0.3s ease;
+        }
+
+        .notification-item.unread {
+            background-color: #f0f7ff;
+            border-left: 4px solid #0d6efd;
+        }
+
+        .notification-item.read {
+            opacity: 0.8;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+}

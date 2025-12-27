@@ -14,6 +14,8 @@
         public string? BrandingColors { get; set; }
         public bool IsVerified { get; set; }
         public DateTime? VerifiedAt { get; set; }
+        public bool IsSuspended { get; set; }
+        public DateTime? SuspendedAt { get; set; }
         public decimal RatingAverage { get; set; }
         public int TotalClients { get; set; }
         public int YearsExperience { get; set; }

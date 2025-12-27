@@ -20,6 +20,9 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
         public string? BrandingColors { get; set; } // JSON or hex string
         public bool IsVerified { get; set; } = false;
         public DateTime? VerifiedAt { get; set; }
+        public bool IsSuspended { get; set; }
+        public DateTime? SuspendedAt { get; set; }
+
         public decimal RatingAverage { get; set; } =0;
         public int TotalClients { get; set; } =0;
         public int YearsExperience { get; set; }

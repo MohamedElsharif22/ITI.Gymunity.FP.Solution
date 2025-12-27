@@ -229,6 +229,41 @@
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendFailureEmail(System.String)">
              NEW: Test payment failure email (Development only!)
         </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub">
+            <summary>
+            SignalR Hub for admin-specific real-time notifications and communications
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.INotificationService,ITI.Gymunity.FP.Application.Contracts.ExternalServices.ISignalRConnectionManager,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub})">
+            <summary>
+            SignalR Hub for admin-specific real-time notifications and communications
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.GetAdminNotifications">
+            <summary>
+            Get all notifications for admin
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.GetUnreadCount">
+            <summary>
+            Get unread count
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.BroadcastAdminNotification(System.String,System.String,System.Int32)">
+            <summary>
+            Broadcast notification to all admins
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.SendUrgentAlert(System.String,System.String,System.String)">
+            <summary>
+            Send urgent alert to specific admin
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.MarkAsRead(System.Int32)">
+            <summary>
+            Mark notification as read
+            </summary>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Hubs.ChatHub">
             <summary>
             SignalR Hub for real-time messaging

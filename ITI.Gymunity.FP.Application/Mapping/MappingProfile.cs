@@ -13,12 +13,12 @@ using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Application.DTOs.Program;
-using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.DTOs.Guest;
 using ITI.Gymunity.FP.Application.DTOs.Admin;
 using ITI.Gymunity.FP.Application.DTOs.ClientDto;
 using ITI.Gymunity.FP.Application.Mapping.Resolvers;
 using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
+using ITI.Gymunity.FP.Application.DTOs.User;
 
 namespace ITI.Gymunity.FP.Application.Mapping
 {
@@ -26,7 +26,13 @@ namespace ITI.Gymunity.FP.Application.Mapping
     {
         public MappingProfile()
         {
+            //*********************     Admin Mapping       ******************************//
+            CreateMap<AppUser, TrainerResponse>()
+                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom<GenericImageUrlResolver<AppUser, TrainerResponse>, string?>(u => u.ProfilePhotoUrl));
+            CreateMap<AppUser, ClientResponse>()
+                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom<GenericImageUrlResolver<AppUser, ClientResponse>, string?>(u => u.ProfilePhotoUrl));
 
+            //*********************    End of Admin Mapping       ******************************//
             //*********************     Client Profile Mapping       ******************************//
             CreateMap<ClientProfileRequest, ClientProfile>();
             CreateMap<ClientProfile, ClientProfileResponse>()

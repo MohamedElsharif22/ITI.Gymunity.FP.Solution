@@ -13,6 +13,22 @@ namespace ITI.Gymunity.FP.Admin.MVC
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            // Add SignalR
+            builder.Services.AddSignalR();
+
+            // Add CORS for SignalR
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("adminSignalRPolicy", policyBuilder =>
+                {
+                    policyBuilder
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .AllowCredentials()
+                        .SetIsOriginAllowed(origin => true);
+                });
+            });
+
             builder.Services.AddAuthentication("CookieAuth")
                 .AddCookie("CookieAuth", config =>
                 {
@@ -42,6 +58,9 @@ namespace ITI.Gymunity.FP.Admin.MVC
 
             app.UseAuthentication();
             app.UseAuthorization();
+
+            // Enable CORS before mapping SignalR hubs
+            app.UseCors("adminSignalRPolicy");
 
             app.MapControllerRoute(
                 name: "default",

@@ -81,6 +81,14 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             services.AddScoped<IReviewAdminService, ReviewAdminService>();
             services.AddScoped<IGuestReviewService, GuestReviewService>();
 
+            // ===========================
+            // Admin Services
+            // ===========================
+            services.AddScoped<TrainerAdminService>();
+            services.AddScoped<ClientAdminService>();
+            services.AddScoped<PaymentAdminService>();
+            services.AddScoped<SubscriptionAdminService>();
+
             //amr end
 
 

@@ -1,0 +1,234 @@
+@using ITI.Gymunity.FP.Admin.MVC.ViewModels.Reviews
+@model ReviewsListViewModel
+
+@{
+    ViewData["Title"] = "Manage Reviews";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+
+<div class="space-y-6">
+    <!-- Page Header & Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Pending Reviews -->
+        <div class="bg-gradient-to-br from-yellow-600 to-yellow-700 rounded-lg shadow-sm border border-yellow-600 p-6 text-white">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-yellow-100 text-sm font-medium">Pending Reviews</p>
+                    <h3 class="text-3xl font-bold mt-2">--</h3>
+                    <p class="text-yellow-100 text-xs mt-1">Awaiting approval</p>
+                </div>
+                <i class="fas fa-hourglass-half text-yellow-300 text-3xl opacity-50"></i>
+            </div>
+        </div>
+
+        <!-- Average Rating -->
+        <div class="bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-sm border border-blue-600 p-6 text-white">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-blue-100 text-sm font-medium">Average Rating</p>
+                    <h3 class="text-3xl font-bold mt-2">@Model.AverageRating.ToString("F1")</h3>
+                    <p class="text-blue-100 text-xs mt-1">From displayed reviews</p>
+                </div>
+                <i class="fas fa-star text-blue-300 text-3xl opacity-50"></i>
+            </div>
+        </div>
+
+        <!-- Total Reviews -->
+        <div class="bg-gradient-to-br from-green-600 to-green-700 rounded-lg shadow-sm border border-green-600 p-6 text-white">
+            <div class="flex items-start justify-between">
+                <div>
+                    <p class="text-green-100 text-sm font-medium">Total Reviews</p>
+                    <h3 class="text-3xl font-bold mt-2">@Model.TotalCount</h3>
+                    <p class="text-green-100 text-xs mt-1">All time</p>
+                </div>
+                <i class="fas fa-comments text-green-300 text-3xl opacity-50"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews List -->
+    <div class="space-y-4">
+        @if (Model.Reviews.Any())
+        {
+            @foreach (var review in Model.Reviews)
+            {
+                <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition">
+                    <div class="space-y-4">
+                        <!-- Review Header -->
+                        <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                        C
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900">Client Review</p>
+                                        <p class="text-sm text-gray-500">@review.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                                    </div>
+                                </div>
+                                <p class="text-sm text-gray-500 mb-2">Trainer ID: <span class="font-semibold text-gray-900">@review.TrainerId</span></p>
+                            </div>
+                            
+                            <div class="flex items-center gap-2">
+                                <div class="text-center">
+                                    <div class="flex items-center gap-1 mb-1 justify-end">
+                                        @for (int i = 0; i < 5; i++)
+                                        {
+                                            @if (i < (int)review.Rating)
+                                            {
+                                                <i class="fas fa-star text-yellow-400"></i>
+                                            }
+                                            else if (i < review.Rating)
+                                            {
+                                                <i class="fas fa-star-half-alt text-yellow-400"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-star text-gray-300"></i>
+                                            }
+                                        }
+                                    </div>
+                                    <p class="text-sm font-semibold text-gray-900">@review.Rating.ToString("F1")</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Review Content -->
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <p class="text-gray-700 text-sm">@(review.Comment ?? "No comment provided")</p>
+                        </div>
+
+                        <!-- Review Status & Actions -->
+                        <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 pt-4 border-t border-gray-200">
+                            <div>
+                                <span class="inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm font-medium">
+                                    <i class="fas fa-hourglass-half"></i>
+                                    Pending Approval
+                                </span>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <button type="button" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition font-medium text-sm flex items-center gap-2 approve-btn"
+                                        data-review-id="@review.Id">
+                                    <i class="fas fa-check"></i>
+                                    <span>Approve</span>
+                                </button>
+                                
+                                <button type="button" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium text-sm flex items-center gap-2 reject-btn"
+                                        data-review-id="@review.Id">
+                                    <i class="fas fa-times"></i>
+                                    <span>Reject</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+                <div class="flex flex-col items-center justify-center gap-3">
+                    <i class="fas fa-inbox text-4xl text-gray-300"></i>
+                    <p class="text-gray-500 font-medium">No reviews found</p>
+                    <p class="text-sm text-gray-400">There are no pending reviews awaiting approval</p>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 1)
+    {
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                <p class="text-sm text-gray-600">
+                    Showing page <span class="font-semibold">@Model.PageNumber</span> of 
+                    <span class="font-semibold">@Model.TotalPages</span>
+                    (<span class="font-semibold">@Model.TotalCount</span> total reviews)
+                </p>
+                
+                <div class="flex items-center gap-2">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <a href="@Url.Action("Index", new { pageNumber = Model.PageNumber - 1 })" 
+                           class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                            <i class="fas fa-chevron-left mr-2"></i>Previous
+                        </a>
+                    }
+
+                    <div class="flex items-center gap-1">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            @if (i == Model.PageNumber)
+                            {
+                                <span class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium">@i</span>
+                            }
+                            else if (i <= 3 || i > Model.TotalPages - 2 || (i > Model.PageNumber - 2 && i < Model.PageNumber + 2))
+                            {
+                                <a href="@Url.Action("Index", new { pageNumber = i })" 
+                                   class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">@i</a>
+                            }
+                            else if (i == 4 || i == Model.TotalPages - 3)
+                            {
+                                <span class="px-2">...</span>
+                            }
+                        }
+                    </div>
+
+                    @if (Model.HasNextPage)
+                    {
+                        <a href="@Url.Action("Index", new { pageNumber = Model.PageNumber + 1 })" 
+                           class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                            Next<i class="fas fa-chevron-right ml-2"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        // Approve Review
+        document.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const reviewId = this.dataset.reviewId;
+                if (confirm('Are you sure you want to approve this review?')) {
+                    fetch(`/admin/reviews/${reviewId}/approve`, { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(err => alert('Error approving review'));
+                }
+            });
+        });
+
+        // Reject Review
+        document.querySelectorAll('.reject-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                const reviewId = this.dataset.reviewId;
+                if (confirm('Are you sure you want to reject this review?')) {
+                    fetch(`/admin/reviews/${reviewId}/reject`, { method: 'POST' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                location.reload();
+                            } else {
+                                alert('Error: ' + data.message);
+                            }
+                        })
+                        .catch(err => alert('Error rejecting review'));
+                }
+            });
+        });
+    </script>
+}

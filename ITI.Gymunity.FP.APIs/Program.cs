@@ -116,6 +116,7 @@ namespace ITI.Gymunity.FP.APIs
             // Map SignalR Hubs
             app.MapHub<ChatHub>("/hubs/chat");
             app.MapHub<NotificationHub>("/hubs/notifications");
+            app.MapHub<AdminNotificationHub>("/hubs/admin-notifications");
 
             app.UseCors("wepPolicy");
 
