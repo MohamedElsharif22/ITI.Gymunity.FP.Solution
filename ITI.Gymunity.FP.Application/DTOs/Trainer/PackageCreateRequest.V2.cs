@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using ITI.Gymunity.FP.Application.Validation;
 
 namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 {
@@ -7,6 +8,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
  {
  [Required(ErrorMessage = "Name is required and must be between3 and100 characters.")]
  [StringLength(100, MinimumLength =3, ErrorMessage = "Name must be between3 and100 characters.")]
+ [UniquePackageName]
  public string Name { get; set; } = null!;
 
  [StringLength(500, ErrorMessage = "Description must be at most500 characters.")]
@@ -22,6 +24,9 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
  public bool IsActive { get; set; } = true;
  public string? ThumbnailUrl { get; set; }
  public int[] ProgramIds { get; set; } = new int[0];
+
+ // New: accept program titles instead of ids
+ public string[] ProgramNames { get; set; } = new string[0];
 
  // New
  public bool IsAnnual { get; set; }

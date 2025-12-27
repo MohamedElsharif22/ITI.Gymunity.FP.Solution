@@ -1,5 +1,6 @@
 using AutoMapper;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.DTOs.Program;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
@@ -20,6 +21,7 @@ namespace ITI.Gymunity.FP.Application.Services
  Task<IReadOnlyList<PackageResponse>> GetAllForTrainerAsync(int trainerId);
  Task<PackageResponse?> GetByIdAsync(int id);
  Task<PackageResponse> CreateAsync(int trainerId, PackageCreateRequest request);
+ Task<PackageResponse> CreateAsyncV2(int trainerId, PackageCreateRequestV2 request);
  Task<bool> UpdateAsync(int id, PackageCreateRequest request);
  Task<bool> DeleteAsync(int id);
  Task<bool> ToggleActiveAsync(int id);
@@ -32,24 +34,34 @@ namespace ITI.Gymunity.FP.Application.Services
  private readonly IMapper _mapper;
  private readonly IImageUrlResolver _imageResolver;
 
- public PackageService(IUnitOfWork unitOfWork, IMapper mapper, IImageUrlResolver imageResolver)
+ public PackageService(IUnitOfWork unitOfWork, IMapper mapper, IImageUrlResolver imageUrlResolver)
  {
  _unitOfWork = unitOfWork;
  _mapper = mapper;
- _imageResolver = imageResolver;
+ _imageResolver = imageUrlResolver;
  }
 
  public async Task<IReadOnlyList<PackageResponse>> GetAllForTrainerAsync(int trainerId)
  {
  var repo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
- var list = await repo.GetByTrainerIdAsync(trainerId);
+ var list = (await repo.GetByTrainerIdAsync(trainerId)).ToList();
  var mapped = list.Select(p => _mapper.Map<PackageResponse>(p)).ToList();
 
- // Resolve thumbnail urls to absolute
- foreach (var pkg in mapped)
+ // Resolve thumbnail urls and include program details (PackagePrograms already included by repo)
+ for (int i =0; i < mapped.Count; i++)
  {
- if (!string.IsNullOrWhiteSpace(pkg.ThumbnailUrl))
- pkg.ThumbnailUrl = _imageResolver.ResolveImageUrl(pkg.ThumbnailUrl);
+ var pkgDto = mapped[i];
+ var pkgEntity = list[i];
+ if (!string.IsNullOrWhiteSpace(pkgDto.ThumbnailUrl))
+ pkgDto.ThumbnailUrl = _imageResolver.ResolveImageUrl(pkgDto.ThumbnailUrl);
+
+ var programIds = pkgEntity.PackagePrograms?.Where(pp => !pp.IsDeleted).Select(pp => pp.ProgramId).ToArray() ?? new int[0];
+ if (programIds.Length >0)
+ {
+ var programs = pkgEntity.PackagePrograms.Where(pp => !pp.IsDeleted).Select(pp => pp.Program).Where(pr => pr != null).ToArray();
+ pkgDto.Programs = programs.Select(pr => _mapper.Map<ProgramGetAllResponse>(pr)).ToArray();
+ pkgDto.ProgramIds = programs.Select(pr => pr.Id).ToArray();
+ }
  }
 
  return mapped;
@@ -63,10 +75,38 @@ namespace ITI.Gymunity.FP.Application.Services
  var mapped = _mapper.Map<PackageResponse>(p);
  if (!string.IsNullOrWhiteSpace(mapped.ThumbnailUrl))
  mapped.ThumbnailUrl = _imageResolver.ResolveImageUrl(mapped.ThumbnailUrl);
+
+ var programEntities = p.PackagePrograms?.Where(pp => !pp.IsDeleted).Select(pp => pp.Program).Where(pr => pr != null).ToArray() ?? new Program[0];
+ if (programEntities.Length >0)
+ {
+ mapped.Programs = programEntities.Select(pr => _mapper.Map<ProgramGetAllResponse>(pr)).ToArray();
+ mapped.ProgramIds = programEntities.Select(pr => pr.Id).ToArray();
+ }
+
  return mapped;
  }
 
  public async Task<PackageResponse> CreateAsync(int trainerId, PackageCreateRequest request)
+ {
+ // fallback to base behavior for old DTO
+ var v2 = new PackageCreateRequestV2
+ {
+ Name = request.Name,
+ Description = request.Description,
+ PriceMonthly = request.PriceMonthly,
+ PriceYearly = request.PriceYearly,
+ IsActive = request.IsActive,
+ ThumbnailUrl = request.ThumbnailUrl,
+ ProgramIds = request.ProgramIds ?? new int[0],
+ ProgramNames = new string[0],
+ IsAnnual = request.IsAnnual,
+ PromoCode = request.PromoCode,
+ TrainerProfileId = request.TrainerId
+ };
+ return await CreateAsyncV2(trainerId, v2);
+ }
+
+ public async Task<PackageResponse> CreateAsyncV2(int trainerId, PackageCreateRequestV2 request)
  {
  // validate trainer profile exists
  var profileRepo = _unitOfWork.Repository<TrainerProfile, ITI.Gymunity.FP.Domain.RepositoiesContracts.ITrainerProfileRepository>();
@@ -74,6 +114,18 @@ namespace ITI.Gymunity.FP.Application.Services
  if (profile == null)
  {
  throw new InvalidOperationException($"Trainer profile with id {trainerId} not found.");
+ }
+
+ // Check global duplicate package name (database has unique index on Name)
+ if (!string.IsNullOrWhiteSpace(request.Name))
+ {
+ var pkgRepoAll = _unitOfWork.Repository<Package>();
+ var allPackages = await pkgRepoAll.GetAllAsync();
+ var duplicate = allPackages.Any(p => string.Equals(p.Name?.Trim(), request.Name.Trim(), StringComparison.OrdinalIgnoreCase));
+ if (duplicate)
+ {
+ throw new InvalidOperationException($"A package with name '{request.Name}' already exists.");
+ }
  }
 
  var entity = new Package
@@ -86,26 +138,67 @@ namespace ITI.Gymunity.FP.Application.Services
  ThumbnailUrl = request.ThumbnailUrl,
  TrainerId = trainerId,
  IsAnnual = request.IsAnnual,
- PromoCode = request.PromoCode ?? string.Empty
+ PromoCode = request.PromoCode ?? string.Empty,
+ CreatedAt = DateTime.UtcNow
  };
 
  _unitOfWork.Repository<Package>().Add(entity);
  await _unitOfWork.CompleteAsync();
 
- // sync programs
+ // resolve programs from names and ids
+ var programRepo = _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.ProgramAggregate.Program, ITI.Gymunity.FP.Domain.RepositoiesContracts.IProgramRepository>();
+ var resolvedProgramIds = new List<int>();
  if (request.ProgramIds != null && request.ProgramIds.Length >0)
+ resolvedProgramIds.AddRange(request.ProgramIds);
+
+ if (request.ProgramNames != null && request.ProgramNames.Length >0)
  {
- foreach (var pid in request.ProgramIds)
+ var allPrograms = await programRepo.GetAllAsync();
+ foreach (var name in request.ProgramNames.Select(n => n.Trim()).Where(n => !string.IsNullOrEmpty(n)))
+ {
+ // try exact match case-insensitive first
+ var found = allPrograms.FirstOrDefault(p => string.Equals(p.Title?.Trim(), name, StringComparison.OrdinalIgnoreCase));
+ if (found == null)
+ {
+ // fallback to contains
+ found = allPrograms.FirstOrDefault(p => p.Title != null && p.Title.IndexOf(name, StringComparison.OrdinalIgnoreCase) >=0);
+ }
+
+ if (found != null && !resolvedProgramIds.Contains(found.Id))
+ resolvedProgramIds.Add(found.Id);
+ }
+ }
+
+ if (resolvedProgramIds.Any())
+ {
+ var packageProgramRepo = _unitOfWork.Repository<PackageProgram>();
+ foreach (var pid in resolvedProgramIds)
+ {
+ // avoid duplicates
+ var existing = (await packageProgramRepo.GetAllAsync()).FirstOrDefault(pp => pp.PackageId == entity.Id && pp.ProgramId == pid);
+ if (existing == null)
  {
  var pp = new PackageProgram { PackageId = entity.Id, ProgramId = pid };
- _unitOfWork.Repository<PackageProgram>().Add(pp);
+ packageProgramRepo.Add(pp);
  }
+ }
+
  await _unitOfWork.CompleteAsync();
  }
 
- var mapped = _mapper.Map<PackageResponse>(entity);
+ // reload package with includes to ensure navigation populated
+ var repoWithIncludes = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
+ var saved = await repoWithIncludes.GetByIdWithProgramsAsync(entity.Id) ?? entity;
+ var mapped = _mapper.Map<PackageResponse>(saved);
  if (!string.IsNullOrWhiteSpace(mapped.ThumbnailUrl))
  mapped.ThumbnailUrl = _imageResolver.ResolveImageUrl(mapped.ThumbnailUrl);
+
+ var programEntities = saved.PackagePrograms?.Where(pp => !pp.IsDeleted).Select(pp => pp.Program).Where(pr => pr != null).ToArray() ?? new Program[0];
+ if (programEntities.Length >0)
+ {
+ mapped.Programs = programEntities.Select(pr => _mapper.Map<ProgramGetAllResponse>(pr)).ToArray();
+ mapped.ProgramIds = programEntities.Select(pr => pr.Id).ToArray();
+ }
 
  return mapped;
  }
@@ -198,14 +291,23 @@ namespace ITI.Gymunity.FP.Application.Services
 
  public async Task<IReadOnlyList<PackageResponse>> GetAllAsync()
  {
- var repo = _unitOfWork.Repository<Package>();
- var list = await repo.GetAllAsync();
+ var repo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
+ var list = (await repo.GetAllActiveWithProgramsAsync()).ToList();
  var mapped = list.Select(p => _mapper.Map<PackageResponse>(p)).ToList();
 
- foreach (var pkg in mapped)
+ for (int i =0; i < mapped.Count; i++)
  {
- if (!string.IsNullOrWhiteSpace(pkg.ThumbnailUrl))
- pkg.ThumbnailUrl = _imageResolver.ResolveImageUrl(pkg.ThumbnailUrl);
+ var pkgDto = mapped[i];
+ var pkgEntity = list[i];
+ if (!string.IsNullOrWhiteSpace(pkgDto.ThumbnailUrl))
+ pkgDto.ThumbnailUrl = _imageResolver.ResolveImageUrl(pkgDto.ThumbnailUrl);
+
+ var programEntities = pkgEntity.PackagePrograms?.Where(pp => !pp.IsDeleted).Select(pp => pp.Program).Where(pr => pr != null).ToArray() ?? new Program[0];
+ if (programEntities.Length >0)
+ {
+ pkgDto.Programs = programEntities.Select(pr => _mapper.Map<ProgramGetAllResponse>(pr)).ToArray();
+ pkgDto.ProgramIds = programEntities.Select(pr => pr.Id).ToArray();
+ }
  }
 
  return mapped;

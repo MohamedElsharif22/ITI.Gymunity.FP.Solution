@@ -15,7 +15,8 @@ namespace ITI.Gymunity.FP.Application.DTOs.Program
  public int? MaxClients { get; set; }
  public string? ThumbnailUrl { get; set; }
  public DateTime CreatedAt { get; set; }
- public string TrainerId { get; set; } = null!;
+ // reference to TrainerProfile
+ public int? TrainerProfileId { get; set; }
  public string? TrainerUserName { get; set; }
  public string? TrainerHandle { get; set; }
  }

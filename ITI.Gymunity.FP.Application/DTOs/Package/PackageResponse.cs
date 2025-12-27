@@ -1,4 +1,6 @@
 using System;
+using ITI.Gymunity.FP.Application.DTOs.Program;
+
 namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 {
  public class PackageResponse
@@ -16,5 +18,8 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
  public bool IsAnnual { get; set; }
  public string? PromoCode { get; set; }
  public int[] ProgramIds { get; set; } = new int[0];
+
+ // Include full program details
+ public ProgramGetAllResponse[]? Programs { get; set; } = null;
  }
 }

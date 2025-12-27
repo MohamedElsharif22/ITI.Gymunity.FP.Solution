@@ -14,11 +14,12 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             // Key Configuration
             builder.HasKey(p => p.Id);
 
-            // Property Configurations
+            // Map legacy TrainerId column (string) to avoid DB null constraint issues
             builder.Property(p => p.TrainerId)
                 .IsRequired()
                 .HasMaxLength(450);
 
+            // Property Configurations
             builder.Property(p => p.Title)
                 .IsRequired()
                 .HasMaxLength(256);
@@ -58,15 +59,17 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
                 .HasDefaultValue(false);
 
             // Indexes
+            builder.HasIndex(p => p.TrainerProfileId);
             builder.HasIndex(p => p.TrainerId);
             builder.HasIndex(p => p.IsPublic);
-            builder.HasIndex(p => new { p.TrainerId, p.IsPublic });
+            builder.HasIndex(p => new { p.TrainerProfileId, p.IsPublic });
             builder.HasIndex(p => p.CreatedAt);
+            builder.HasIndex(p => p.Title).IsUnique();
 
             // Relationships
-            builder.HasOne(p => p.Trainer)
-                .WithMany()
-                .HasForeignKey(p => p.TrainerId)
+            builder.HasOne(p => p.TrainerProfile)
+                .WithMany(tp => tp.Programs)
+                .HasForeignKey(p => p.TrainerProfileId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             builder.HasMany(p => p.Weeks)

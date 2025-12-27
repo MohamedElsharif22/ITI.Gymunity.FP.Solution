@@ -17,7 +17,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.Program
  public string? ThumbnailUrl { get; set; }
  public DateTime CreatedAt { get; set; }
  public DateTime UpdatedAt { get; set; }
- public string TrainerId { get; set; } = null!;
+ public int? TrainerProfileId { get; set; }
  public string? TrainerUserName { get; set; }
  public string? TrainerHandle { get; set; }
  public ICollection<ProgramWeekGetAllResponse> Weeks { get; set; } = new List<ProgramWeekGetAllResponse>();

@@ -24,6 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Filters\" />
     <Folder Include="wwwroot\images\profile-photos\" />
     <Folder Include="wwwroot\videos\" />
   </ItemGroup>
