@@ -8,12 +8,14 @@ using System.Security.Claims;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using ITI.Gymunity.FP.APIs.Responses.Errors;
 using ITI.Gymunity.FP.APIs.Responses;
+using ITI.Gymunity.FP.Domain.Models.Client;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
-    public class ClientProfileController(ClientProfileService clientProfileService) : ClientBaseController
+    public class ClientProfileController(ClientProfileService clientProfileService, ILogger<ClientProfile> logger) : ClientBaseController
     {
         private readonly ClientProfileService _clientProfileService = clientProfileService;
+        private readonly ILogger _logger = logger;
 
         private string? GetUserId()
         {
