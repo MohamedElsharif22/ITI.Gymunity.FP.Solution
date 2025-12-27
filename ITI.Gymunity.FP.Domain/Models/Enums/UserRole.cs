@@ -10,5 +10,6 @@ namespace ITI.Gymunity.FP.Domain.Models.Enums
     {
         Client = 1,
         Trainer,
+        Admin
     }
 }
