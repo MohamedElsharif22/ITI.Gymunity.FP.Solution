@@ -47,6 +47,27 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             return _mapper.Map<ClientProfileResponse>(clientProfile);
         }
 
+        public async Task<ClientProfileDashboardResponse> GetDashboardAsync(string userId)
+        {
+            // Get profile with User and BodyStatLogs included
+            var specs = new ClientWithUserSpecs(c => c.UserId == userId);
+            var profile = await _unitOfWork.Repository<ClientProfile, IClientProfileRepository>()
+                .GetWithSpecsAsync(specs);
+
+            if (profile == null)
+            {
+                _logger.LogWarning("Client profile not found for UserId: {UserId}", userId);
+                throw new InvalidOperationException("Client profile not found");
+            }
+
+            // Map to dashboard response using AutoMapper
+            var dashboard = _mapper.Map<ClientProfileDashboardResponse>(profile);
+
+            _logger.LogInformation("Dashboard retrieved successfully for ClientId: {ClientId}", profile.Id);
+
+            return dashboard;
+        }
+
         public async Task<ClientProfileResponse?> CreateClientProfileAsync(string userId, ClientProfileRequest request)
         {
             var spec = new ClientWithUserSpecs(c => c.UserId == userId);
