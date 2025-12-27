@@ -15,5 +15,8 @@ namespace ITI.Gymunity.FP.Application.DTOs.Client
  public DateTimeOffset CreatedAt { get; set; }
  public bool IsAnnual { get; set; }
  public string? PromoCode { get; set; }
+
+ // New: brief program info for guest (no ids)
+ public ProgramBriefResponse[]? Programs { get; set; }
  }
 }

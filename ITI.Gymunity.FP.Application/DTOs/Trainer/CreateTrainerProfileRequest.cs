@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
+using ITI.Gymunity.FP.Application.Validation;
 
 namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 {
@@ -10,6 +11,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
 
         [Required]
         [StringLength(50)]
+        [UniqueTrainerHandle]
         public string Handle { get; set; } = null!;
 
         [StringLength(500)]

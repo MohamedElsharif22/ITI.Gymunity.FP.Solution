@@ -1,5 +1,8 @@
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Domain.RepositoiesContracts;
+using ITI.Gymunity.FP.APIs.Responses;
+using ITI.Gymunity.FP.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 
@@ -10,10 +13,12 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
     public class PackagesController : TrainerBaseController
     {
         private readonly IPackageService _service;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public PackagesController(IPackageService service)
+        public PackagesController(IPackageService service, IUnitOfWork unitOfWork)
         {
             _service = service;
+            _unitOfWork = unitOfWork;
         }
 
         // ============================
@@ -61,26 +66,21 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] PackageCreateRequestV2 request)
         {
-
-            var created = await _service.CreateAsync(request.TrainerProfileId, new PackageCreateRequest
+            try
             {
-                Name = request.Name,
-                Description = request.Description,
-                PriceMonthly = request.PriceMonthly,
-                PriceYearly = request.PriceYearly,
-                IsActive = request.IsActive,
-                ThumbnailUrl = request.ThumbnailUrl,
-                ProgramIds = request.ProgramIds,
-                IsAnnual = request.IsAnnual,
-                PromoCode = request.PromoCode,
-                TrainerId = request.TrainerProfileId
-            });
+                // Use the V2 creation method so ProgramNames from the request are resolved to program ids
+                var created = await _service.CreateAsyncV2(request.TrainerProfileId, request);
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = created.Id },
-                created
-            );
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = created.Id },
+                    created
+                );
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new ApiResponse(400, ex.Message));
+            }
         }
 
         // ============================

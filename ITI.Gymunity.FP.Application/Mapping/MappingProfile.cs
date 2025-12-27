@@ -1,18 +1,22 @@
 ﻿using AutoMapper;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.DTOs.Program;
 using ITI.Gymunity.FP.Application.DTOs.Messaging;
 using ITI.Gymunity.FP.Application.DTOs.Notifications;
+using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
+using ITI.Gymunity.FP.Domain.Models.Trainer;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Application.DTOs.User.Payment;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Client;
 using ITI.Gymunity.FP.Application.DTOs.Client;
 using ITI.Gymunity.FP.Application.DTOs.ExerciseLibrary;
 using ITI.Gymunity.FP.Application.DTOs.Package;
-using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Application.DTOs.Program;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.DTOs.Guest;
 using ITI.Gymunity.FP.Application.DTOs.Admin;
 using ITI.Gymunity.FP.Application.DTOs.ClientDto;
@@ -134,24 +138,28 @@ namespace ITI.Gymunity.FP.Application.Mapping
             // - HomeClientController for client-facing program responses
             // ======================
             CreateMap<Program, ProgramGetAllResponse>()
-                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.Trainer.UserName))
+                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.User.UserName : null))
                 .ForMember(dest => dest.TrainerHandle, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.Handle : null))
+                .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(p => p.TrainerProfileId))
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<Program, ProgramGetAllResponse>, string?>(p => p.ThumbnailUrl));
 
             CreateMap<Program, ProgramGetByIdResponse>()
-                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.Trainer.UserName))
+                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.User.UserName : null))
                 .ForMember(dest => dest.TrainerHandle, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.Handle : null))
+                .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(p => p.TrainerProfileId))
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<Program, ProgramGetByIdResponse>, string?>(p => p.ThumbnailUrl));
 
             // Program -> ProgramResponse (used by ProgramService)
             CreateMap<Program, ProgramResponse>()
-                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.Trainer.UserName))
+                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.User.UserName : null))
                 .ForMember(dest => dest.TrainerHandle, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.Handle : null))
+                .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(p => p.TrainerProfileId))
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<Program, ProgramResponse>, string?>(p => p.ThumbnailUrl));
 
             CreateMap<Program, DTOs.Client.ProgramClientResponse>()
-                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.Trainer.UserName))
+                .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.User.UserName : null))
                 .ForMember(dest => dest.TrainerHandle, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.Handle : null))
+                .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(p => p.TrainerProfileId))
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<Program, DTOs.Client.ProgramClientResponse>, string?>(p => p.ThumbnailUrl));
 
             // ======================

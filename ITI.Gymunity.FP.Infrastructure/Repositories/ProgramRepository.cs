@@ -14,9 +14,15 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  {
  }
 
- public async Task<IReadOnlyList<Program>> GetByTrainerAsync(string trainerId)
+ // legacy: still support trainerId as user id string by joining via TrainerProfile
+ public async Task<IReadOnlyList<Program>> GetByTrainerAsync(string trainerUserId)
  {
- return await _Context.Programs.Where(p => p.TrainerId == trainerId).ToListAsync();
+ return await _Context.Programs.Where(p => p.TrainerProfileId != null && p.TrainerProfile.UserId == trainerUserId).ToListAsync();
+ }
+
+ public async Task<IReadOnlyList<Program>> GetByTrainerAsyncProfileId(int trainerProfileId)
+ {
+ return await _Context.Programs.Where(p => p.TrainerProfileId == trainerProfileId).ToListAsync();
  }
 
  public async Task<Program?> GetByIdWithIncludesAsync(int id)
@@ -31,6 +37,13 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  if (!string.IsNullOrWhiteSpace(term))
  query = query.Where(p => p.Title.Contains(term) || p.Description.Contains(term));
  return await query.ToListAsync();
+ }
+
+ public async Task<bool> ExistsByTitleAsync(string title)
+ {
+ if (string.IsNullOrWhiteSpace(title)) return false;
+ var normalized = title.Trim();
+ return await _Context.Programs.AnyAsync(p => p.Title != null && p.Title.ToLower() == normalized.ToLower());
  }
  }
 }

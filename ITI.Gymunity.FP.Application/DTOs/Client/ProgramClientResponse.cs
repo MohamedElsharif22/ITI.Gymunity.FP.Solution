@@ -17,8 +17,11 @@ namespace ITI.Gymunity.FP.Application.DTOs.Client
  public DateTime CreatedAt { get; set; }
  public DateTime UpdatedAt { get; set; }
 
- // Trainer info
+ // Backwards-compatible trainer user id (string)
  public string TrainerId { get; set; } = null!;
+
+ // New: reference to TrainerProfile
+ public int? TrainerProfileId { get; set; }
  public string? TrainerUserName { get; set; }
  public string? TrainerHandle { get; set; }
  }
