@@ -31,7 +31,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         /// <returns>An <see cref="ActionResult{UserResponse}"/> containing the newly created user's information if registration
         /// is successful; otherwise, a bad request response with error details.</returns>
         [HttpPost("register")]
-        public async Task<ActionResult<UserResponse>> Register([FromForm] RegisterRequest request)
+        public async Task<ActionResult<AuthResponse>> Register([FromForm] RegisterRequest request)
         {
             try
             {
@@ -49,10 +49,10 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         /// successful.
         /// </summary>
         /// <param name="request">The login credentials submitted by the client. Must include valid username and password values.</param>
-        /// <returns>An <see cref="ActionResult{T}"/> containing a <see cref="UserResponse"/> if authentication succeeds;
+        /// <returns>An <see cref="ActionResult{T}"/> containing a <see cref="AuthResponse"/> if authentication succeeds;
         /// otherwise, a bad request response with error details.</returns>
         [HttpPost("login")]
-        public async Task<ActionResult<UserResponse>> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
         {
             try
             {
@@ -74,7 +74,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         /// result with error details.</returns>
         [HttpPost("google-auth")]
         [AllowAnonymous]
-        public async Task<ActionResult<UserResponse>> GoogleAuth([FromBody] GoogleAuthRequest request)
+        public async Task<ActionResult<AuthResponse>> GoogleAuth([FromBody] GoogleAuthRequest request)
         {
             try
             {
@@ -97,7 +97,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         /// otherwise, a bad request response with error details.</returns>
         [HttpPut("update-profile")]
         [Authorize]
-        public async Task<ActionResult<UserResponse>> UpdateProfile([FromForm] UpdateProfileRequest request)
+        public async Task<ActionResult<AuthResponse>> UpdateProfile([FromForm] UpdateProfileRequest request)
         {
             try
             {
@@ -121,7 +121,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         /// result with error details.</returns>
         [HttpPut("change-password")]
         [Authorize]
-        public async Task<ActionResult<UserResponse>> ChangePassword([FromBody] ChangePasswordRequest request)
+        public async Task<ActionResult<AuthResponse>> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             try
             {
@@ -162,10 +162,10 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         /// Resets the user's password using the information provided in the request.
         /// </summary>
         /// <param name="request">The request containing the user's password reset information. Must not be null.</param>
-        /// <returns>An <see cref="ActionResult{T}"/> containing a <see cref="UserResponse"/> if the password reset is
+        /// <returns>An <see cref="ActionResult{T}"/> containing a <see cref="AuthResponse"/> if the password reset is
         /// successful; otherwise, a bad request response with error details.</returns>
         [HttpPost("reset-password")]
-        public async Task<ActionResult<UserResponse>> ResetPassword([FromBody] ResetPasswordRequest request)
+        public async Task<ActionResult<AuthResponse>> ResetPassword([FromBody] ResetPasswordRequest request)
         {
             try
             {

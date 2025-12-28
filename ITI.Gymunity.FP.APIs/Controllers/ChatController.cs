@@ -137,5 +137,32 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Create a new chat thread between the current user and another user
+        /// </summary>
+        [HttpPost("threads")]
+        public async Task<ActionResult<ApiResponse<CreateChatThreadResponse>>> CreateChatThread([FromBody] CreateChatThreadRequest request)
+        {
+            try
+            {
+                var userId = GetUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                var thread = await _chatService.CreateChatThreadAsync(userId, request.OtherUserId);
+                return Ok(new ApiResponse<CreateChatThreadResponse>(thread));
+            }
+            catch (ArgumentException ex)
+            {
+                _logger.LogError($"Invalid argument creating chat thread: {ex.Message}");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error creating chat thread: {ex.Message}");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
     }
 }

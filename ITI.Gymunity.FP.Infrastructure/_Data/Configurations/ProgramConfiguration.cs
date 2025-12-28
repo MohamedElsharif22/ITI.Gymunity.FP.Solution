@@ -52,7 +52,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
 
             builder.Property(p => p.UpdatedAt)
                 .IsRequired()
-                .HasDefaultValue(new DateTime());
+                .HasDefaultValue(new DateTimeOffset());
 
             // Soft Delete
             builder.Property(p => p.IsDeleted)

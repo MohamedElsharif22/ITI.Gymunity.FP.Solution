@@ -20,6 +20,64 @@ namespace ITI.Gymunity.FP.Application.Services
         private readonly IMapper _mapper = mapper;
         private readonly ILogger<ChatService> _logger = logger;
 
+        public async Task<CreateChatThreadResponse> CreateChatThreadAsync(string clientId, string trainerId)
+        {
+            // Validate both users exist
+            var client = await _userManager.FindByIdAsync(clientId);
+            var trainer = await _userManager.FindByIdAsync(trainerId);
+
+            if (client == null)
+                throw new ArgumentException("Client user not found");
+            if (trainer == null)
+                throw new ArgumentException("Trainer user not found");
+
+            // Check if thread already exists
+            var threads = await _unitOfWork.Repository<MessageThread>().GetAllAsync();
+            var existingThread = threads.FirstOrDefault(t => 
+                (t.ClientId == clientId && t.TrainerId == trainerId));
+
+            if (existingThread != null)
+                return new CreateChatThreadResponse
+                {
+                    Id = existingThread.Id,
+                    ClientId = existingThread.ClientId,
+                    TrainerId = existingThread.TrainerId,
+                    CreatedAt = existingThread.CreatedAt.DateTime,
+                    LastMessageAt = existingThread.LastMessageAt
+                };
+
+            // Create new thread
+            var newThread = new MessageThread
+            {
+                ClientId = clientId,
+                TrainerId = trainerId,
+                LastMessageAt = DateTime.UtcNow,
+                IsPriority = false
+            };
+
+            _unitOfWork.Repository<MessageThread>().Add(newThread);
+
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+            }
+            catch
+            {
+                _logger.LogError("Failed to create message thread between client {ClientId} and trainer {TrainerId}", 
+                    clientId, trainerId);
+                throw;
+            }
+
+            return new CreateChatThreadResponse
+            {
+                Id = newThread.Id,
+                ClientId = newThread.ClientId,
+                TrainerId = newThread.TrainerId,
+                CreatedAt = newThread.CreatedAt.DateTime,
+                LastMessageAt = newThread.LastMessageAt
+            };
+        }
+
         public async Task<MessageResponse> SendMessageAsync(int threadId, string senderId, SendMessageRequest request)
         {
             var threadSpecs = new MessageThreadWithClientTrainerAndMessagesSpecs(threadId);

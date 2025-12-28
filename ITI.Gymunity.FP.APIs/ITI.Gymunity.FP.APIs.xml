@@ -4,6 +4,68 @@
         <name>ITI.Gymunity.FP.APIs</name>
     </assembly>
     <members>
+        <member name="T:ITI.Gymunity.FP.APIs.Areas.Client.ClientProgramsController">
+            <summary>
+            Provides API endpoints for retrieving and managing client-specific program data for the authenticated user.
+            </summary>
+            <remarks>This controller requires the user to be authenticated. All actions operate in the context of
+            the currently logged-in user and return appropriate HTTP responses for unauthorized access or invalid
+            requests.</remarks>
+            <param name="programsService">The service used to access and manage client program information.</param>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.ClientProgramsController.#ctor(ITI.Gymunity.FP.Application.Services.ClientServices.ClientProgramsService)">
+            <summary>
+            Provides API endpoints for retrieving and managing client-specific program data for the authenticated user.
+            </summary>
+            <remarks>This controller requires the user to be authenticated. All actions operate in the context of
+            the currently logged-in user and return appropriate HTTP responses for unauthorized access or invalid
+            requests.</remarks>
+            <param name="programsService">The service used to access and manage client program information.</param>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.ClientProgramsController.GetActivePrograms">
+            <summary>
+            Retrieves the list of active programs associated with the currently authenticated user.
+            </summary>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a collection of <see cref="T:ITI.Gymunity.FP.Application.DTOs.Program.ProgramResponse"/> objects
+            representing the user's active programs. Returns an unauthorized response if the user is not authenticated,
+            or a bad request response if an error occurs.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.ClientProgramsController.GetProgramById(System.Int32)">
+            <summary>
+            Retrieves the details of a specific program by its unique identifier.
+            </summary>
+            <remarks>This endpoint requires the caller to be an authenticated user. If the user is not
+            authorized to access the requested program, an unauthorized response is returned.</remarks>
+            <param name="programId">The unique identifier of the program to retrieve.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing the program details if found; otherwise, an
+            appropriate error response such as 401 Unauthorized or 400 Bad Request.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.ClientProgramsController.GetProgramWeeks(System.Int32)">
+            <summary>
+            Retrieves all weeks associated with the specified program.
+            </summary>
+            <param name="programId">The unique identifier of the program for which to retrieve weeks.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a collection of <see cref="T:ITI.Gymunity.FP.Application.DTOs.Program.ProgramWeekResponse"/> objects
+            representing the weeks in the specified program. Returns 401 Unauthorized if the user is not authenticated
+            or does not have access to the program. Returns 400 Bad Request if an error occurs.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.ClientProgramsController.GetWeekDays(System.Int32)">
+            <summary>
+            Retrieves all program days associated with the specified week.
+            </summary>
+            <param name="weekId">The unique identifier of the week for which to retrieve program days.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a collection of <see cref="T:ITI.Gymunity.FP.Application.DTOs.Program.ProgramDayDtos.ProgramDayResponse"/> objects for the
+            specified week. Returns 401 Unauthorized if the user is not authenticated, or 400 Bad Request if an error
+            occurs.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.ClientProgramsController.GetDayById(System.Int32)">
+            <summary>
+            Retrieves the details of a specific program day by its unique identifier.
+            </summary>
+            <param name="dayId">The unique identifier of the program day to retrieve.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing the program day details if found; otherwise, an
+            appropriate error response such as 401 Unauthorized or 400 Bad Request.</returns>
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.PaymentsController.InitiatePayment(ITI.Gymunity.FP.Application.DTOs.User.Payment.InitiatePaymentRequest)">
             Initiate payment for a subscription
         </member>
@@ -67,7 +129,7 @@
             successful.
             </summary>
             <param name="request">The login credentials submitted by the client. Must include valid username and password values.</param>
-            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UserResponse"/> if authentication succeeds;
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.AuthResponse"/> if authentication succeeds;
             otherwise, a bad request response with error details.</returns>
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.GoogleAuth(ITI.Gymunity.FP.Application.DTOs.Account.GoogleAuthRequest)">
@@ -112,7 +174,7 @@
             Resets the user's password using the information provided in the request.
             </summary>
             <param name="request">The request containing the user's password reset information. Must not be null.</param>
-            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.UserResponse"/> if the password reset is
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.AuthResponse"/> if the password reset is
             successful; otherwise, a bad request response with error details.</returns>
         </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatController">
@@ -163,6 +225,11 @@
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.MarkThreadAsRead(System.Int32)">
             <summary>
             Mark entire thread as read
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.CreateChatThread(ITI.Gymunity.FP.Application.DTOs.Messaging.CreateChatThreadRequest)">
+            <summary>
+            Create a new chat thread between the current user and another user
             </summary>
         </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.NotificationsController">
@@ -356,6 +423,22 @@
             <summary>
             Mark all notifications as read
             </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Middlewares.WebhookSecurityMiddlewareExtensions">
+            <summary>
+            Provides extension methods for registering the WebhookSecurityMiddleware in an ASP.NET Core application's
+            request pipeline.
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Middlewares.WebhookSecurityMiddlewareExtensions.UseWebhookSecurity(Microsoft.AspNetCore.Builder.IApplicationBuilder)">
+            <summary>
+            Adds middleware to the application's request pipeline to validate and secure incoming webhook requests.
+            </summary>
+            <remarks>This extension method should be called early in the middleware pipeline to ensure
+            that webhook requests are validated before further processing. It is typically used when configuring web
+            applications that receive webhook callbacks from external services.</remarks>
+            <param name="builder">The application builder to configure the middleware pipeline.</param>
+            <returns>The original <see cref="T:Microsoft.AspNetCore.Builder.IApplicationBuilder"/> instance with the webhook security middleware configured.</returns>
         </member>
         <member name="T:ITI.Gymunity.FP.APIs.Responses.ApiResponse">
             <summary>

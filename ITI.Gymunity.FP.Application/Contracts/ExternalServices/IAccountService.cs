@@ -10,11 +10,11 @@ namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
     public interface IAccountService
     {
         Task<bool> SendResetPasswordLinkAsync(ForgetPasswordRequest request);
-        Task<UserResponse> ResetPasswordAsync(ResetPasswordRequest request);
-        Task<UserResponse> ChangePasswordAsync(string userId, ChangePasswordRequest request);
-        Task<UserResponse> UpdateProfileAsync(string userId, UpdateProfileRequest request);
-        Task<UserResponse> GoogleAuthAsync(GoogleAuthRequest request);
-        Task<UserResponse> RegisterAsync(RegisterRequest request);
-        Task<UserResponse> LoginAsync(LoginRequest request);
+        Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request);
+        Task<AuthResponse> ChangePasswordAsync(string userId, ChangePasswordRequest request);
+        Task<AuthResponse> UpdateProfileAsync(string userId, UpdateProfileRequest request);
+        Task<AuthResponse> GoogleAuthAsync(GoogleAuthRequest request);
+        Task<AuthResponse> RegisterAsync(RegisterRequest request);
+        Task<AuthResponse> LoginAsync(LoginRequest request);
     }
 }

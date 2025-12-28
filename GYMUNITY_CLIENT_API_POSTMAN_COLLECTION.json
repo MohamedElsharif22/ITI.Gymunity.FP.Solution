@@ -1,0 +1,1430 @@
+{
+  "info": {
+    "name": "Gymunity Client API Collection",
+    "description": "Complete API documentation for Gymunity Client Angular Project. Contains all endpoints, request/response models, validations, and authentication requirements.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{jwt_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://api.gymunity.com",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "description": "Account registration, login, and profile management endpoints",
+      "item": [
+        {
+          "name": "Register Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('jwt_token', jsonData.token);",
+                  "    pm.environment.set('userId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "UserName",
+                  "value": "john_doe",
+                  "description": "Minimum 3 characters",
+                  "type": "text"
+                },
+                {
+                  "key": "Email",
+                  "value": "john@example.com",
+                  "description": "Valid email format",
+                  "type": "text"
+                },
+                {
+                  "key": "Password",
+                  "value": "SecurePass@123",
+                  "description": "Min 8 chars: uppercase, lowercase, digit, special char",
+                  "type": "text"
+                },
+                {
+                  "key": "ConfirmPassword",
+                  "value": "SecurePass@123",
+                  "description": "Must match Password",
+                  "type": "text"
+                },
+                {
+                  "key": "FullName",
+                  "value": "John Doe",
+                  "description": "Minimum 3 characters",
+                  "type": "text"
+                },
+                {
+                  "key": "ProfilePhoto",
+                  "value": "file_content",
+                  "description": "Valid image file",
+                  "type": "file"
+                },
+                {
+                  "key": "Role",
+                  "value": "1",
+                  "description": "1 for Client, 2 for Trainer",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/account/register",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "account", "register"]
+            }
+          },
+          "response": {
+            "example": {
+              "id": "user-uuid-123",
+              "name": "John Doe",
+              "userName": "john_doe",
+              "email": "john@example.com",
+              "role": "Client",
+              "profilePhotoUrl": "https://cdn.example.com/photos/user-uuid-123.jpg",
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('jwt_token', jsonData.token);",
+                  "    pm.environment.set('userId', jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"SecurePass@123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/account/login",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "account", "login"]
+            }
+          },
+          "response": {
+            "example": {
+              "id": "user-uuid-123",
+              "name": "John Doe",
+              "userName": "john_doe",
+              "email": "john@example.com",
+              "role": "Client",
+              "profilePhotoUrl": "https://cdn.example.com/photos/user-uuid-123.jpg",
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            }
+          }
+        },
+        {
+          "name": "Google Auth",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idToken\": \"google-id-token-here\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/account/google-auth",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "account", "google-auth"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "UserName",
+                  "value": "john_doe_updated",
+                  "type": "text"
+                },
+                {
+                  "key": "FullName",
+                  "value": "John Doe Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "ProfilePhoto",
+                  "value": "file_content",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/account/update-profile",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "account", "update-profile"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"SecurePass@123\",\n  \"newPassword\": \"NewSecurePass@456\",\n  \"confirmPassword\": \"NewSecurePass@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/account/change-password",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "account", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Send Reset Password Link",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/account/send-reset-password-link",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "account", "send-reset-password-link"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"token\": \"reset-token-from-email\",\n  \"newPassword\": \"NewSecurePass@456\",\n  \"confirmPassword\": \"NewSecurePass@456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/account/reset-password",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "account", "reset-password"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Client Profile",
+      "description": "Client profile management and dashboard endpoints",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprofile/dashboard",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprofile", "dashboard"]
+            }
+          },
+          "response": {
+            "example": {
+              "userName": "john_doe",
+              "goal": "Muscle Gain",
+              "experienceLevel": "Intermediate",
+              "isOnboardingCompleted": true,
+              "lastBodyState": {
+                "weightKg": 80,
+                "bodyFatPercent": 15,
+                "measurementsJson": "{\"chest\": 100, \"waist\": 85}",
+                "photoFrontUrl": "https://cdn.example.com/photos/front.jpg",
+                "photoSideUrl": "https://cdn.example.com/photos/side.jpg",
+                "photoBackUrl": "https://cdn.example.com/photos/back.jpg",
+                "loggedAt": "2024-01-15T10:30:00Z"
+              },
+              "bodyStateHistory": [],
+              "profileCreatedAt": "2024-01-01T08:00:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprofile",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprofile"]
+            }
+          },
+          "response": {
+            "example": {
+              "id": 1,
+              "userName": "john_doe",
+              "heightCm": 180,
+              "startingWeightKg": 80,
+              "gender": "Male",
+              "goal": "Muscle Gain",
+              "experienceLevel": "Intermediate",
+              "updatedAt": "2024-01-15T10:30:00Z",
+              "createdAt": "2024-01-01T08:00:00Z",
+              "bodyStateLog": null
+            }
+          }
+        },
+        {
+          "name": "Create Profile",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"john_doe\",\n  \"heightCm\": 180,\n  \"startingWeightKg\": 80,\n  \"gender\": \"Male\",\n  \"goal\": \"Muscle Gain\",\n  \"experienceLevel\": \"Intermediate\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprofile",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprofile"]
+            }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userName\": \"john_doe_updated\",\n  \"heightCm\": 180,\n  \"startingWeightKg\": 82,\n  \"gender\": \"Male\",\n  \"goal\": \"Muscle Gain\",\n  \"experienceLevel\": \"Intermediate\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprofile",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprofile"]
+            }
+          }
+        },
+        {
+          "name": "Delete Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprofile",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprofile"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Onboarding",
+      "description": "Client onboarding workflow endpoints",
+      "item": [
+        {
+          "name": "Check Onboarding Status",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/onboarding/status",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "onboarding", "status"]
+            }
+          },
+          "response": {
+            "example": true
+          }
+        },
+        {
+          "name": "Complete Onboarding",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"heightCm\": 180,\n  \"startingWeightKg\": 80,\n  \"goal\": \"Muscle Gain\",\n  \"experienceLevel\": \"Intermediate\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/onboarding/complete",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "onboarding", "complete"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Body State Logs",
+      "description": "Track body measurements, weight, and progress photos",
+      "item": [
+        {
+          "name": "Create Body State Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"weightKg\": 82,\n  \"bodyFatPercent\": 14.5,\n  \"measurementsJson\": \"{\\\"neck\\\": 40, \\\"chest\\\": 102, \\\"waist\\\": 83, \\\"hip\\\": 95}\",\n  \"photoFrontUrl\": \"https://cdn.example.com/photos/front-2024-01-15.jpg\",\n  \"photoSideUrl\": \"https://cdn.example.com/photos/side-2024-01-15.jpg\",\n  \"photoBackUrl\": \"https://cdn.example.com/photos/back-2024-01-15.jpg\",\n  \"notes\": \"Lost 2cm waist, gained muscle\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/bodystateleg",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "bodystateleg"]
+            }
+          },
+          "response": {
+            "example": {
+              "weightKg": 82,
+              "bodyFatPercent": 14.5,
+              "measurementsJson": "{\"neck\": 40, \"chest\": 102, \"waist\": 83, \"hip\": 95}",
+              "photoFrontUrl": "https://cdn.example.com/photos/front-2024-01-15.jpg",
+              "photoSideUrl": "https://cdn.example.com/photos/side-2024-01-15.jpg",
+              "photoBackUrl": "https://cdn.example.com/photos/back-2024-01-15.jpg",
+              "notes": "Lost 2cm waist, gained muscle",
+              "loggedAt": "2024-01-15T10:30:00Z"
+            }
+          }
+        },
+        {
+          "name": "Get All Body State Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/bodystateleg",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "bodystateleg"]
+            }
+          }
+        },
+        {
+          "name": "Get Last Body State Log",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/bodystateleg/lastStateLog",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "bodystateleg", "lastStateLog"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Programs",
+      "description": "Browse and manage client training programs",
+      "item": [
+        {
+          "name": "Get All Active Programs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprograms",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprograms"]
+            }
+          },
+          "response": {
+            "example": [
+              {
+                "id": 1,
+                "title": "12-Week Muscle Building",
+                "description": "Comprehensive 12-week hypertrophy program\",\n                \"type\": \"Strength\",\n                \"durationWeeks\": 12,\n                \"totalExercises\": 48,\n                \"price\": 99.99,\n                \"isPublic\": true,\n                \"maxClients\": 100,\n                \"thumbnailUrl\": \"https://cdn.example.com/programs/1.jpg\",\n                \"createdAt\": \"2024-01-01T08:00:00Z\",\n                \"updatedAt\": \"2024-01-10T08:00:00Z\",\n                \"trainerProfileId\": 1,\n                \"trainerUserName\": \"trainer_john\",\n                \"trainerHandle\": \"john_strength\"\n              }\n            ]
+          }
+        },
+        {
+          "name": "Get Program by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprograms/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprograms", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Program Weeks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprograms/1/weeks",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprograms", "1", "weeks"]
+            }
+          },
+          "response": {
+            "example": [
+              {
+                "id": 1,\n                \"programId\": 1,\n                \"weekNumber\": 1,\n                \"days\": []\n              }\n            ]
+          }
+        },
+        {
+          "name": "Get Week Days",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprograms/1/days",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprograms", "1", "days"]
+            }
+          }
+        },
+        {
+          "name": "Get Day by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/clientprograms/days/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "clientprograms", "days", "1"]
+            }
+          },
+          "response": {
+            "example": {
+              "id\": 1,\n              \"programWeekId\": 1,\n              \"dayNumber\": 1,\n              \"title\": \"Chest & Triceps\",\n              \"notes\": \"Focus on compound movements\",\n              \"exercises\": [\n                {\n                  \"id\": 1,\n                  \"programDayId\": 1,\n                  \"exerciseId\": 1,\n                  \"orderIndex\": 1,\n                  \"sets\": \"4\",\n                  \"reps\": \"6-8\",\n                  \"restSeconds\": 120,\n                  \"tempo\": \"3010\",\n                  \"rpe\": 8,\n                  \"percent1rm\": 85,\n                  \"notes\": \"Full body compound\",\n                  \"videoUrl\": \"https://youtube.com/watch?v=...\",\n                  \"exerciseDataJson\": null\n                }\n              ]\n            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Workout Logs",
+      "description": "Log and track completed workouts",
+      "item": [
+        {
+          "name": "Create Workout Log",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"programDayId\": 1,\n  \"completedAt\": \"2024-01-15T16:30:00Z\",\n  \"notes\": \"Great workout! Felt strong.\",\n  \"durationMinutes\": 60,\n  \"exercisesLoggedJson\": \"[{\\\"exerciseId\\\": 1, \\\"sets\\\": 4, \\\"reps\\\": [6, 7, 6, 5], \\\"weight\\\": 100}]\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/workoutlog",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "workoutlog"]
+            }
+          },
+          "response": {
+            "example": {
+              "id\": 1,\n              \"clientProfileId\": 1,\n              \"programDayId\": 1,\n              \"programDayName\": \"Day 1: Chest & Triceps\",\n              \"completedAt\": \"2024-01-15T16:30:00Z\",\n              \"notes\": \"Great workout! Felt strong.\",\n              \"durationMinutes\": 60,\n              \"exercisesLoggedJson\": \"[{\\\"exerciseId\\\": 1, \\\"sets\\\": 4, \\\"reps\\\": [6, 7, 6, 5], \\\"weight\\\": 100}]\",\n              \"createdAt\": \"2024-01-15T16:35:00Z\",\n              \"updatedAt\": null\n            }
+          }
+        },
+        {
+          "name": "Get All Workout Logs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/workoutlog?pageNumber=1&pageSize=10",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "workoutlog"],
+              "query": [
+                {
+                  "key": "pageNumber",
+                  "value": "1"
+                },
+                {
+                  "key": "pageSize",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Workout Log by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/workoutlog/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "workoutlog", "1"]
+            }
+          }
+        },
+        {
+          "name": "Update Workout Log",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"programDayId\": 1,\n  \"completedAt\": \"2024-01-15T16:30:00Z\",\n  \"notes\": \"Excellent workout! PR on bench press.\",\n  \"durationMinutes\": 65,\n  \"exercisesLoggedJson\": \"[{\\\"exerciseId\\\": 1, \\\"sets\\\": 4, \\\"reps\\\": [6, 7, 6, 5], \\\"weight\\\": 105}]\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/workoutlog/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "workoutlog", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Workout Log",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/workoutlog/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "workoutlog", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Home & Discovery",
+      "description": "Browse packages, trainers, and programs without subscription",
+      "item": [
+        {
+          "name": "Search (Global)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/search?term=chest%20workout",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "search"],
+              "query": [
+                {
+                  "key": "term",
+                  "value": "chest workout"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get All Packages",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/packages",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "packages"]
+            }
+          },
+          "response": {
+            "example": [
+              {
+                "id\": 1,\n                \"name\": \"12-Week Muscle Building\",\n                \"description\": \"Complete muscle building package\",\n                \"priceMonthly\": 29.99,\n                \"priceYearly\": 299.99,\n                \"isActive\": true,\n                \"thumbnailUrl\": \"https://cdn.example.com/packages/1.jpg\",\n                \"trainerId\": \"trainer-uuid-1\",\n                \"createdAt\": \"2024-01-01T08:00:00Z\",\n                \"isAnnual\": false,\n                \"promoCode\": null,\n                \"programs\": [\n                  {\n                    \"title\": \"12-Week Strength\",\n                    \"description\": \"Build strength foundation\",\n                    \"thumbnailUrl\": \"https://cdn.example.com/programs/1.jpg\",\n                    \"type\": \"Strength\",\n                    \"durationWeeks\": 12\n                  }\n                ]\n              }\n            ]
+          }
+        },
+        {
+          "name": "Get Package by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/packages/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "packages", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get All Trainers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/trainers",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "trainers"]
+            }
+          },
+          "response": {
+            "example": [
+              {
+                "id\": 1,\n                \"userId\": \"trainer-uuid-1\",\n                \"userName\": \"trainer_john\",\n                \"handle\": \"john_strength\",\n                \"bio\": \"10 years experience in strength training\",\n                \"coverImageUrl\": \"https://cdn.example.com/trainers/1-cover.jpg\",\n                \"ratingAverage\": 4.8,\n                \"totalClients\": 150,\n                \"yearsExperience\": 10\n              }\n            ]
+          }
+        },
+        {
+          "name": "Get Trainer by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/trainers/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "trainers", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Packages by Trainer ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/trainers/1/packages",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "trainers", "1", "packages"]
+            }
+          }
+        },
+        {
+          "name": "Get All Programs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/programs",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "programs"]
+            }
+          }
+        },
+        {
+          "name": "Get Program by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/programs/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "programs", "1"]
+            }
+          }
+        },
+        {
+          "name": "Get Programs by Trainer ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/homeclient/programs/byTrainer/trainer-uuid-1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "homeclient", "programs", "byTrainer", "trainer-uuid-1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions",
+      "description": "Manage trainer package subscriptions",
+      "item": [
+        {
+          "name": "Subscribe to Package",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"packageId\": 1,\n  \"isAnnual\": false,\n  \"promoCode\": \"PROMO10\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/subscriptions/subscribe",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "subscriptions", "subscribe"]
+            }
+          },
+          "response": {
+            "example": {
+              "id\": 1,\n              \"packageId\": 1,\n              \"packageName\": \"12-Week Muscle Building\",\n              \"packageDescription\": \"Complete muscle building package\",\n              \"trainerId\": \"trainer-uuid-1\",\n              \"trainerName\": \"John Trainer\",\n              \"trainerHandle\": \"john_strength\",\n              \"trainerPhotoUrl\": \"https://cdn.example.com/trainers/1-photo.jpg\",\n              \"status\": \"Unpaid\",\n              \"amountPaid\": 29.99,\n              \"currency\": \"EGP\",\n              \"isAnnual\": false,\n              \"startDate\": \"2024-01-15T10:30:00Z\",\n              \"currentPeriodEnd\": \"2024-02-15T10:30:00Z\",\n              \"canceledAt\": null,\n              \"daysRemaining\": 31,\n              \"isExpiringSoon\": false,\n              \"hasExpired\": false,\n              \"featuresIncluded\": [\"Access to all programs\", \"Monthly coaching calls\"]\n            }
+          }
+        },
+        {
+          "name": "Get My Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/subscriptions?status=Active",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "subscriptions"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Active",
+                  "description": "Optional: Active, Unpaid, Canceled"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Subscription by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/subscriptions/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "subscriptions", "1"]
+            }
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/subscriptions/1/cancel",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "subscriptions", "1", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Reactivate Subscription",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/subscriptions/1/reactivate",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "subscriptions", "1", "reactivate"]
+            }
+          }
+        },
+        {
+          "name": "Check Trainer Access",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/subscriptions/access/trainer/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "subscriptions", "access", "trainer", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "description": "Process subscription payments",
+      "item": [
+        {
+          "name": "Initiate Payment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"subscriptionId\": 1,\n  \"paymentMethod\": 1,\n  \"returnUrl\": \"https://app.gymunity.com/payment-success\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/payments/initiate",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "payments", "initiate"]
+            }
+          },
+          "response": {
+            "example": {
+              "id\": 1,\n              \"subscriptionId\": 1,\n              \"clientId\": \"client-uuid-1\",\n              \"amount\": 29.99,\n              \"currency\": \"EGP\",\n              \"status\": \"Pending\",\n              \"method\": 1,\n              \"paymentUrl\": \"https://paymob.com/checkout/ORDER_1_123456789\",\n              \"createdAt\": \"2024-01-15T10:35:00Z\",\n              \"paidAt\": null\n            }
+          }
+        },
+        {
+          "name": "Get Payment History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/payments?status=Completed",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "payments"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "Completed",
+                  "description": "Optional: Pending, Processing, Completed, Failed"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/client/payments/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "payments", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "description": "Review trainers after subscription",
+      "item": [
+        {
+          "name": "Create Trainer Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"clientId\": \"client-uuid-1\",\n  \"rating\": 5,\n  \"comment\": \"Excellent trainer! Very knowledgeable and supportive. Highly recommend!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/client/reviewclient/trainer/1",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "client", "reviewclient", "trainer", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "description": "Real-time messaging with trainers",
+      "item": [
+        {
+          "name": "Get All Threads",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/threads",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "threads"]
+            }
+          }
+        },
+        {
+          "name": "Create Chat Thread",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"otherUserId\": \"trainer-uuid-1\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/threads",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "threads"]
+            }
+          },
+          "response": {
+            "example": {
+              "id\": 1,\n              \"clientId\": \"client-uuid-1\",\n              \"trainerId\": \"trainer-uuid-1\",\n              \"createdAt\": \"2024-01-15T10:35:00Z\",\n              \"lastMessageAt\": \"2024-01-15T10:35:00Z\"\n            }
+          }
+        },
+        {
+          "name": "Get Thread Messages",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/threads/1/messages",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "threads", "1", "messages"]
+            }
+          }
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hi trainer! I have a question about the workout\",\n  \"mediaUrl\": null,\n  \"type\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/chat/threads/1/messages",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "threads", "1", "messages"]
+            }
+          },
+          "response": {
+            "example": {
+              "id\": 1,\n              \"threadId\": 1,\n              \"senderId\": \"client-uuid-1\",\n              \"senderName\": \"John Doe\",\n              \"senderProfilePhoto\": \"https://cdn.example.com/photos/client-uuid-1.jpg\",\n              \"content\": \"Hi trainer! I have a question about the workout\",\n              \"mediaUrl\": null,\n              \"type\": 1,\n              \"createdAt\": \"2024-01-15T10:40:00Z\",\n              \"isRead\": false\n            }
+          }
+        },
+        {
+          "name": "Mark Message as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/messages/1/read",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "messages", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark Thread as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/chat/threads/1/read",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "chat", "threads", "1", "read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "description": "User notifications and alerts",
+      "item": [
+        {
+          "name": "Get All Notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications?unreadOnly=false",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications"],
+              "query": [
+                {
+                  "key": "unreadOnly",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/unread-count",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "unread-count"]
+            }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/1/read",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "1", "read"]
+            }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/notifications/read-all",
+              "protocol": "https",
+              "host": ["{{base_url}}"],
+              "path": ["api", "notifications", "read-all"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

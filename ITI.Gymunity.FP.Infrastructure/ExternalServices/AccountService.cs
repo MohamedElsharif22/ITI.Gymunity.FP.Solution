@@ -36,7 +36,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         private readonly IConfiguration _configuration = configuration;
         private readonly IImageUrlResolver _imageUrlResolver = imageUrlResolver;
 
-        public async Task<UserResponse> GoogleAuthAsync(GoogleAuthRequest request)
+        public async Task<AuthResponse> GoogleAuthAsync(GoogleAuthRequest request)
         {
             // Validate Google token
             var googleUser = await _googleAuthService.ValidateGoogleTokenAsync(request.IdToken)
@@ -128,7 +128,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         }
 
 
-        public async Task<UserResponse> LoginAsync(LoginRequest request)
+        public async Task<AuthResponse> LoginAsync(LoginRequest request)
         {
             var user = await _userManager.FindByEmailAsync(request.EmailOrUserName)
                        ?? await _userManager.FindByNameAsync(request.EmailOrUserName);
@@ -155,7 +155,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             return user.ToUserResponse(token, profilePhotoUrl);
         }
 
-        public async Task<UserResponse> RegisterAsync(RegisterRequest request)
+        public async Task<AuthResponse> RegisterAsync(RegisterRequest request)
         {
             if (!await IsEmailUniqueAsync(request.Email))
             {
@@ -216,7 +216,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             return user is null;
         }
 
-        public async Task<UserResponse> UpdateProfileAsync(string? userId, UpdateProfileRequest request)
+        public async Task<AuthResponse> UpdateProfileAsync(string? userId, UpdateProfileRequest request)
         {
             if (string.IsNullOrEmpty(userId))
             {
@@ -287,7 +287,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
 
-        public async Task<UserResponse> ChangePasswordAsync(string userId, ChangePasswordRequest request)
+        public async Task<AuthResponse> ChangePasswordAsync(string userId, ChangePasswordRequest request)
         {
             var user = await _userManager.FindByIdAsync(userId)
                 ?? throw new Exception("Invalid Operation.");
@@ -333,7 +333,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             return true;
         }
 
-        public async Task<UserResponse> ResetPasswordAsync(ResetPasswordRequest request)
+        public async Task<AuthResponse> ResetPasswordAsync(ResetPasswordRequest request)
         {
             var user = await _userManager.FindByEmailAsync(request.Email)
                 ?? throw new Exception("Invalid email address.");
