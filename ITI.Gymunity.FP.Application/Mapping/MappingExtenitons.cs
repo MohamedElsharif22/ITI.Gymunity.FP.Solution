@@ -10,9 +10,9 @@ namespace ITI.Gymunity.FP.Application.Mapping
 {
     public static class MappingExtenitons
     {
-        public static UserResponse ToUserResponse(this AppUser user, string token, string profilePhotoUrl)
+        public static AuthResponse ToUserResponse(this AppUser user, string token, string profilePhotoUrl)
         {
-            return new UserResponse
+            return new AuthResponse
             {
                 Id = user.Id, //amr edit i need it to test some end points
                 Name = user.FullName,

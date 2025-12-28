@@ -1,15 +1,12 @@
 ﻿using AutoMapper;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
-using Microsoft.AspNetCore.Identity;
-
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Specefications;
 using ITI.Gymunity.FP.Domain;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using ITI.Gymunity.FP.Domain.RepositoiesContracts;
-using ITI.Gymunity.FP.Application.DTOs.Trainer;
-using ITI.Gymunity.FP.Application.Specefications;
-using ITI.Gymunity.FP.Domain.Models.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace ITI.Gymunity.FP.Application.Services
 {

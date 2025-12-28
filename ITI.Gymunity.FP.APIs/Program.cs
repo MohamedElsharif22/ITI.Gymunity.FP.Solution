@@ -1,4 +1,3 @@
-using ITI.Gymunity.FP.APIs.Middleware;
 using ITI.Gymunity.FP.APIs.Extensions;
 using ITI.Gymunity.FP.APIs.Hubs;
 using ITI.Gymunity.FP.APIs.Middlewares;
@@ -123,7 +122,8 @@ namespace ITI.Gymunity.FP.APIs
             app.UseAuthentication();
 
             app.UseAuthorization();
-            app.UseMiddleware<WebhookSecurityMiddleware>();
+
+            app.UseWebhookSecurity();
 
             app.MapControllers();
 

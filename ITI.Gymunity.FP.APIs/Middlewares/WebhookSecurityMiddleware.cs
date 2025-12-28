@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
 
-namespace ITI.Gymunity.FP.APIs.Middleware
+namespace ITI.Gymunity.FP.APIs.Middlewares
 {
     public class WebhookSecurityMiddleware
     {
@@ -169,8 +169,20 @@ namespace ITI.Gymunity.FP.APIs.Middleware
     }
 
     // Extension method for easy registration
+    /// <summary>
+    /// Provides extension methods for registering the WebhookSecurityMiddleware in an ASP.NET Core application's
+    /// request pipeline.
+    /// </summary>
     public static class WebhookSecurityMiddlewareExtensions
     {
+        /// <summary>
+        /// Adds middleware to the application's request pipeline to validate and secure incoming webhook requests.
+        /// </summary>
+        /// <remarks>This extension method should be called early in the middleware pipeline to ensure
+        /// that webhook requests are validated before further processing. It is typically used when configuring web
+        /// applications that receive webhook callbacks from external services.</remarks>
+        /// <param name="builder">The application builder to configure the middleware pipeline.</param>
+        /// <returns>The original <see cref="IApplicationBuilder"/> instance with the webhook security middleware configured.</returns>
         public static IApplicationBuilder UseWebhookSecurity(
             this IApplicationBuilder builder)
         {

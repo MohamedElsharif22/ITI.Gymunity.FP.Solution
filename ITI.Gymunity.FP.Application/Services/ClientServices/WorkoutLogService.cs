@@ -46,7 +46,7 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
             // Verify client has access to this program via active subscription
 
-            var subscriptionSpecs = new SubscriptionWithClientAndProgramSpecs(s => s.ClientId == userId &&
+            var subscriptionSpecs = new SubscriptionsWithClientAndProgramSpecs(s => s.ClientId == userId &&
             s.Status == SubscriptionStatus.Active);
 
             var hasAccess = await _unitOfWork.Repository<Subscription>()

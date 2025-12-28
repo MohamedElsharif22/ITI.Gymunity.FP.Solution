@@ -36,11 +36,14 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             // ===========================
             // Application Services
             // ===========================
+            // =========================== Client Services ===========================
+            services.AddScoped<ClientProgramsService>();
             services.AddScoped<TrainerProfileService>();
             services.AddScoped<ClientProfileService>();
             services.AddScoped<OnboardingService>();
             services.AddScoped<BodyStateLogService>();
             services.AddScoped<WorkoutLogService>();
+
 
             // Subscription & Payment
             services.AddScoped<SubscriptionService>();
@@ -52,7 +55,7 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             //amr start
 
             // Home Client
-            IServiceCollection serviceCollection = services.AddScoped<IHomeClientService, HomeClientService>();
+            services.AddScoped<IHomeClientService, HomeClientService>();
 
             // Day - Week - Program services
             services.AddScoped<IDayExerciseService, DayExerciseService>();
@@ -71,8 +74,8 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             services.AddScoped<IPackageService, PackageService>();
 
             //clients for trainer
-
             services.AddScoped<IClientService, ClientService>();
+
 
             // Register Trainer Review service
             services.AddScoped<ITrainerReviewService, TrainerReviewService>();
@@ -91,6 +94,7 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
 
             //amr end
 
+            
 
 
 

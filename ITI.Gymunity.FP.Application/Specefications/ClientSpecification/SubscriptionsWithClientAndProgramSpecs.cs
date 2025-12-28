@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Application.Specefications.ClientSpecification
 {
-    public class SubscriptionWithClientAndProgramSpecs : BaseSpecification<Subscription>
+    public class SubscriptionsWithClientAndProgramSpecs : BaseSpecification<Subscription>
     {
-        public SubscriptionWithClientAndProgramSpecs()
+        public SubscriptionsWithClientAndProgramSpecs()
         {
             AddInclude(s => s.Package);
             AddInclude(s => s.Client);
         }
 
-        public SubscriptionWithClientAndProgramSpecs(Expression<Func<Subscription, bool>>? criteria) : base(criteria)
+        public SubscriptionsWithClientAndProgramSpecs(Expression<Func<Subscription, bool>>? criteria) : base(criteria)
         {
             AddInclude(s => s.Package);
             AddInclude(s => s.Client);

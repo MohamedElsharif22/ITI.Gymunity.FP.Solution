@@ -1,28 +1,25 @@
 ﻿using AutoMapper;
-using ITI.Gymunity.FP.Application.DTOs.Trainer;
-using ITI.Gymunity.FP.Application.DTOs.Program;
+using ITI.Gymunity.FP.Application.DTOs.Admin;
+using ITI.Gymunity.FP.Application.DTOs.Client;
+using ITI.Gymunity.FP.Application.DTOs.ClientDto;
+using ITI.Gymunity.FP.Application.DTOs.ExerciseLibrary;
+using ITI.Gymunity.FP.Application.DTOs.Guest;
 using ITI.Gymunity.FP.Application.DTOs.Messaging;
 using ITI.Gymunity.FP.Application.DTOs.Notifications;
-using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
-using ITI.Gymunity.FP.Domain.Models.Trainer;
-using ITI.Gymunity.FP.Domain.Models.Identity;
+using ITI.Gymunity.FP.Application.DTOs.Package;
+using ITI.Gymunity.FP.Application.DTOs.Program;
+using ITI.Gymunity.FP.Application.DTOs.Program.ProgramDayDtos;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.DTOs.User;
 using ITI.Gymunity.FP.Application.DTOs.User.Payment;
+using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
+using ITI.Gymunity.FP.Application.Mapping.Resolvers;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Client;
-using ITI.Gymunity.FP.Application.DTOs.Client;
-using ITI.Gymunity.FP.Application.DTOs.ExerciseLibrary;
-using ITI.Gymunity.FP.Application.DTOs.Package;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
-using ITI.Gymunity.FP.Application.DTOs.Program;
-using ITI.Gymunity.FP.Application.DTOs.Trainer;
-using ITI.Gymunity.FP.Application.DTOs.Guest;
-using ITI.Gymunity.FP.Application.DTOs.Admin;
-using ITI.Gymunity.FP.Application.DTOs.ClientDto;
-using ITI.Gymunity.FP.Application.Mapping.Resolvers;
-using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
-using ITI.Gymunity.FP.Application.DTOs.User;
 
 namespace ITI.Gymunity.FP.Application.Mapping
 {
@@ -64,7 +61,17 @@ namespace ITI.Gymunity.FP.Application.Mapping
             CreateMap<WorkoutLogRequest, WorkoutLog>();
             CreateMap<WorkoutLog, WorkoutLogResponse>();
 
-
+            //*********************     ClientProgram Mapping       ******************************//
+            CreateMap<ProgramWeek, ProgramWeekResponse>();
+            CreateMap<ProgramDay, ProgramDayResponse>();
+            CreateMap<ProgramDayExercise, ProgramDayExerciseResponse>()
+                .ForMember(dest => dest.VideoUrl, opt => opt.MapFrom<GenericImageUrlResolver<ProgramDayExercise, ProgramDayExerciseResponse>, string?>(p => p.VideoUrl))
+                .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<ProgramDayExercise, ProgramDayExerciseResponse>, string?>(p => p.Exercise.ThumbnailUrl))
+                .ForMember(dest => dest.ExcersiceName, opt => opt.MapFrom(p => p.Exercise.Name))
+                .ForMember(dest => dest.Category, opt => opt.MapFrom(p => p.Exercise.Category))
+                .ForMember(dest => dest.MuscleGroup, opt => opt.MapFrom(p => p.Exercise.MuscleGroup))
+                .ForMember(dest => dest.Equipment, opt => opt.MapFrom(p => p.Exercise.Equipment))
+                .ForMember(dest => dest.TrainerId, opt => opt.MapFrom(p => p.Exercise.TrainerId));
             // TrainerProfile to List Response (excludes status fields)
             CreateMap<TrainerProfile, TrainerProfileListResponse>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(tp => tp.User.UserName))
@@ -183,7 +190,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
             // ======================
             CreateMap<ProgramWeek, ProgramWeekGetAllResponse>();
             CreateMap<ProgramDay, ProgramDayGetAllResponse>();
-            CreateMap<ProgramDayExercise, ProgramDayExerciseGetAllResponse> ()
+            CreateMap<ProgramDayExercise, ProgramDayExerciseGetAllResponse>()
                 .ForMember(dest => dest.VideoUrl, opt => opt.MapFrom<GenericImageUrlResolver<ProgramDayExercise, ProgramDayExerciseGetAllResponse>, string?>(p => p.VideoUrl));
 
             // ======================

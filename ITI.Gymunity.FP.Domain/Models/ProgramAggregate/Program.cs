@@ -27,9 +27,6 @@ namespace ITI.Gymunity.FP.Domain.Models.ProgramAggregate
         public bool IsPublic { get; set; } = true;
         public int? MaxClients { get; set; }
         public string? ThumbnailUrl { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
         public ICollection<ProgramWeek> Weeks { get; set; } = new List<ProgramWeek>();
         public ICollection<PackageProgram> PackagePrograms { get; set; } = new List<PackageProgram>();
 
