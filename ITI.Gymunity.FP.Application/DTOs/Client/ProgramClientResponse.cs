@@ -14,8 +14,8 @@ namespace ITI.Gymunity.FP.Application.DTOs.Client
  public bool IsPublic { get; set; }
  public int? MaxClients { get; set; }
  public string? ThumbnailUrl { get; set; }
- public DateTime CreatedAt { get; set; }
- public DateTime UpdatedAt { get; set; }
+ public DateTimeOffset CreatedAt { get; set; }
+ public DateTimeOffset UpdatedAt { get; set; }
 
  // Backwards-compatible trainer user id (string)
  public string TrainerId { get; set; } = null!;
