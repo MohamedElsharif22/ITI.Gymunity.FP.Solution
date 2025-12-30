@@ -56,11 +56,12 @@ namespace ITI.Gymunity.FP.Application.Services
                             Description = $"Subscription Payment - ID: {payment.SubscriptionId}",
                             CustomId = payment.Id.ToString(),
                             SoftDescriptor = "TrainerHub",
-                            AmountWithBreakdown = new AmountWithBreakdown
-                            {
-                                CurrencyCode = payment.Currency,
-                                Value = payment.Amount.ToString("F2")
-                            }
+                          AmountWithBreakdown = new AmountWithBreakdown
+                        {
+                           CurrencyCode = "USD",
+                           Value = payment.Amount.ToString("F2")
+                        }
+
                         }
                     },
                     ApplicationContext = new ApplicationContext

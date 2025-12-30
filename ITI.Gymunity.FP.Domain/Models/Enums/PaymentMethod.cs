@@ -8,8 +8,9 @@ namespace ITI.Gymunity.FP.Domain.Models.Enums
 {
     public enum PaymentMethod
     {
-        Paymob = 1,   
-        PayPal = 2,    
-        Stripe = 3
+        Paymob = 0,
+        PayPal = 1,
+        Stripe = 2
     }
+
 }

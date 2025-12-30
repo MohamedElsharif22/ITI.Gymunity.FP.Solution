@@ -11,8 +11,8 @@ namespace ITI.Gymunity.FP.Domain.Models
         // Amount Details
         public decimal Amount { get; set; }
         public string Currency { get; set; } = "EGP";
-        public decimal PlatformFee { get; set; } // 15% of Amount
-        public decimal TrainerPayout { get; set; } // Amount - PlatformFee
+        public decimal PlatformFee { get; set; } = 0;// 15% of Amount
+        public decimal TrainerPayout { get; set; } = 0; // Amount - PlatformFee
 
         // Status & Method
         public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
@@ -33,6 +33,7 @@ namespace ITI.Gymunity.FP.Domain.Models
         public string? FailureReason { get; set; }
         public string? IpAddress { get; set; }
         public string? UserAgent { get; set; }
+
 
         // Dates
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

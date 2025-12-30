@@ -1,11 +1,8 @@
 ﻿using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Application.Specefications.Payment;
 using ITI.Gymunity.FP.Domain;
-using ITI.Gymunity.FP.Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.APIs.Controllers
 {
@@ -30,84 +27,57 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             _logger = logger;
         }
 
-        /// PayPal return URL (after user approves payment)
         [HttpGet("return")]
         public async Task<IActionResult> PayPalReturn([FromQuery] string token)
         {
             try
             {
-                _logger.LogInformation("PayPal return received with token: {Token}", token);
+                var spec = PaymentByGatewayOrderSpecs.ForPayPal(token);
 
-                // 1. Find payment by PayPal order ID
-                var payments = await _unitOfWork
-                    .Repository<Payment>()
-                    .GetAllAsync();
-
-                var payment = payments.FirstOrDefault(p => p.PayPalOrderId == token);
+                var payment = await _unitOfWork
+                    .Repository<Domain.Models.Payment>()
+                    .GetWithSpecsAsync(spec);
 
                 if (payment == null)
-                {
-                    _logger.LogWarning("Payment not found for PayPal token: {Token}", token);
                     return Redirect("http://localhost:3000/payment/error");
-                }
 
-                // 2. Capture the order
-                var captureResult = await _paypalService.CaptureOrderAsync(token);
+                var capture = await _paypalService.CaptureOrderAsync(token);
 
-                if (!captureResult.Success)
+                if (!capture.Success)
                 {
-                    _logger.LogError(
-                        "Failed to capture PayPal order {OrderId}: {Error}",
-                        token,
-                        captureResult.ErrorMessage);
-
                     await _paymentService.FailPaymentAsync(
                         payment.Id,
-                        captureResult.ErrorMessage ?? "Capture failed");
+                        capture.ErrorMessage ?? "Capture failed");
 
                     return Redirect("http://localhost:3000/payment/failed");
                 }
 
-                // 3. Confirm payment
-                await _paymentService.ConfirmPaymentAsync(payment.Id, captureResult.CaptureId!);
+                await _paymentService.ConfirmPaymentAsync(
+                    payment.Id, capture.CaptureId!);
 
-                _logger.LogInformation(
-                    "PayPal payment {PaymentId} completed successfully",
-                    payment.Id);
-
-                // 4. Redirect to success page
-                return Redirect($"http://localhost:3000/payment/success?subscriptionId={payment.SubscriptionId}");
+                return Redirect(
+                    $"http://localhost:3000/payment/success?subscriptionId={payment.SubscriptionId}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing PayPal return");
+                _logger.LogError(ex, "PayPal return error");
                 return Redirect("http://localhost:3000/payment/error");
             }
         }
 
-        /// PayPal cancel URL
         [HttpGet("cancel")]
         public async Task<IActionResult> PayPalCancel([FromQuery] string token)
         {
-            _logger.LogInformation("PayPal payment canceled: {Token}", token);
+            var spec = PaymentByGatewayOrderSpecs.ForPayPal(token);
 
-            try
+            var payment = await _unitOfWork
+                .Repository<Domain.Models.Payment>()
+                .GetWithSpecsAsync(spec);
+
+            if (payment != null)
             {
-                // Find and mark payment as canceled
-                var payments = await _unitOfWork
-                    .Repository<Payment>()
-                    .GetAllAsync();
-
-                var payment = payments.FirstOrDefault(p => p.PayPalOrderId == token);
-
-                if (payment != null)
-                {
-                    await _paymentService.FailPaymentAsync(payment.Id, "User canceled payment");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing PayPal cancel");
+                await _paymentService.FailPaymentAsync(
+                    payment.Id, "User canceled payment");
             }
 
             return Redirect("http://localhost:3000/payment/canceled");

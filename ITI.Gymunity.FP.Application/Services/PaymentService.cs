@@ -14,68 +14,75 @@ namespace ITI.Gymunity.FP.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly ILogger<PaymentService> _logger;
         private readonly PayPalService _paypalService;
+        private readonly ILogger<PaymentService> _logger;
 
         public PaymentService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            ILogger<PaymentService> logger,
-            PayPalService paypalService)
+            PayPalService paypalService,
+            ILogger<PaymentService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
-            _logger = logger;
             _paypalService = paypalService;
+            _logger = logger;
         }
 
+        // ===============================
+        // Initiate Payment
+        // ===============================
         public async Task<ServiceResult<PaymentResponse>> InitiatePaymentAsync(
             string clientId,
             InitiatePaymentRequest request)
         {
             try
             {
-                // 1. Validate Subscription
-                var subSpec = new ClientSubscriptionByIdSpecs(request.SubscriptionId, clientId);
+                // 1️⃣ Validate subscription
+                var subSpec = new ClientSubscriptionByIdSpecs(
+                    request.SubscriptionId, clientId);
+
                 var subscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(subSpec);
 
                 if (subscription == null)
-                    return ServiceResult<PaymentResponse>.Failure("Subscription not found");
+                    return ServiceResult<PaymentResponse>
+                        .Failure("Subscription not found");
 
                 if (subscription.Status == SubscriptionStatus.Active)
-                    return ServiceResult<PaymentResponse>.Failure("Subscription is already active and paid");
+                    return ServiceResult<PaymentResponse>
+                        .Failure("Subscription already active");
 
                 if (subscription.Status == SubscriptionStatus.Canceled)
-                    return ServiceResult<PaymentResponse>.Failure("Cannot pay for a canceled subscription");
+                    return ServiceResult<PaymentResponse>
+                        .Failure("Subscription is canceled");
 
-                // 2. Check existing pending payment
-                var existingPaymentSpec = new PaymentBySubscriptionSpecs(subscription.Id);
+                // 2️⃣ Check existing pending payment
                 var existingPayments = await _unitOfWork
                     .Repository<Payment>()
-                    .GetAllWithSpecsAsync(existingPaymentSpec);
+                    .GetAllWithSpecsAsync(
+                        new PaymentBySubscriptionSpecs(subscription.Id));
 
-                var pendingPayment = existingPayments
-                    .FirstOrDefault(p => p.Status == PaymentStatus.Pending
-                                      || p.Status == PaymentStatus.Processing);
+                var pendingPayment = existingPayments.FirstOrDefault(p =>
+                    p.Status == PaymentStatus.Pending ||
+                    p.Status == PaymentStatus.Processing);
 
                 if (pendingPayment != null)
                 {
-                    var existingResponse = _mapper.Map<PaymentResponse>(pendingPayment);
-                    existingResponse.PaymentUrl = GeneratePaymentUrl(pendingPayment);
-                    return ServiceResult<PaymentResponse>.Success(existingResponse);
+                    var pendingResponse = _mapper.Map<PaymentResponse>(pendingPayment);
+                    return ServiceResult<PaymentResponse>.Success(pendingResponse);
                 }
 
-                // 3. Create new Payment
+                // 3️⃣ Create payment record
                 var payment = new Payment
                 {
-                    SubscriptionId = request.SubscriptionId,
+                    SubscriptionId = subscription.Id,
                     ClientId = clientId,
                     Amount = subscription.AmountPaid,
-                    Currency = subscription.Currency,
-                    Status = PaymentStatus.Pending,
+                    Currency = "USD",
                     Method = request.PaymentMethod,
+                    Status = PaymentStatus.Pending,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -84,258 +91,137 @@ namespace ITI.Gymunity.FP.Application.Services
                 _unitOfWork.Repository<Payment>().Add(payment);
                 await _unitOfWork.CompleteAsync();
 
-                // 4. Generate payment URL
+                // 4️⃣ Initiate gateway
                 string? paymentUrl = null;
 
-                switch (request.PaymentMethod)
+                if (request.PaymentMethod == PaymentMethod.PayPal)
                 {
-                    case PaymentMethod.Paymob:
-                        payment.PaymobOrderId = $"ORDER_{payment.Id}_{DateTime.UtcNow.Ticks}";
-                        paymentUrl = await GeneratePaymobPaymentUrlAsync(payment, request.ReturnUrl);
-                        break;
+                    var returnUrl =
+                        request.ReturnUrl ??
+                        "http://localhost:5000/api/payment/paypal/return";
 
-                    case PaymentMethod.PayPal:
-                        var returnUrl = request.ReturnUrl ?? "http://localhost:5000/api/payment/paypal/return";
-                        var cancelUrl = "http://localhost:5000/api/payment/paypal/cancel";
+                    var cancelUrl =
+                        "http://localhost:5000/api/payment/paypal/cancel";
 
-                        var paypalResult = await _paypalService.CreateOrderAsync(
-                            payment,
-                            returnUrl,
-                            cancelUrl);
+                    var result = await _paypalService.CreateOrderAsync(
+                        payment,
+                        returnUrl,
+                        cancelUrl);
 
-                        if (!paypalResult.Success)
-                        {
-                            _logger.LogError(
-                                "Failed to create PayPal order for payment {PaymentId}: {Error}",
-                                payment.Id,
-                                paypalResult.ErrorMessage);
+                    if (!result.Success)
+                        return ServiceResult<PaymentResponse>
+                            .Failure(result.ErrorMessage ?? "PayPal error");
 
-                            return ServiceResult<PaymentResponse>.Failure(
-                                $"Failed to create PayPal order: {paypalResult.ErrorMessage}");
-                        }
-
-                        payment.PayPalOrderId = paypalResult.OrderId;
-                        paymentUrl = paypalResult.ApprovalUrl;
-                        break;
-
-                    default:
-                        return ServiceResult<PaymentResponse>.Failure("Payment method not supported");
+                    // ✅ FIXED HERE
+                    payment.PayPalOrderId = result.OrderId;
+                    paymentUrl = result.ApprovalUrl;
+                }
+                else
+                {
+                    return ServiceResult<PaymentResponse>
+                        .Failure("Payment method not supported yet");
                 }
 
                 await _unitOfWork.CompleteAsync();
 
-                // 5. Return response
+                // 5️⃣ Response
                 var response = _mapper.Map<PaymentResponse>(payment);
                 response.PaymentUrl = paymentUrl;
 
-                _logger.LogInformation(
-                    "Payment {PaymentId} initiated for subscription {SubscriptionId} by client {ClientId}",
-                    payment.Id,
-                    request.SubscriptionId,
-                    clientId);
-
                 return ServiceResult<PaymentResponse>.Success(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error initiating payment for subscription {SubscriptionId}",
-                    request.SubscriptionId);
-
-                return ServiceResult<PaymentResponse>.Failure(
-                    "An error occurred while initiating payment");
+                _logger.LogError(ex, "Payment initiation failed");
+                return ServiceResult<PaymentResponse>
+                    .Failure("Failed to initiate payment");
             }
         }
 
-        public async Task<ServiceResult<bool>> ConfirmPaymentAsync(
-            int paymentId,
-            string transactionId)
+        // ===============================
+        // Confirm Payment (after PayPal return)
+        // ===============================
+        public async Task ConfirmPaymentAsync(int paymentId, string captureId)
         {
-            try
-            {
-                var payment = await _unitOfWork
-                    .Repository<Payment>()
-                    .GetByIdAsync(paymentId);
+            var payment = await _unitOfWork
+                .Repository<Payment>()
+                .GetByIdAsync(paymentId);
 
-                if (payment == null)
-                    return ServiceResult<bool>.Failure("Payment not found");
+            if (payment == null) return;
 
-                if (payment.Status == PaymentStatus.Completed)
-                {
-                    _logger.LogWarning(
-                        "Payment {PaymentId} already completed. Ignoring duplicate.",
-                        paymentId);
-                    return ServiceResult<bool>.Success(true);
-                }
+            payment.Status = PaymentStatus.Completed;
+            payment.PaidAt = DateTime.UtcNow;
+            payment.PayPalCaptureId = captureId;
 
-                payment.Status = PaymentStatus.Completed;
-                payment.PaidAt = DateTime.UtcNow;
+            var subscription = await _unitOfWork
+                .Repository<Subscription>()
+                .GetByIdAsync(payment.SubscriptionId);
 
-                if (payment.Method == PaymentMethod.Paymob)
-                    payment.PaymobTransactionId = transactionId;
-                else if (payment.Method == PaymentMethod.PayPal)
-                    payment.PayPalCaptureId = transactionId;
+            if (subscription != null)
+                subscription.Status = SubscriptionStatus.Active;
 
-                var subscription = await _unitOfWork
-                    .Repository<Subscription>()
-                    .GetByIdAsync(payment.SubscriptionId);
-
-                if (subscription != null)
-                {
-                    subscription.Status = SubscriptionStatus.Active;
-
-                    if (payment.Method == PaymentMethod.Paymob)
-                    {
-                        subscription.PaymobOrderId = payment.PaymobOrderId;
-                        subscription.PaymobTransactionId = transactionId;
-                    }
-                    else if (payment.Method == PaymentMethod.PayPal)
-                    {
-                        subscription.PayPalSubscriptionId = payment.PayPalOrderId;
-                    }
-                }
-
-                await _unitOfWork.CompleteAsync();
-
-                _logger.LogInformation(
-                    "Payment {PaymentId} confirmed. Subscription {SubscriptionId} activated.",
-                    paymentId,
-                    payment.SubscriptionId);
-
-                return ServiceResult<bool>.Success(true);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error confirming payment {PaymentId}",
-                    paymentId);
-
-                return ServiceResult<bool>.Failure(
-                    "An error occurred while confirming payment");
-            }
+            await _unitOfWork.CompleteAsync();
         }
 
-        public async Task<ServiceResult<bool>> FailPaymentAsync(
-            int paymentId,
-            string reason)
+        // ===============================
+        // Fail Payment
+        // ===============================
+        public async Task FailPaymentAsync(int paymentId, string reason)
         {
-            try
-            {
-                var payment = await _unitOfWork
-                    .Repository<Payment>()
-                    .GetByIdAsync(paymentId);
+            var payment = await _unitOfWork
+                .Repository<Payment>()
+                .GetByIdAsync(paymentId);
 
-                if (payment == null)
-                    return ServiceResult<bool>.Failure("Payment not found");
+            if (payment == null) return;
 
-                payment.Status = PaymentStatus.Failed;
-                payment.FailedAt = DateTime.UtcNow;
-                payment.FailureReason = reason;
+            payment.Status = PaymentStatus.Failed;
+            payment.FailureReason = reason;
+            payment.FailedAt = DateTime.UtcNow;
 
-                await _unitOfWork.CompleteAsync();
-
-                _logger.LogWarning(
-                    "Payment {PaymentId} failed. Reason: {Reason}",
-                    paymentId,
-                    reason);
-
-                return ServiceResult<bool>.Success(true);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error marking payment {PaymentId} as failed",
-                    paymentId);
-
-                return ServiceResult<bool>.Failure(
-                    "An error occurred while processing payment failure");
-            }
+            await _unitOfWork.CompleteAsync();
         }
 
-        public async Task<ServiceResult<PaymentHistoryResponse>> GetPaymentHistoryAsync(
-            string clientId,
-            PaymentStatus? status = null)
+        // ===============================
+        // Get Payment History
+        // ===============================
+        public async Task<ServiceResult<PaymentHistoryResponse>>
+            GetPaymentHistoryAsync(string clientId, PaymentStatus? status)
         {
-            try
-            {
-                var spec = new ClientPaymentsSpecs(clientId, status);
-                var payments = await _unitOfWork
-                    .Repository<Payment>()
-                    .GetAllWithSpecsAsync(spec);
+            var payments = await _unitOfWork
+                .Repository<Payment>()
+                .GetAllWithSpecsAsync(
+                    new ClientPaymentsSpecs(clientId, status));
 
-                var paymentsList = payments.ToList();
-                var response = new PaymentHistoryResponse
+            var list = payments
+                .Select(p => _mapper.Map<PaymentResponse>(p))
+                .ToList();
+
+            return ServiceResult<PaymentHistoryResponse>.Success(
+                new PaymentHistoryResponse
                 {
-                    TotalPayments = paymentsList.Count,
-                    TotalAmount = paymentsList
-                        .Where(p => p.Status == PaymentStatus.Completed)
-                        .Sum(p => p.Amount),
-                    Payments = paymentsList.Select(p => _mapper.Map<PaymentResponse>(p)).ToList()
-                };
-
-                return ServiceResult<PaymentHistoryResponse>.Success(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error fetching payment history for client {ClientId}",
-                    clientId);
-
-                return ServiceResult<PaymentHistoryResponse>.Failure(
-                    "An error occurred while fetching payment history");
-            }
+                    TotalPayments = list.Count,
+                    TotalAmount = list.Sum(p => p.Amount),
+                    Payments = list
+                });
         }
 
         public async Task<ServiceResult<PaymentResponse>> GetPaymentByIdAsync(
-            int id,
-            string clientId)
+    int paymentId,
+    string clientId)
         {
-            try
-            {
-                var spec = new PaymentByIdSpecs(id, clientId);
-                var payment = await _unitOfWork
-                    .Repository<Payment>()
-                    .GetWithSpecsAsync(spec);
+            var payment = await _unitOfWork
+                .Repository<Payment>()
+                .GetByIdAsync(paymentId);
 
-                if (payment == null)
-                    return ServiceResult<PaymentResponse>.Failure("Payment not found");
+            if (payment == null)
+                return ServiceResult<PaymentResponse>.Failure("Payment not found");
 
-                var response = _mapper.Map<PaymentResponse>(payment);
-                response.PaymentUrl = GeneratePaymentUrl(payment);
+            if (payment.ClientId != clientId)
+                return ServiceResult<PaymentResponse>.Failure("Unauthorized access");
 
-                return ServiceResult<PaymentResponse>.Success(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error fetching payment {PaymentId} for client {ClientId}",
-                    id,
-                    clientId);
-
-                return ServiceResult<PaymentResponse>.Failure(
-                    "An error occurred while fetching payment details");
-            }
+            var response = _mapper.Map<PaymentResponse>(payment);
+            return ServiceResult<PaymentResponse>.Success(response);
         }
 
-        #region Private Helper Methods
-
-        private string GeneratePaymentUrl(Payment payment)
-        {
-            return payment.Method switch
-            {
-                PaymentMethod.Paymob => $"https://paymob.com/checkout/{payment.PaymobOrderId}",
-                PaymentMethod.PayPal => $"https://www.sandbox.paypal.com/checkoutnow?token={payment.PayPalOrderId}",
-                _ => string.Empty
-            };
-        }
-
-        private async Task<string> GeneratePaymobPaymentUrlAsync(Payment payment, string? returnUrl)
-        {
-            // TODO: Implement Paymob integration
-            await Task.CompletedTask;
-            return $"https://paymob.com/iframe/{payment.PaymobOrderId}";
-        }
-
-        #endregion
     }
 }

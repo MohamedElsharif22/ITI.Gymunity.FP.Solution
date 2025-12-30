@@ -1,13 +1,12 @@
 ﻿using AutoMapper;
 using ITI.Gymunity.FP.Application.Common;
+using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 using ITI.Gymunity.FP.Application.Specefications.Subscriptions;
-using ITI.Gymunity.FP.Application.Specefications.Trainer;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using Microsoft.Extensions.Logging;
-using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -27,45 +26,42 @@ namespace ITI.Gymunity.FP.Application.Services
             _logger = logger;
         }
 
-        /// Subscribe to a trainer's package
+        /// <summary>
+        /// Create subscription (UNPAID – waiting for payment)
+        /// </summary>
         public async Task<ServiceResult<SubscriptionResponse>> SubscribeAsync(
             string clientId,
             SubscribePackageRequest request)
         {
             try
             {
-                // 1. Validate Package exists
+                // 1️⃣ Validate Package
                 var package = await _unitOfWork
                     .Repository<Package>()
                     .GetByIdAsync(request.PackageId);
 
-                if (package == null)
+                if (package == null || !package.IsActive)
+                {
                     return ServiceResult<SubscriptionResponse>.Failure(
-                        $"Package with ID {request.PackageId} not found");
+                        "Package not found or inactive");
+                }
 
-                // 2. Check if already subscribed to this package
-                var existingSubSpec = new ActiveClientSubscriptionForPackageSpecs(
-                    clientId,
-                    request.PackageId);
-                var existingSub = await _unitOfWork
+                // 2️⃣ Prevent duplicate subscription
+                var existingSpec =
+                    new ActiveClientSubscriptionForPackageSpecs(
+                        clientId, request.PackageId);
+
+                var existingSubscription = await _unitOfWork
                     .Repository<Subscription>()
-                    .GetWithSpecsAsync(existingSubSpec);
+                    .GetWithSpecsAsync(existingSpec);
 
-                if (existingSub != null)
+                if (existingSubscription != null)
+                {
                     return ServiceResult<SubscriptionResponse>.Failure(
-                        "You are already subscribed to this package");
+                        "You already subscribed to this package");
+                }
 
-                //// 3. Validate Trainer is verified and active
-                //var trainerSpec = new TrainerByUserIdSpecs(package.TrainerId);
-                //var trainer = await _unitOfWork
-                //    .Repository<TrainerProfile>()
-                //    .GetWithSpecsAsync(trainerSpec);
-
-                //if (trainer == null || !trainer.IsVerified)
-                //    return ServiceResult<SubscriptionResponse>.Failure(
-                //        "Trainer is not available");
-
-                // 4. Calculate amount and period
+                // 3️⃣ Calculate amount & period
                 decimal amount = request.IsAnnual
                     ? package.PriceYearly ?? package.PriceMonthly * 12
                     : package.PriceMonthly;
@@ -74,7 +70,7 @@ namespace ITI.Gymunity.FP.Application.Services
                     ? DateTime.UtcNow.AddYears(1)
                     : DateTime.UtcNow.AddMonths(1);
 
-                // 5. Create subscription
+                // 4️⃣ Create Subscription (UNPAID)
                 var subscription = new Subscription
                 {
                     ClientId = clientId,
@@ -84,19 +80,32 @@ namespace ITI.Gymunity.FP.Application.Services
                     CurrentPeriodEnd = periodEnd,
                     AmountPaid = amount,
                     Currency = "EGP",
-                    PlatformFeePercentage = 15m
+                    PlatformFeePercentage = 15m,
+                    IsAnnual = request.IsAnnual
                 };
 
                 _unitOfWork.Repository<Subscription>().Add(subscription);
                 await _unitOfWork.CompleteAsync();
 
-                // 6. Map and return response
-                var response = _mapper.Map<SubscriptionResponse>(subscription);
+                // 5️⃣ Reload subscription WITH includes (IMPORTANT)
+                var createdSubscription = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetWithSpecsAsync(
+                        new ClientSubscriptionByIdSpecs(subscription.Id, clientId));
+
+                if (createdSubscription == null)
+                {
+                    return ServiceResult<SubscriptionResponse>.Failure(
+                        "Failed to load created subscription");
+                }
+
+                // 6️⃣ Map safely
+                var response =
+                    _mapper.Map<SubscriptionResponse>(createdSubscription);
 
                 _logger.LogInformation(
-                    "Client {ClientId} successfully subscribed to package {PackageId}",
-                    clientId,
-                    request.PackageId);
+                    "Client {ClientId} subscribed to package {PackageId} successfully",
+                    clientId, request.PackageId);
 
                 return ServiceResult<SubscriptionResponse>.Success(response);
             }
@@ -104,182 +113,166 @@ namespace ITI.Gymunity.FP.Application.Services
             {
                 _logger.LogError(ex,
                     "Error subscribing client {ClientId} to package {PackageId}",
-                    clientId,
-                    request.PackageId);
+                    clientId, request.PackageId);
 
                 return ServiceResult<SubscriptionResponse>.Failure(
-                    "An error occurred while processing your subscription. Please try again later.");
+                    "Failed to create subscription");
             }
         }
 
-        /// Get all client's subscriptions with optional status filter
-        public async Task<ServiceResult<IEnumerable<SubscriptionResponse>>> GetMySubscriptionsAsync(
+        /// <summary>
+        /// Get all client subscriptions with filtering
+        /// </summary>
+        public async Task<ServiceResult<SubscriptionListResponse>> GetClientSubscriptionsAsync(
             string clientId,
             SubscriptionStatus? status = null)
         {
             try
             {
                 var spec = new ClientSubscriptionsSpecs(clientId, status);
-                var subs = await _unitOfWork
+
+                var subscriptions = await _unitOfWork
                     .Repository<Subscription>()
                     .GetAllWithSpecsAsync(spec);
 
-                var result = subs.Select(s => _mapper.Map<SubscriptionResponse>(s));
+                var response = new SubscriptionListResponse
+                {
+                    TotalSubscriptions = subscriptions.Count(),
+                    ActiveSubscriptions = subscriptions.Count(s => s.Status == SubscriptionStatus.Active),
+                    Subscriptions = _mapper.Map<List<SubscriptionResponse>>(subscriptions)
+                };
 
-                return ServiceResult<IEnumerable<SubscriptionResponse>>.Success(result);
+                return ServiceResult<SubscriptionListResponse>.Success(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error fetching subscriptions for client {ClientId}",
-                    clientId);
-
-                return ServiceResult<IEnumerable<SubscriptionResponse>>.Failure(
-                    "An error occurred while fetching your subscriptions.");
+                _logger.LogError(ex, "Error retrieving subscriptions for client {ClientId}", clientId);
+                return ServiceResult<SubscriptionListResponse>.Failure("Failed to retrieve subscriptions");
             }
         }
 
-        /// Get single subscription by ID for current client
+        /// <summary>
+        /// Get single subscription by ID
+        /// </summary>
         public async Task<ServiceResult<SubscriptionResponse>> GetSubscriptionByIdAsync(
-            int id,
+            int subscriptionId,
             string clientId)
         {
             try
             {
-                var spec = new ClientSubscriptionByIdSpecs(id, clientId);
-                var sub = await _unitOfWork
+                var spec = new ClientSubscriptionByIdSpecs(subscriptionId, clientId);
+
+                var subscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(spec);
 
-                if (sub == null)
-                    return ServiceResult<SubscriptionResponse>.Failure(
-                        "Subscription not found");
+                if (subscription == null)
+                {
+                    return ServiceResult<SubscriptionResponse>.Failure("Subscription not found");
+                }
 
-                var response = _mapper.Map<SubscriptionResponse>(sub);
+                var response = _mapper.Map<SubscriptionResponse>(subscription);
+
                 return ServiceResult<SubscriptionResponse>.Success(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error fetching subscription {SubscriptionId} for client {ClientId}",
-                    id,
-                    clientId);
-
-                return ServiceResult<SubscriptionResponse>.Failure(
-                    "An error occurred while fetching the subscription.");
+                _logger.LogError(ex, "Error retrieving subscription {SubscriptionId}", subscriptionId);
+                return ServiceResult<SubscriptionResponse>.Failure("Failed to retrieve subscription");
             }
         }
 
-        /// Cancel subscription (client keeps access until period end)
-        public async Task<ServiceResult<bool>> CancelAsync(int id, string clientId)
+        /// <summary>
+        /// Cancel subscription (for client)
+        /// </summary>
+        public async Task<ServiceResult<bool>> CancelSubscriptionAsync(
+            int subscriptionId,
+            string clientId)
         {
             try
             {
-                var spec = new ClientSubscriptionByIdSpecs(id, clientId);
-                var sub = await _unitOfWork
+                var spec = new ClientSubscriptionByIdSpecs(subscriptionId, clientId);
+
+                var subscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(spec);
 
-                if (sub == null)
+                if (subscription == null)
+                {
                     return ServiceResult<bool>.Failure("Subscription not found");
+                }
 
-                if (sub.Status == SubscriptionStatus.Canceled)
-                    return ServiceResult<bool>.Failure(
-                        "Subscription is already canceled");
+                if (subscription.Status == SubscriptionStatus.Canceled)
+                {
+                    return ServiceResult<bool>.Failure("Subscription already canceled");
+                }
 
-                // Client keeps access until CurrentPeriodEnd (per SRS UC-10)
-                sub.Status = SubscriptionStatus.Canceled;
-                sub.CanceledAt = DateTime.UtcNow;
+                subscription.Status = SubscriptionStatus.Canceled;
+                subscription.CanceledAt = DateTime.UtcNow;
 
+                _unitOfWork.Repository<Subscription>().Update(subscription);
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation(
                     "Client {ClientId} canceled subscription {SubscriptionId}",
-                    clientId,
-                    id);
+                    clientId, subscriptionId);
 
                 return ServiceResult<bool>.Success(true);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error canceling subscription {SubscriptionId} for client {ClientId}",
-                    id,
-                    clientId);
-
-                return ServiceResult<bool>.Failure(
-                    "An error occurred while canceling the subscription.");
+                _logger.LogError(ex, "Error canceling subscription {SubscriptionId}", subscriptionId);
+                return ServiceResult<bool>.Failure("Failed to cancel subscription");
             }
         }
 
-        /// Reactivate a canceled subscription (if not expired)
-        public async Task<ServiceResult<bool>> ReactivateAsync(int id, string clientId)
+        /// <summary>
+        /// Mark subscription as PAID (called after payment success)
+        /// </summary>
+        public async Task<ServiceResult<SubscriptionResponse>> ActivateSubscriptionAsync(
+            int subscriptionId,
+            string paymentTransactionId)
         {
             try
             {
-                var spec = new ClientSubscriptionByIdSpecs(id, clientId);
-                var sub = await _unitOfWork
+                var subscription = await _unitOfWork
                     .Repository<Subscription>()
-                    .GetWithSpecsAsync(spec);
+                    .GetByIdAsync(subscriptionId);
 
-                if (sub == null)
-                    return ServiceResult<bool>.Failure("Subscription not found");
+                if (subscription == null)
+                {
+                    return ServiceResult<SubscriptionResponse>.Failure("Subscription not found");
+                }
 
-                if (sub.Status != SubscriptionStatus.Canceled)
-                    return ServiceResult<bool>.Failure(
-                        "Only canceled subscriptions can be reactivated");
+                if (subscription.Status != SubscriptionStatus.Unpaid)
+                {
+                    return ServiceResult<SubscriptionResponse>.Failure("Subscription is not in unpaid state");
+                }
 
-                if (DateTime.UtcNow > sub.CurrentPeriodEnd)
-                    return ServiceResult<bool>.Failure(
-                        "Subscription period has ended. Please subscribe again.");
+                subscription.Status = SubscriptionStatus.Active;
+                subscription.PaymobTransactionId = paymentTransactionId;
 
-                sub.Status = SubscriptionStatus.Active;
-                sub.CanceledAt = null;
-
+                _unitOfWork.Repository<Subscription>().Update(subscription);
                 await _unitOfWork.CompleteAsync();
 
-                _logger.LogInformation(
-                    "Client {ClientId} reactivated subscription {SubscriptionId}",
-                    clientId,
-                    id);
-
-                return ServiceResult<bool>.Success(true);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Error reactivating subscription {SubscriptionId} for client {ClientId}",
-                    id,
-                    clientId);
-
-                return ServiceResult<bool>.Failure(
-                    "An error occurred while reactivating the subscription.");
-            }
-        }
-
-        /// Check if client has active subscription to a specific trainer
-        public async Task<bool> HasActiveSubscriptionToTrainerAsync(
-            string clientId,
-            int trainerId)
-        {
-            try
-            {
-                var spec = new ActiveClientSubscriptionToTrainerSpecs(clientId, trainerId);
-                var sub = await _unitOfWork
+                // Reload with includes
+                var spec = new ClientSubscriptionByIdSpecs(subscriptionId, subscription.ClientId);
+                var activatedSubscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(spec);
 
-                return sub != null;
+                var response = _mapper.Map<SubscriptionResponse>(activatedSubscription);
+
+                _logger.LogInformation(
+                    "Subscription {SubscriptionId} activated successfully",
+                    subscriptionId);
+
+                return ServiceResult<SubscriptionResponse>.Success(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex,
-                    "Error checking trainer access for client {ClientId} and trainer {TrainerId}",
-                    clientId,
-                    trainerId);
-
-
-                return false;
+                _logger.LogError(ex, "Error activating subscription {SubscriptionId}", subscriptionId);
+                return ServiceResult<SubscriptionResponse>.Failure("Failed to activate subscription");
             }
         }
     }
