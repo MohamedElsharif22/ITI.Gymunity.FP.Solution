@@ -1,10 +1,15 @@
 ﻿using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Specification;
+using Microsoft.EntityFrameworkCore;
 
 namespace ITI.Gymunity.FP.Application.Specefications.Subscriptions
 {
-    public class ActiveClientSubscriptionForPackageSpecs : BaseSpecification<Domain.Models.Subscription>
+    /// <summary>
+    /// Check if client already has active/unpaid subscription for specific package
+    /// (Used to prevent duplicate subscriptions)
+    /// </summary>
+    public class ActiveClientSubscriptionForPackageSpecs : BaseSpecification<Subscription>
     {
         public ActiveClientSubscriptionForPackageSpecs(string clientId, int packageId)
             : base(s => s.ClientId == clientId
@@ -12,7 +17,7 @@ namespace ITI.Gymunity.FP.Application.Specefications.Subscriptions
                      && (s.Status == SubscriptionStatus.Active
                          || s.Status == SubscriptionStatus.Unpaid))
         {
-            AddInclude(s => s.Package);
+            AddInclude(query => query.Include(s => s.Package));
         }
     }
 }

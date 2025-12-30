@@ -72,6 +72,14 @@ namespace ITI.Gymunity.FP.APIs
                         .SetIsOriginAllowed(origin => true);
                 });
             });
+            builder.Services
+                .AddControllers()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.Converters.Add(
+                        new JsonStringEnumConverter()
+                    );
+                });
 
             builder.Services.AddDbContextServices(builder.Configuration);
 
@@ -110,7 +118,7 @@ namespace ITI.Gymunity.FP.APIs
 
             app.UseStaticFiles();
 
-            app.MapControllers();
+           
 
             // Map SignalR Hubs
             app.MapHub<ChatHub>("/hubs/chat");
