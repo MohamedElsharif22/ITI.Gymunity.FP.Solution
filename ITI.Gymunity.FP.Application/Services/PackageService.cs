@@ -85,7 +85,7 @@ namespace ITI.Gymunity.FP.Application.Services
  IsActive = request.IsActive,
  ThumbnailUrl = request.ThumbnailUrl,
  TrainerId = trainerId,
- IsAnnual = request.IsAnnual,
+ //IsAnnual = request.IsAnnual,
  PromoCode = request.PromoCode ?? string.Empty
  };
 
@@ -125,7 +125,7 @@ namespace ITI.Gymunity.FP.Application.Services
  entity.PriceYearly = request.PriceYearly;
  entity.IsActive = request.IsActive;
  entity.ThumbnailUrl = request.ThumbnailUrl;
- entity.IsAnnual = request.IsAnnual;
+ //entity.IsAnnual = request.IsAnnual;
  entity.PromoCode = request.PromoCode ?? entity.PromoCode ?? string.Empty;
 
  // use loaded navigation collection to avoid duplicates

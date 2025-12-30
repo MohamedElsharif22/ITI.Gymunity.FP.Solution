@@ -28,6 +28,7 @@ namespace ITI.Gymunity.FP.Domain.Models
         public string Currency { get; set; } = "EGP";
         public decimal AmountPaid { get; set; }
         public decimal PlatformFeePercentage { get; set; } = 15m;
+        public bool IsAnnual { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? CanceledAt { get; set; }

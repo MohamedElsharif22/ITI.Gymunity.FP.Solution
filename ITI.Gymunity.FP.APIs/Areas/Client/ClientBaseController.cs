@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
-    [Route("api/client/[controller]")]
+    //[Route("api/client/[controller]")]
     [ApiController]
     [AllowAnonymous] // Temporary for testing purposes
      //[Authorize(Roles = "Client")] // Uncomment when authentication is ready

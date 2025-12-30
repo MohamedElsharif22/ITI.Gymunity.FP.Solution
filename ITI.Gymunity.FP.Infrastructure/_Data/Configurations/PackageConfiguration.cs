@@ -55,9 +55,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
                 .HasDefaultValue(new DateTime());
 
             // New properties
-            builder.Property(p => p.IsAnnual)
-                .IsRequired()
-                .HasDefaultValue(false);
+            //builder.Property(p => p.IsAnnual)
+                //.IsRequired()
+                //.HasDefaultValue(false);
 
             // Ensure PromoCode has a default value to prevent NULL inserts
             builder.Property(p => p.PromoCode)

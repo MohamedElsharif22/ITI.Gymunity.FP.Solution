@@ -32,7 +32,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
                 var _userManeger = services.GetRequiredService<UserManager<AppUser>>();
                 var _context = services.GetRequiredService<AppDbContext>();
 
-                await AppContextSeed.SeedIdentityDataAsync(_userManeger, _roleManager);
+                //await AppContextSeed.SeedIdentityDataAsync(_userManeger, _roleManager);
             }
             catch (Exception ex)
             {

@@ -66,7 +66,6 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
             // Set global query filter for soft deletes on BaseEntity derivatives
             SetGlobalQueryFilter<BaseEntity>(modelBuilder, e => !e.IsDeleted);
 
-            AppContextSeed.SeedDatabase(modelBuilder);
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

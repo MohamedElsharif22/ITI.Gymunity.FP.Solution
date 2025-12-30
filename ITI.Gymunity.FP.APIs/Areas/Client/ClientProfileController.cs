@@ -11,6 +11,8 @@ using ITI.Gymunity.FP.APIs.Responses;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
+    [Route("api/client/profile")]
+
     public class ClientProfileController(ClientProfileService clientProfileService) : ClientBaseController
     {
         private readonly ClientProfileService _clientProfileService = clientProfileService;

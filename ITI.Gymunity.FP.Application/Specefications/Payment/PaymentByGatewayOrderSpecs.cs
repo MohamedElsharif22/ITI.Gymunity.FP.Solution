@@ -1,29 +1,25 @@
-﻿using ITI.Gymunity.FP.Domain.Models.Enums;
-using ITI.Gymunity.FP.Domain.Specification;
+﻿using ITI.Gymunity.FP.Domain.Specification;
+using System.Linq.Expressions;
 
-namespace ITI.Gymunity.FP.Application.Specefications.Payment
+public class PaymentByGatewayOrderSpecs
+    : BaseSpecification<ITI.Gymunity.FP.Domain.Models.Payment>
 {
-    public class PaymentByGatewayOrderSpecs : BaseSpecification<Domain.Models.Payment>
+    private PaymentByGatewayOrderSpecs(
+        Expression<Func<ITI.Gymunity.FP.Domain.Models.Payment, bool>> criteria)
+        : base(criteria)
     {
-        // For Paymob
-        public PaymentByGatewayOrderSpecs(string paymobOrderId)
-            : base(p => p.PaymobOrderId == paymobOrderId && !p.IsDeleted)
-        {
-            AddInclude(p => p.Subscription);
-        }
+        AddInclude(p => p.Subscription);
+    }
 
-        // For PayPal
-        public static PaymentByGatewayOrderSpecs ForPayPal(string paypalOrderId)
-        {
-            return new PaymentByGatewayOrderSpecs(
-                p => p.PayPalOrderId == paypalOrderId && !p.IsDeleted);
-        }
+    public static PaymentByGatewayOrderSpecs ForPayPal(string orderId)
+    {
+        return new PaymentByGatewayOrderSpecs(
+            p => p.PayPalOrderId == orderId && !p.IsDeleted);
+    }
 
-        private PaymentByGatewayOrderSpecs(
-            System.Linq.Expressions.Expression<Func<Domain.Models.Payment, bool>> criteria)
-            : base(criteria)
-        {
-            AddInclude(p => p.Subscription);
-        }
+    public static PaymentByGatewayOrderSpecs ForPaymob(string orderId)
+    {
+        return new PaymentByGatewayOrderSpecs(
+            p => p.PaymobOrderId == orderId && !p.IsDeleted);
     }
 }
