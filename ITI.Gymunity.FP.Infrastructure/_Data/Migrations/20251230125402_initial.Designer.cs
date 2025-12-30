@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251228151358_test")]
-    partial class test
+    [Migration("20251230125402_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -939,6 +939,9 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.Property<DateTime>("CurrentPeriodEnd")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("IsAnnual")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
@@ -1030,11 +1033,6 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
-
-                    b.Property<bool>("IsAnnual")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsDeleted")
                         .ValueGeneratedOnAdd()

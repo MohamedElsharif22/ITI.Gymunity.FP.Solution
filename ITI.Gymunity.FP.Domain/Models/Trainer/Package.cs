@@ -25,7 +25,7 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         // New properties
-        public bool IsAnnual { get; set; } = false;
+        //public bool IsAnnual { get; set; } = false;
         public string? PromoCode { get; set; }
 
         // Many-to-many with Program

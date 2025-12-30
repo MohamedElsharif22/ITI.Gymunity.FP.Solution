@@ -7,7 +7,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.User.Payment
         public int Id { get; set; }
         public int SubscriptionId { get; set; }
         public decimal Amount { get; set; }
-        public string Currency { get; set; } = "EGP";
+        public string Currency { get; set; } = "USD";
         public PaymentStatus Status { get; set; }
         public PaymentMethod Method { get; set; }
         public DateTime CreatedAt { get; set; }

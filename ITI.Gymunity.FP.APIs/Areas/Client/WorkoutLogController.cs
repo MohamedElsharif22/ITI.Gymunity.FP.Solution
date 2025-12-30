@@ -8,6 +8,7 @@ using System.Security.Claims;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
+    [Route("api/client/workout-logs")]
 
     public class WorkoutLogController(WorkoutLogService workoutLogService) : ClientBaseController
     {

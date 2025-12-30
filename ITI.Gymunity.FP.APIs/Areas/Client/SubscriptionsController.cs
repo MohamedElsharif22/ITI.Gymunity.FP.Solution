@@ -1,152 +1,167 @@
-﻿
-using ITI.Gymunity.FP.APIs.Responses;
-using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
-using ITI.Gymunity.FP.Domain.Models.Enums;
+﻿using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Domain.Models.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.APIs.Areas.Client
+namespace ITI.Gymunity.FP.APIs.Controllers.Client
 {
-    [Route("api/client/subscriptions")]  
-    [Produces("application/json")]
-    public class SubscriptionsController : ClientBaseController 
+    [ApiController]
+    [Route("api/client/subscriptions")]
+    [AllowAnonymous] // مؤقت لحد ما JWT يجهز
+    public class SubscriptionsController : ControllerBase
     {
-        private readonly SubscriptionService _service;
-        private readonly ILogger<SubscriptionsController> _logger;
+        private readonly SubscriptionService _subscriptionService;
 
-        public SubscriptionsController(
-            SubscriptionService service,
-            ILogger<SubscriptionsController> logger)
+        public SubscriptionsController(SubscriptionService subscriptionService)
         {
-            _service = service;
-            _logger = logger;
+            _subscriptionService = subscriptionService;
         }
 
-        /// Subscribe to a trainer's package
+        /// <summary>
+        /// Subscribe to a package (creates UNPAID subscription)
+        /// POST: api/client/subscriptions/subscribe
+        /// </summary>
         [HttpPost("subscribe")]
-        [ProducesResponseType(typeof(SubscriptionResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Subscribe([FromBody] SubscribePackageRequest request)
+        public async Task<IActionResult> Subscribe(
+            [FromBody] SubscribePackageRequest request)
         {
-            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _service.SubscribeAsync(clientId, request);
+            // 🔹 مؤقت لحد auth - هيبقى من الـ JWT Token
+            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? "b8f4c7e9-1c1f-4c5c-a12d-9a8f12345678";
+
+            var result = await _subscriptionService
+                .SubscribeAsync(clientId, request);
 
             if (!result.IsSuccess)
-                return BadRequest(new ApiResponse(400, result.ErrorMessage));
-
-            _logger.LogInformation(
-                "Client {ClientId} subscribed to package {PackageId}",
-                clientId,
-                request.PackageId);
-
-            return Ok(result.Data);
-        }
-
-        /// Get all my subscriptions
-        [HttpGet]
-        [ProducesResponseType(typeof(SubscriptionListResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetMySubscriptions(
-            [FromQuery] SubscriptionStatus? status = null)
-        {
-            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _service.GetMySubscriptionsAsync(clientId, status);
-
-            if (!result.IsSuccess)
-                return BadRequest(new ApiResponse(400, result.ErrorMessage));
-
-            var subscriptions = result.Data!.ToList();
-            var response = new SubscriptionListResponse
-            {
-                Subscriptions = subscriptions,
-                TotalSubscriptions = subscriptions.Count,
-                ActiveSubscriptions = subscriptions
-                    .Count(s => s.Status == SubscriptionStatus.Active)
-            };
-
-            return Ok(response);
-        }
-
-        /// Get single subscription by ID
-        [HttpGet("{id:int}")]
-        [ProducesResponseType(typeof(SubscriptionResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> GetSubscription(int id)
-        {
-            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _service.GetSubscriptionByIdAsync(id, clientId);
-
-            if (!result.IsSuccess)
-                return NotFound(new ApiResponse(404, result.ErrorMessage));
-
-            return Ok(result.Data);
-        }
-
-        /// Cancel subscription (keeps access until period end per SRS UC-10)
-        [HttpPost("{id:int}/cancel")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Cancel(int id)
-        {
-            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _service.CancelAsync(id, clientId);
-
-            if (!result.IsSuccess)
-                return BadRequest(new ApiResponse(400, result.ErrorMessage));
-
-            _logger.LogInformation(
-                "Client {ClientId} canceled subscription {SubscriptionId}",
-                clientId,
-                id);
-
-            return NoContent();
-        }
-
-        /// Reactivate a canceled subscription (if not expired)
-        [HttpPost("{id:int}/reactivate")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Reactivate(int id)
-        {
-            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var result = await _service.ReactivateAsync(id, clientId);
-
-            if (!result.IsSuccess)
-                return BadRequest(new ApiResponse(400, result.ErrorMessage));
-
-            _logger.LogInformation(
-                "Client {ClientId} reactivated subscription {SubscriptionId}",
-                clientId,
-                id);
-
-            return NoContent();
-        }
-
-        /// Check if client has access to a specific trainer's content
-        [HttpGet("access/trainer/{trainerId}")]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        public async Task<IActionResult> HasAccessToTrainer(int trainerId)
-        {
-            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-            var hasAccess = await _service.HasActiveSubscriptionToTrainerAsync(
-                clientId,
-                trainerId);
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.ErrorMessage
+                });
 
             return Ok(new
             {
-                hasAccess,
-                trainerId,
-                message = hasAccess
-                    ? "You have active access to this trainer"
-                    : "You don't have access to this trainer"
+                success = true,
+                message = "Subscription created successfully. Please proceed to payment.",
+                data = result.Data
             });
         }
+
+        /// <summary>
+        /// Get all client subscriptions
+        /// GET: api/client/subscriptions
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetMySubscriptions(
+            [FromQuery] SubscriptionStatus? status = null)
+        {
+            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? "b8f4c7e9-1c1f-4c5c-a12d-9a8f12345678";
+
+            var result = await _subscriptionService
+                .GetClientSubscriptionsAsync(clientId, status);
+
+            if (!result.IsSuccess)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.ErrorMessage
+                });
+
+            return Ok(new
+            {
+                success = true,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Get single subscription details
+        /// GET: api/client/subscriptions/{id}
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetSubscriptionById(int id)
+        {
+            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? "b8f4c7e9-1c1f-4c5c-a12d-9a8f12345678";
+
+            var result = await _subscriptionService
+                .GetSubscriptionByIdAsync(id, clientId);
+
+            if (!result.IsSuccess)
+                return NotFound(new
+                {
+                    success = false,
+                    message = result.ErrorMessage
+                });
+
+            return Ok(new
+            {
+                success = true,
+                data = result.Data
+            });
+        }
+
+        /// <summary>
+        /// Cancel subscription
+        /// DELETE: api/client/subscriptions/{id}
+        /// </summary>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> CancelSubscription(int id)
+        {
+            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? "b8f4c7e9-1c1f-4c5c-a12d-9a8f12345678";
+
+            var result = await _subscriptionService
+                .CancelSubscriptionAsync(id, clientId);
+
+            if (!result.IsSuccess)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.ErrorMessage
+                });
+
+            return Ok(new
+            {
+                success = true,
+                message = "Subscription canceled successfully"
+            });
+        }
+
+        /// <summary>
+        /// Activate subscription after payment (called by payment webhook)
+        /// POST: api/client/subscriptions/{id}/activate
+        /// </summary>
+        [HttpPost("{id}/activate")]
+        public async Task<IActionResult> ActivateSubscription(
+            int id,
+            [FromBody] ActivateSubscriptionRequest request)
+        {
+            var result = await _subscriptionService
+                .ActivateSubscriptionAsync(id, request.TransactionId);
+
+            if (!result.IsSuccess)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = result.ErrorMessage
+                });
+
+            return Ok(new
+            {
+                success = true,
+                message = "Subscription activated successfully",
+                data = result.Data
+            });
+        }
+    }
+
+    // DTO for activation
+    public class ActivateSubscriptionRequest
+    {
+        public string TransactionId { get; set; } = null!;
     }
 }

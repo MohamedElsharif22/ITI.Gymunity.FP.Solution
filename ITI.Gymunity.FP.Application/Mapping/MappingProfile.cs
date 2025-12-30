@@ -20,6 +20,14 @@ using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
+using ITI.Gymunity.FP.Application.DTOs.Program;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.DTOs.Guest;
+using ITI.Gymunity.FP.Application.DTOs.Admin;
+using ITI.Gymunity.FP.Application.DTOs.ClientDto;
+using ITI.Gymunity.FP.Application.Mapping.Resolvers;
+using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
+using System.Text.Json;
 
 namespace ITI.Gymunity.FP.Application.Mapping
 {
@@ -98,26 +106,64 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.StatusDescription, opt => opt.Ignore())
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
+            // في MappingProfile.cs - استبدل الـ mapping بده:
+
             CreateMap<Subscription, SubscriptionResponse>()
-           .ForMember(d => d.PackageName,
-               o => o.MapFrom(s => s.Package.Name))
-           .ForMember(d => d.PackageDescription,
-               o => o.MapFrom(s => s.Package.Description ?? ""))
+                .ForMember(dest => dest.PackageId,
+                    opt => opt.MapFrom(src => src.PackageId))
 
-           // Trainer Info (من TrainerProfile)
-           .ForMember(d => d.TrainerId,
-               o => o.MapFrom(s => s.Package.Trainer.UserId))
-           .ForMember(d => d.TrainerName,
-               o => o.MapFrom(s => s.Package.Trainer.User.FullName))
-           .ForMember(d => d.TrainerHandle,
-               o => o.MapFrom(s => s.Package.Trainer.Handle))
-           .ForMember(d => d.TrainerPhotoUrl,
-               o => o.MapFrom(s => s.Package.Trainer.User.ProfilePhotoUrl))
-           .ForMember(d => d.IsAnnual,
-               o => o.MapFrom(s =>
-                   (s.CurrentPeriodEnd - s.StartDate).Days > 31));
+                .ForMember(dest => dest.PackageName,
+                    opt => opt.MapFrom(src => src.Package != null ? src.Package.Name : string.Empty))
 
+                .ForMember(dest => dest.PackageDescription,
+                    opt => opt.MapFrom(src => src.Package != null ? src.Package.Description : string.Empty))
 
+                
+                .ForMember(dest => dest.TrainerId,
+                    opt => opt.MapFrom(src =>
+                        src.Package != null && src.Package.Trainer != null
+                            ? src.Package.Trainer.UserId
+                            : string.Empty))
+
+                .ForMember(dest => dest.TrainerName,
+                    opt => opt.MapFrom(src =>
+                        src.Package != null && src.Package.Trainer != null && src.Package.Trainer.User != null
+                            ? src.Package.Trainer.User.FullName
+                            : string.Empty))
+
+                .ForMember(dest => dest.TrainerHandle,
+                    opt => opt.MapFrom(src =>
+                        src.Package != null && src.Package.Trainer != null
+                            ? src.Package.Trainer.Handle
+                            : string.Empty))
+
+                .ForMember(dest => dest.TrainerPhotoUrl,
+                    opt => opt.MapFrom(src =>
+                        src.Package != null && src.Package.Trainer != null && src.Package.Trainer.User != null
+                            ? src.Package.Trainer.User.ProfilePhotoUrl
+                            : null))
+
+                .ForMember(dest => dest.FeaturesIncluded,
+                    opt => opt.MapFrom(src =>
+                        src.Package != null
+                            ? ParseFeatures(src.Package.FeaturesJson)
+                            : new List<string>()));
+
+            CreateMap<Payment, PaymentResponse>()
+               .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+               .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => src.SubscriptionId))
+               .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
+               .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))
+               .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
+               .ForMember(dest => dest.Method, opt => opt.MapFrom(src => src.Method))
+               .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+               .ForMember(dest => dest.PaidAt, opt => opt.MapFrom(src => src.PaidAt))
+               .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason))
+               .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src =>
+                   src.Method == Domain.Models.Enums.PaymentMethod.Paymob
+                       ? src.PaymobTransactionId
+                       : src.PayPalCaptureId))
+               .ForMember(dest => dest.PaymentUrl, opt => opt.Ignore()); // Will be set manually
 
             // Message mappings
             CreateMap<Message, MessageResponse>()
@@ -246,7 +292,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
             CreateMap<Package, PackageResponse>()
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(p => new DateTimeOffset(p.CreatedAt)))
                 .ForMember(dest => dest.UpdatedAt, opt => opt.MapFrom(p => p.UpdatedAt))
-                .ForMember(dest => dest.IsAnnual, opt => opt.MapFrom(p => p.IsAnnual))
+                //.ForMember(dest => dest.IsAnnual, opt => opt.MapFrom(p => p.IsAnnual))
                 .ForMember(dest => dest.PromoCode, opt => opt.MapFrom(p => p.PromoCode))
                 .ForMember(dest => dest.ProgramIds, opt => opt.MapFrom(p => p.PackagePrograms != null ? p.PackagePrograms.Where(pp => !pp.IsDeleted).Select(pp => pp.ProgramId).ToArray() : new int[0]))
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<Package, PackageResponse>, string?>(p => p.ThumbnailUrl));
@@ -264,7 +310,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
             CreateMap<Package, DTOs.Client.PackageClientResponse>()
                 .ForMember(dest => dest.TrainerId, opt => opt.MapFrom(p => p.TrainerId))
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(p => new DateTimeOffset(p.CreatedAt)))
-                .ForMember(dest => dest.IsAnnual, opt => opt.MapFrom(p => p.IsAnnual))
+                //.ForMember(dest => dest.IsAnnual, opt => opt.MapFrom(p => p.IsAnnual))
                 .ForMember(dest => dest.PromoCode, opt => opt.MapFrom(p => p.PromoCode))
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<Package, DTOs.Client.PackageClientResponse>, string?>(p => p.ThumbnailUrl));
 
@@ -306,6 +352,46 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
 
         }
+        private static List<string> ParseFeatures(string featuresJson)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(featuresJson) || featuresJson == "{}")
+                    return new List<string>();
 
+                var features = JsonSerializer.Deserialize<Dictionary<string, object>>(featuresJson);
+
+                if (features == null)
+                    return new List<string>();
+
+                var featureList = new List<string>();
+
+                // Extract common features
+                if (features.TryGetValue("programs", out var programs))
+                    featureList.Add($"Access to {programs} program(s)");
+
+                if (features.TryGetValue("communityAccess", out var community) && community.ToString() == "True")
+                    featureList.Add("Community access");
+
+                if (features.TryGetValue("formChecks", out var formChecks))
+                    featureList.Add($"{formChecks} form check(s) per week");
+
+                if (features.TryGetValue("customProgram", out var customProg) && customProg.ToString() == "True")
+                    featureList.Add("Custom program every 8 weeks");
+
+                if (features.TryGetValue("messaging", out var messaging) && messaging.ToString() == "True")
+                    featureList.Add("1:1 messaging with trainer");
+
+                if (features.TryGetValue("videoCalls", out var calls))
+                    featureList.Add($"{calls} video call(s) per month");
+
+                return featureList;
+            }
+            catch
+            {
+                return new List<string>();
+            }
+        }
     }
+
 }
