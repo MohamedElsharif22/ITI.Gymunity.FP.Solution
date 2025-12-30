@@ -103,7 +103,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                     _logger.LogError("Failed to add Google login for new user {Email}", googleUser.Email);
                 }
 
-                var roleResult = await _userManager.AddToRoleAsync(user, (UserRole.Client).ToString());
+                var roleResult = await _userManager.AddToRoleAsync(user, request.Role.ToString() ?? "Client");
                 // Assign default role
                 if (!roleResult.Succeeded)
                 {
