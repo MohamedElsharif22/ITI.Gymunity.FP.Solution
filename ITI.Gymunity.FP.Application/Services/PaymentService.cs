@@ -6,6 +6,7 @@ using ITI.Gymunity.FP.Application.Specefications.Subscriptions;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ITI.Gymunity.FP.Application.Services
@@ -16,17 +17,20 @@ namespace ITI.Gymunity.FP.Application.Services
         private readonly IMapper _mapper;
         private readonly PayPalService _paypalService;
         private readonly ILogger<PaymentService> _logger;
+        private readonly IConfiguration _configuration;
 
         public PaymentService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
             PayPalService paypalService,
-            ILogger<PaymentService> logger)
+            ILogger<PaymentService> logger,
+            IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _paypalService = paypalService;
             _logger = logger;
+            _configuration = configuration;
         }
 
         // ===============================
@@ -98,10 +102,10 @@ namespace ITI.Gymunity.FP.Application.Services
                 {
                     var returnUrl =
                         request.ReturnUrl ??
-                        "http://localhost:5000/api/payment/paypal/return";
+                        $"{_configuration["BaseApiUrl"]}/api/payment/paypal/return";
 
                     var cancelUrl =
-                        "http://localhost:5000/api/payment/paypal/cancel";
+                        $"{_configuration["BaseApiUrl"]}/api/payment/paypal/cancel";
 
                     var result = await _paypalService.CreateOrderAsync(
                         payment,

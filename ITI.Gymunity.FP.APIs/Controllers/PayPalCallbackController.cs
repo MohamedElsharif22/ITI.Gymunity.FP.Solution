@@ -14,17 +14,20 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         private readonly PaymentService _paymentService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<PayPalCallbackController> _logger;
+        private readonly IConfiguration _configuration;
 
         public PayPalCallbackController(
             PayPalService paypalService,
             PaymentService paymentService,
             IUnitOfWork unitOfWork,
-            ILogger<PayPalCallbackController> logger)
+            ILogger<PayPalCallbackController> logger,
+            IConfiguration configuration)
         {
             _paypalService = paypalService;
             _paymentService = paymentService;
             _unitOfWork = unitOfWork;
             _logger = logger;
+            this._configuration = configuration;
         }
 
         [HttpGet("return")]
@@ -39,7 +42,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                     .GetWithSpecsAsync(spec);
 
                 if (payment == null)
-                    return Redirect("http://localhost:3000/payment/error");
+                    return Redirect($"{_configuration["FrontendOrigins:Hosted"] ?? _configuration["FrontendOrigins:Local"]}/payment/error");
 
                 var capture = await _paypalService.CaptureOrderAsync(token);
 
@@ -49,19 +52,19 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                         payment.Id,
                         capture.ErrorMessage ?? "Capture failed");
 
-                    return Redirect("http://localhost:3000/payment/failed");
+                    return Redirect($"{_configuration["FrontendOrigins:Hosted"] ?? _configuration["FrontendOrigins:Local"]}/payment/failed");
                 }
 
                 await _paymentService.ConfirmPaymentAsync(
                     payment.Id, capture.CaptureId!);
 
                 return Redirect(
-                    $"http://localhost:3000/payment/success?subscriptionId={payment.SubscriptionId}");
+                    $"{_configuration["FrontendOrigins:Hosted"] ?? _configuration["FrontendOrigins:Local"]}/payment/success?subscriptionId={payment.SubscriptionId}");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "PayPal return error");
-                return Redirect("http://localhost:3000/payment/error");
+                return Redirect($"{_configuration["FrontendOrigins:Hosted"] ?? _configuration["FrontendOrigins:Local"]}/payment/error");
             }
         }
 
@@ -80,7 +83,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                     payment.Id, "User canceled payment");
             }
 
-            return Redirect("http://localhost:3000/payment/canceled");
+            return Redirect($"{_configuration["FrontendOrigins:Hosted"] ?? _configuration["FrontendOrigins:Local"]}/payment/canceled");
         }
     }
 }

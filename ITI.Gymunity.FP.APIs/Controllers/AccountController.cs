@@ -28,7 +28,7 @@ namespace ITI.Gymunity.FP.APIs.Controllers
         /// is returned with an error message.</remarks>
         /// <param name="request">The registration information submitted by the client. Must include all required user details as specified by
         /// the registration process. Cannot be null.</param>
-        /// <returns>An <see cref="ActionResult{UserResponse}"/> containing the newly created user's information if registration
+        /// <returns>An <see cref="ActionResult{AuthResponse}"/> containing the newly created user's information if registration
         /// is successful; otherwise, a bad request response with error details.</returns>
         [HttpPost("register")]
         public async Task<ActionResult<AuthResponse>> Register([FromForm] RegisterRequest request)

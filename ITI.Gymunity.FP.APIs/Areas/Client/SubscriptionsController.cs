@@ -5,12 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
-namespace ITI.Gymunity.FP.APIs.Controllers.Client
+namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
-    [ApiController]
-    [Route("api/client/subscriptions")]
-    [AllowAnonymous] // مؤقت لحد ما JWT يجهز
-    public class SubscriptionsController : ControllerBase
+    public class SubscriptionsController : ClientBaseController
     {
         private readonly SubscriptionService _subscriptionService;
 
