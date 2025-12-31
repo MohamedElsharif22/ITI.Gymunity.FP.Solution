@@ -162,8 +162,6 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         public async Task<IActionResult> GetMySubscribers() //trainer id 
         {
             var trainerId = GetTrainerId(); // من JWT
-            if (trainerId <= 0)
-                return BadRequest(new ApiResponse(400, "Invalid trainer id in token."));
 
             var subscribers = await _trainerProfileService.GetSubscribersByTrainerIdAsync(trainerId);
             return Ok(subscribers);

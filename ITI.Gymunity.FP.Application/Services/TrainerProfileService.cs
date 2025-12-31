@@ -42,6 +42,49 @@ namespace ITI.Gymunity.FP.Application.Services
             return trainerReviews;
         }
 
+        public async Task<ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerFullProfileResponse?> GetFullProfileByUserIdAsync(string userId)
+        {
+            var profileSpecs = new TrainerWithUsersAndProgramsSpecs(tp => tp.UserId == userId && !tp.IsDeleted);
+
+            var profile = await _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>()
+                                          .GetWithSpecsAsync(profileSpecs);
+
+            if (profile == null) return null;
+
+            var user = profile.User;
+
+            return new ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerFullProfileResponse
+            {
+                UserId = user.Id,
+                UserName = user.UserName ?? string.Empty,
+                Email = user.Email ?? string.Empty,
+                FullName = user.FullName ?? string.Empty,
+                ProfilePhotoUrl = user.ProfilePhotoUrl,
+                PhoneNumber = user.PhoneNumber ?? string.Empty,
+                IsVerified = user.IsVerified,
+                CreatedAt = user.CreatedAt,
+                LastLoginAt = user.LastLoginAt,
+
+                TrainerProfileId = profile.Id,
+                Handle = profile.Handle,
+                Bio = profile.Bio,
+                CoverImageUrl = profile.CoverImageUrl,
+                VideoIntroUrl = profile.VideoIntroUrl,
+                BrandingColors = profile.BrandingColors,
+                IsProfileVerified = profile.IsVerified,
+                VerifiedAt = profile.VerifiedAt,
+                IsSuspended = profile.IsSuspended,
+                SuspendedAt = profile.SuspendedAt,
+                RatingAverage = profile.RatingAverage,
+                TotalClients = profile.TotalClients,
+                YearsExperience = profile.YearsExperience,
+                StatusImageUrl = profile.StatusImageUrl,
+                StatusDescription = profile.StatusDescription,
+                ProfileCreatedAt = profile.CreatedAt,
+                ProfileUpdatedAt = profile.UpdatedAt
+            };
+        }
+
         public async Task<TrainerProfileDetailResponse?> GetProfileByUserId(string userId)
         {
             var profileSpecs = new TrainerWithUsersAndProgramsSpecs(tp => tp.UserId == userId && !tp.IsDeleted);
@@ -182,6 +225,43 @@ namespace ITI.Gymunity.FP.Application.Services
             await _unitOfWork.CompleteAsync();
 
             return true;
+        }
+
+        // Get subscribers (clients with active subscriptions) for a trainer
+        public async Task<IReadOnlyList<SubscriberResponse>> GetSubscribersByTrainerIdAsync(string trainerId)
+        {
+            var profileId = (await GetProfileByUserId(trainerId))?.Id;
+            if (profileId is null)
+                return new List<SubscriberResponse>();
+            // 1. get packages for trainer (use package repository helper)
+            var pkgRepo = _unitOfWork.Repository<Package, IPackageRepository>();
+            var packages = (await pkgRepo.GetByTrainerIdAsync(profileId.Value)).ToList();
+
+            if (packages.Count == 0)
+                return new List<ITI.Gymunity.FP.Application.DTOs.Trainer.SubscriberResponse>();
+
+            var packageIds = packages.Select(p => p.Id).ToList();
+
+            // 2. get active subscriptions for these packages
+            var spec = new ITI.Gymunity.FP.Application.Specefications.ClientSpecification.SubscriptionsWithClientAndProgramSpecs(s => packageIds.Contains(s.PackageId) && s.Status == ITI.Gymunity.FP.Domain.Models.Enums.SubscriptionStatus.Active && s.CurrentPeriodEnd > DateTime.UtcNow);
+
+            var subscriptions = await _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Subscription>().GetAllWithSpecsAsync(spec);
+
+            // 3. project to response
+            var result = subscriptions
+                .Select(s => new ITI.Gymunity.FP.Application.DTOs.Trainer.SubscriberResponse
+                {
+                    ClientId = s.ClientId,
+                    ClientName = s.Client?.FullName ?? string.Empty,
+                    ClientEmail = s.Client?.Email ?? string.Empty,
+                    PackageName = s.Package?.Name ?? string.Empty,
+                    SubscriptionStartDate = s.StartDate,
+                    SubscriptionEndDate = s.CurrentPeriodEnd,
+                    Status = s.Status
+                })
+                .ToList();
+
+            return result;
         }
 
         public async Task<TrainerProfileDetailResponse> UpdateStatus(int profileId, UpdateStatusRequest request)
