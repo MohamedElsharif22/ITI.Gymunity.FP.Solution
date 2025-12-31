@@ -9,7 +9,6 @@ using System.Security.Claims;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
-    [Route("api/client/body-stats")]
 
     public class BodyStateLogController(BodyStateLogService bodyStateLogService) : ClientBaseController
     {

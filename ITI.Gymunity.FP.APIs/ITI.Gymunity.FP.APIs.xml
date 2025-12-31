@@ -84,31 +84,31 @@
             GET: /api/client/payments/{id}
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.Client.SubscriptionsController.Subscribe(ITI.Gymunity.FP.Application.DTOs.User.Subscribe.SubscribePackageRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.Subscribe(ITI.Gymunity.FP.Application.DTOs.User.Subscribe.SubscribePackageRequest)">
             <summary>
             Subscribe to a package (creates UNPAID subscription)
             POST: api/client/subscriptions/subscribe
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.Client.SubscriptionsController.GetMySubscriptions(System.Nullable{ITI.Gymunity.FP.Domain.Models.Enums.SubscriptionStatus})">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.GetMySubscriptions(System.Nullable{ITI.Gymunity.FP.Domain.Models.Enums.SubscriptionStatus})">
             <summary>
             Get all client subscriptions
             GET: api/client/subscriptions
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.Client.SubscriptionsController.GetSubscriptionById(System.Int32)">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.GetSubscriptionById(System.Int32)">
             <summary>
             Get single subscription details
             GET: api/client/subscriptions/{id}
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.Client.SubscriptionsController.CancelSubscription(System.Int32)">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.CancelSubscription(System.Int32)">
             <summary>
             Cancel subscription
             DELETE: api/client/subscriptions/{id}
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.Client.SubscriptionsController.ActivateSubscription(System.Int32,ITI.Gymunity.FP.APIs.Controllers.Client.ActivateSubscriptionRequest)">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.ActivateSubscription(System.Int32,ITI.Gymunity.FP.APIs.Areas.Client.ActivateSubscriptionRequest)">
             <summary>
             Activate subscription after payment (called by payment webhook)
             POST: api/client/subscriptions/{id}/activate

@@ -7,8 +7,6 @@ using System.Security.Claims;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
-    [Route("api/client/payments")]
-    [Produces("application/json")]
     public class PaymentsController : ClientBaseController
     {
         private readonly PaymentService _service;
