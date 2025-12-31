@@ -20,13 +20,6 @@ using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Messaging;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
-using ITI.Gymunity.FP.Application.DTOs.Program;
-using ITI.Gymunity.FP.Application.DTOs.Trainer;
-using ITI.Gymunity.FP.Application.DTOs.Guest;
-using ITI.Gymunity.FP.Application.DTOs.Admin;
-using ITI.Gymunity.FP.Application.DTOs.ClientDto;
-using ITI.Gymunity.FP.Application.Mapping.Resolvers;
-using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 using System.Text.Json;
 
 namespace ITI.Gymunity.FP.Application.Mapping
@@ -43,7 +36,10 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
             //*********************    End of Admin Mapping       ******************************//
             //*********************     Client Profile Mapping       ******************************//
-            CreateMap<ClientProfileRequest, ClientProfile>();
+            CreateMap<ClientProfileRequest, ClientProfile>()
+                .ForMember(dest => dest.ExperienceLevel, opt => opt.MapFrom(r => r.ExperienceLevel.ToString() ?? ""))
+                .ForMember(dest => dest.Goal, opt => opt.MapFrom(r => r.Goal.ToString() ?? ""))
+                .ForMember(dest => dest.Gender, opt => opt.MapFrom(r => r.Gender.ToString()));
             CreateMap<ClientProfile, ClientProfileResponse>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(cp => cp.User.UserName))
                 .ForMember(dest => dest.BodyStateLog, opt => opt.MapFrom(src => src.BodyStatLogs
@@ -118,7 +114,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.PackageDescription,
                     opt => opt.MapFrom(src => src.Package != null ? src.Package.Description : string.Empty))
 
-                
+
                 .ForMember(dest => dest.TrainerId,
                     opt => opt.MapFrom(src =>
                         src.Package != null && src.Package.Trainer != null
