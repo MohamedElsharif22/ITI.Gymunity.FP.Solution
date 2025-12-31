@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 //Fix authorization commit
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
@@ -12,14 +13,11 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 
     public class TrainerBaseController : ControllerBase
     {
-        protected int GetTrainerId()
+        protected string GetTrainerId()
         {
             // Try to read trainer id from claims (NameIdentifier expected to be trainer profile id or user id)
-            var idClaim = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            if (int.TryParse(idClaim, out var id)) return id;
-
-            // If not available or not int, return 0 as invalid
-            return 0;
+            return User.FindFirstValue(ClaimTypes.NameIdentifier);
+          
         }
     }
 }
