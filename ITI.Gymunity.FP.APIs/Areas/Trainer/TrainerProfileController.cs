@@ -4,6 +4,7 @@ using ITI.Gymunity.FP.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
@@ -156,6 +157,17 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
             {
                 return NotFound(new ApiResponse(404, ex.Message));
             }
+        }
+
+        [HttpGet("subscribers/{id}")]
+        public async Task<IActionResult> GetMySubscribers(int id) //trainer id 
+        {
+            var trainerId = id; // من JWT
+            if (trainerId <= 0)
+                return BadRequest(new ApiResponse(400, "Invalid trainer id in token."));
+
+            var subscribers = await _trainerProfileService.GetSubscribersByTrainerIdAsync(trainerId);
+            return Ok(subscribers);
         }
 
         // Get TrainerProfile By id  
