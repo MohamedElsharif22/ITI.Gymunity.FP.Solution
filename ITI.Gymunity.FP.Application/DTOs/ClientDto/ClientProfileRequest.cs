@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using ITI.Gymunity.FP.Domain.Models.Enums;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
@@ -22,24 +24,17 @@ namespace ITI.Gymunity.FP.Application.DTOs.ClientDto
         [Range(20, 500, ErrorMessage = "Weight must be between 20 and 500 kg")]
         public decimal? StartingWeightKg { get; set; }
 
-        [RegularExpression("^(Male|Female)$",
-            ErrorMessage = "Gender must be either Male or Female")]
-        public string? Gender { get; set; }
+        [Description("1 for Male, 2 for Female")]
+        public Gender? Gender { get; set; }
+        public ClientGoal? Goal { get; set; }  // "Fat Loss", "Muscle Gain", etc.
+        public ExperienceLevel? ExperienceLevel { get; set; }  // Beginner, Intermediate, Advanced
 
-        [RegularExpression("^(Fat Loss|Muscle Gain|Maintenance)$",
-            ErrorMessage = "Goal must be Fat Loss, Muscle Gain, or Maintenance")]
-        public string? Goal { get; set; }  // "Fat Loss", "Muscle Gain", etc.
-
-        [RegularExpression("^(Beginner|Intermediate|Advanced)$",
-            ErrorMessage = "Experience level must be Beginner, Intermediate, or Advanced")]
-        public string? ExperienceLevel { get; set; }  // Beginner, Intermediate, Advanced
-
+    }
         //public string userId { get; set; }
         //public string? PhoneNumber { get; set; }
         //public string FullName { get; set; }
         //public string? PhotoURL { get; set; }
         //public abstract IFormFile Image { get; set; }
-    }
 
     //public class CreateClientProfileRequest : ClientProfileRequest
     //{
