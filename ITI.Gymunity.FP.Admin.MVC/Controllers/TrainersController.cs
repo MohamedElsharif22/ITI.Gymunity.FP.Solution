@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers;
 using ITI.Gymunity.FP.Application.Services.Admin;
 using ITI.Gymunity.FP.Application.Specefications.Admin;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
 
 namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 {
@@ -142,8 +143,31 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                     return RedirectToAction(nameof(Index));
                 }
 
+                var vm = new TrainerDetailsViewModel
+                {
+                    Id = trainer.Id,
+                    UserId = trainer.UserId,
+                    UserName = trainer.UserName,
+                    Handle = trainer.Handle,
+                    Bio = trainer.Bio,
+                    CoverImageUrl = trainer.CoverImageUrl,
+                    VideoIntroUrl = trainer.VideoIntroUrl,
+                    BrandingColors = trainer.BrandingColors,
+                    IsVerified = trainer.IsVerified,
+                    VerifiedAt = trainer.VerifiedAt,
+                    IsSuspended = trainer.IsSuspended,
+                    SuspendedAt = trainer.SuspendedAt,
+                    RatingAverage = trainer.RatingAverage,
+                    TotalClients = trainer.TotalClients,
+                    YearsExperience = trainer.YearsExperience,
+                    StatusImageUrl = trainer.StatusImageUrl,
+                    StatusDescription = trainer.StatusDescription,
+                    AvailableBalance = trainer.AvailableBalance,
+                    CreatedAt = trainer.CreatedAt
+                };
+
                 _logger.LogInformation("Trainer {TrainerId} details viewed by {User}", id, User.Identity?.Name);
-                return View(trainer);
+                return View("~/Views/Trainers/Details.cshtml", vm);
             }
             catch (Exception ex)
             {

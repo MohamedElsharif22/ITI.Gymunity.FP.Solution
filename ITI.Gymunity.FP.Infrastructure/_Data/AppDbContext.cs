@@ -63,6 +63,8 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
             // Apply all configurations from the Configurations folder BEFORE setting global filters
             modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
+            AppContextSeed.SeedDatabase(modelBuilder);
+
             // Set global query filter for soft deletes on BaseEntity derivatives
             SetGlobalQueryFilter<BaseEntity>(modelBuilder, e => !e.IsDeleted);
 

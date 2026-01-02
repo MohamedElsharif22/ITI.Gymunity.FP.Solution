@@ -91,7 +91,10 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             }
             var daysSpecs = new ProgramDaySpec(weekId);
             var days = await _unitOfWork.Repository<ProgramDay>().GetAllWithSpecsAsync(daysSpecs);
+
+
             var dayResponses = days.Select(d => _mapper.Map<ProgramDayResponse>(d)).ToList();
+            
             return dayResponses;
         }
 

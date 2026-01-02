@@ -43,7 +43,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     .Repository<ClientProfile>()
                     .GetAllWithSpecsAsync(specs);
 
-                return _mapper.Map<IEnumerable<ClientResponse>>(clients.Select(c => c.User));
+                return _mapper.Map<IEnumerable<ClientResponse>>(clients);
             }
             catch (Exception ex)
             {
@@ -55,18 +55,18 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
         /// <summary>
         /// Get client by ID
         /// </summary>
-        public async Task<ClientResponse?> GetClientByIdAsync(string clientId)
+        public async Task<ClientResponse?> GetClientByIdAsync(int clientId)
         {
             try
             {
                 var client = await _unitOfWork
                     .Repository<ClientProfile>()
-                    .GetByIdAsync(int.Parse(clientId));
+                    .GetByIdAsync(clientId);
 
                 if (client == null)
                     return null;
 
-                return _mapper.Map<ClientResponse>(client.User);
+                return _mapper.Map<ClientResponse>(client);
             }
             catch (Exception ex)
             {

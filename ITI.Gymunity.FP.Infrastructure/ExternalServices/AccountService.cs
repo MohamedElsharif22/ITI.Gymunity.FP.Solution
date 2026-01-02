@@ -36,6 +36,13 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         private readonly IConfiguration _configuration = configuration;
         private readonly IImageUrlResolver _imageUrlResolver = imageUrlResolver;
 
+
+        //ToDo: Get all users
+        //ToDo: Delete User
+        //ToDo: Mange User Roles
+        //ToDo: Logout
+
+
         public async Task<AuthResponse> GoogleAuthAsync(GoogleAuthRequest request)
         {
             // Validate Google token

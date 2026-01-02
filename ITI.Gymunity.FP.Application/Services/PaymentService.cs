@@ -86,6 +86,7 @@ namespace ITI.Gymunity.FP.Application.Services
                     Amount = subscription.AmountPaid,
                     Currency = "USD",
                     Method = request.PaymentMethod,
+                    PaidAt = DateTime.UtcNow,
                     Status = PaymentStatus.Pending,
                     CreatedAt = DateTime.UtcNow
                 };

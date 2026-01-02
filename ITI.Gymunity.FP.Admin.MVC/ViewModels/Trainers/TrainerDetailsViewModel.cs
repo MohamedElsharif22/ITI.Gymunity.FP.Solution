@@ -1,10 +1,10 @@
-﻿namespace ITI.Gymunity.FP.Application.DTOs.Trainer
+using System;
+
+namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers
 {
-    public class TrainerProfileDetailResponse
+    public class TrainerDetailsViewModel
     {
         public int Id { get; set; }
-        public DateTimeOffset? UpdatedAt { get; set; }
-        public DateTimeOffset CreatedAt { get; set; }
         public string UserId { get; set; } = null!;
         public string UserName { get; set; } = null!;
         public string Handle { get; set; } = null!;
@@ -19,12 +19,9 @@
         public decimal RatingAverage { get; set; }
         public int TotalClients { get; set; }
         public int YearsExperience { get; set; }
-
-        // Status fields - only included in detail responses
         public string? StatusImageUrl { get; set; }
         public string? StatusDescription { get; set; }
-
-        // Available balance (computed)
         public decimal AvailableBalance { get; set; } = 0m;
+        public DateTimeOffset CreatedAt { get; set; }
     }
 }

@@ -27,6 +27,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 
         /// <summary>
         /// Displays list of all clients with filtering and pagination
+        /// Returns full view for initial load, partial for AJAX requests
         /// </summary>
         [HttpGet("clients")]
         public async Task<IActionResult> Index(
@@ -60,12 +61,28 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 };
 
                 _logger.LogInformation("Clients list accessed by user: {User}", User.Identity?.Name);
+
+                // Check if this is an AJAX request
+                if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+                {
+                    // Return only the partial view (table + pagination) for AJAX
+                    return PartialView("_ClientsTablePartial", model);
+                }
+
+                // Return full view for initial page load
                 return View(model);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading clients list");
                 ShowErrorMessage("An error occurred while loading clients");
+
+                // If AJAX request, return error response
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return BadRequest(new { success = false, message = ex.Message });
+                }
+
                 return RedirectToDashboard();
             }
         }
@@ -74,7 +91,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         /// Displays detailed view of a specific client
         /// </summary>
         [HttpGet("clients/{id}")]
-        public async Task<IActionResult> Details(string id)
+        public async Task<IActionResult> Details(int id)
         {
             try
             {

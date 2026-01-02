@@ -10,11 +10,12 @@ namespace ITI.Gymunity.FP.Application.DTOs.User
     public class ClientResponse
     {
         public string Id { get; set; }
+        public int ProfileId { get; set; }
         public string FullName { get; set; } = null!;
         public string Email { get; set; }
         public string UserName { get; set; }
         public string? ProfilePhotoUrl { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public DateTime? LastLoginAt { get; set; }
+        public DateTimeOffset? CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTimeOffset LastLoginAt { get; set; }
     }
 }

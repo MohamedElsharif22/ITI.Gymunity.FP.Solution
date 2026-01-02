@@ -1,5 +1,5 @@
-@using ITI.Gymunity.FP.Application.DTOs.Trainer
-@model TrainerProfileDetailResponse
+@using ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers
+@model TrainerDetailsViewModel
 
 @{
     ViewData["Title"] = "Trainer Details";
@@ -15,7 +15,7 @@
         </div>
         
         <div class="flex items-center gap-2">
-            <a href="@Url.Action("Index")" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+            <a href="@Url.Action("Index", "Trainers")" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
                 <i class="fas fa-arrow-left mr-2"></i>Back
             </a>
         </div>
@@ -65,6 +65,7 @@
                         }
                     </div>
                 </div>
+
                 @if (Model.IsSuspended && Model.SuspendedAt.HasValue)
                 {
                     <div>
@@ -72,6 +73,19 @@
                         <p class="font-medium text-gray-900 mt-1">@Model.SuspendedAt.Value.ToString("MMMM dd, yyyy HH:mm")</p>
                     </div>
                 }
+
+                <!-- Created At -->
+                <div>
+                    <p class="text-sm text-gray-500">Account Created</p>
+                    <p class="font-medium text-gray-900 mt-2">@Model.CreatedAt.ToString("MMMM dd, yyyy HH:mm")</p>
+                </div>
+
+                <!-- Available Balance -->
+                <div>
+                    <p class="text-sm text-gray-500">Available Balance</p>
+                    <p class="text-2xl font-bold text-green-600">@Model.AvailableBalance.ToString("C")</p>
+                    <p class="text-sm text-gray-400">Funds available to pay out to trainer</p>
+                </div>
             </div>
         </div>
 

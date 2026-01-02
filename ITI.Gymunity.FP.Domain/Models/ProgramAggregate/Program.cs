@@ -13,7 +13,7 @@ namespace ITI.Gymunity.FP.Domain.Models.ProgramAggregate
     {
         // Legacy DB compatibility: keep TrainerId column (string) because database currently expects it.
         // Prefer using TrainerProfileId as the new canonical reference.
-        public string TrainerId { get; set; } = string.Empty; // legacy, filled from TrainerProfile.UserId on create/update
+        public string? TrainerId { get; set; } = string.Empty; // legacy, filled from TrainerProfile.UserId on create/update
 
         // Use TrainerProfileId as the reference to the trainer profile
         public int? TrainerProfileId { get; set; }

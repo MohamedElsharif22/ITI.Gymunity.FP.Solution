@@ -15,14 +15,18 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
     /// <summary>
     /// Admin service for managing trainer profiles, verification, and actions
     /// </summary>
-    public class TrainerAdminService(
-        IUnitOfWork unitOfWork,
-        IMapper mapper,
-        ILogger<TrainerAdminService> logger)
+    public class TrainerAdminService
     {
-        private readonly IUnitOfWork _unitOfWork = unitOfWork;
-        private readonly IMapper _mapper = mapper;
-        private readonly ILogger<TrainerAdminService> _logger = logger;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly ILogger<TrainerAdminService> _logger;
+
+        public TrainerAdminService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<TrainerAdminService> logger)
+        {
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _logger = logger;
+        }
 
         /// <summary>
         /// Get all trainers with optional filtering and pagination
@@ -50,22 +54,51 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
         /// </summary>
         public async Task<TrainerProfileDetailResponse?> GetTrainerByIdAsync(int id)
         {
+            var repo = _unitOfWork.Repository<TrainerProfile>();
+            var trainer = await repo.GetWithSpecsAsync(new ITI.Gymunity.FP.Application.Specefications.Trainer.TrainerByUserIdSpecs("") );
+            // Attempt to get by id using repository GetByIdAsync
+            var entity = await repo.GetByIdAsync(id);
+            if (entity == null) return null;
+
+            var dto = _mapper.Map<TrainerProfileDetailResponse>(entity);
+
+            // Compute available balance: sum of TrainerPayout of completed payments for subscriptions that belong to trainer's packages
             try
             {
-                var trainer = await _unitOfWork
-                    .Repository<TrainerProfile>()
-                    .GetByIdAsync(id);
-
-                if (trainer == null)
-                    return null;
-
-                return _mapper.Map<TrainerProfileDetailResponse>(trainer);
+                decimal available = await ComputeAvailableBalanceAsync(entity.Id);
+                dto.AvailableBalance = available;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving trainer with ID {TrainerId}", id);
-                throw;
+                _logger.LogError(ex, "Error computing available balance for trainer {TrainerId}", id);
+                dto.AvailableBalance = 0m;
             }
+
+            return dto;
+        }
+
+        private async Task<decimal> ComputeAvailableBalanceAsync(int trainerProfileId)
+        {
+            // Find package ids for trainer
+            var packageRepo = _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Trainer.Package>();
+            var packages = await packageRepo.GetAllAsync();
+            var trainerPackageIds = packages.Where(p => p.TrainerId == trainerProfileId).Select(p => p.Id).ToList();
+
+            if (!trainerPackageIds.Any()) return 0m;
+
+            // Query payments with specs: payments where subscription.packageId in trainerPackageIds and status == Completed
+            var paymentRepo = _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Payment>();
+            var allPayments = await paymentRepo.GetAllAsync();
+
+            var paymentsForTrainer = allPayments.Where(p => p.Status == ITI.Gymunity.FP.Domain.Models.Enums.PaymentStatus.Completed
+                                                           && trainerPackageIds.Contains(p.Subscription.PackageId));
+
+            var totalPayout = paymentsForTrainer.Sum(p => p.TrainerPayout);
+
+            // If there is a Payouts table or records of payouts to trainers, subtract them here.
+            // Currently there's no payouts entity in the project; assume platform holds funds until admin pays out.
+
+            return totalPayout;
         }
 
         /// <summary>

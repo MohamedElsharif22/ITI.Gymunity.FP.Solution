@@ -14,10 +14,6 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             // Key Configuration
             builder.HasKey(p => p.Id);
 
-            // Map legacy TrainerId column (string) to avoid DB null constraint issues
-            builder.Property(p => p.TrainerId)
-                .IsRequired()
-                .HasMaxLength(450);
 
             // Property Configurations
             builder.Property(p => p.Title)
