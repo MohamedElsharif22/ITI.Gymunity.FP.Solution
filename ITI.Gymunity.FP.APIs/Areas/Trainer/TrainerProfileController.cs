@@ -45,6 +45,32 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
             return Ok(profile);
         }
 
+        /// <summary>
+        /// Retrieves the profile details of the currently authenticated trainer.
+        /// </summary>
+        /// <remarks>This endpoint requires the user to be authenticated. The response includes detailed
+        /// profile information for the trainer associated with the current user account.</remarks>
+        /// <returns>An <see cref="IActionResult"/> containing the trainer's profile details with status code 200 (OK) if found;
+        /// status code 404 (Not Found) if the profile does not exist; or status code 401 (Unauthorized) if the user is
+        /// not authenticated.</returns>
+        [HttpGet]
+        [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            // TODO: Add authentication check
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (currentUserId is null)
+                return Unauthorized(new ApiResponse(401, "Unauthorized access."));
+
+            var profile = await _trainerProfileService.GetProfileByUserId(currentUserId);
+
+            if (profile == null)
+                return NotFound(new ApiResponse(404, "Trainer profile not found."));
+
+            return Ok(profile);
+        }
+
 
 
         // GET: api/trainer/trainerprofile/getbyid/{id}
@@ -64,7 +90,6 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         // POST: api/trainer/trainerprofile/create
         [HttpPost("")]
         // [Authorize] // Uncomment when authentication is ready
-        [Consumes("multipart/form-data")]
         [ProducesResponseType(typeof(TrainerProfileDetailResponse), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> CreateProfile([FromForm] CreateTrainerProfileRequest request)
@@ -72,9 +97,11 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
             try
             {
                 // TODO: Add authentication check
-                // var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                // if (currentUserId != request.UserId)
-                //     return Unauthorized(new ApiResponse(401, "Unauthorized access."));
+                var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (currentUserId is null)
+                    return Unauthorized(new ApiResponse(401, "Unauthorized access."));
+
+                request.UserId = currentUserId;
 
                 var profile = await _trainerProfileService.CreateProfile(request);
                 return CreatedAtAction(nameof(GetById), new { id = profile.Id }, profile);

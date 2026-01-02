@@ -114,6 +114,16 @@
             POST: api/client/subscriptions/{id}/activate
             </summary>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Trainer.TrainerProfileController.GetMyProfile">
+            <summary>
+            Retrieves the profile details of the currently authenticated trainer.
+            </summary>
+            <remarks>This endpoint requires the user to be authenticated. The response includes detailed
+            profile information for the trainer associated with the current user account.</remarks>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.IActionResult"/> containing the trainer's profile details with status code 200 (OK) if found;
+            status code 404 (Not Found) if the profile does not exist; or status code 401 (Unauthorized) if the user is
+            not authenticated.</returns>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.AccountController">
             <summary>
             Provides API endpoints for user account registration and authentication operations.
