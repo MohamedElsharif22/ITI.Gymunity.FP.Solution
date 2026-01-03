@@ -7,6 +7,7 @@
         public DateTimeOffset CreatedAt { get; set; }
         public string UserId { get; set; } = null!;
         public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
         public string Handle { get; set; } = null!;
         public string Bio { get; set; } = string.Empty;
         public string? CoverImageUrl { get; set; }

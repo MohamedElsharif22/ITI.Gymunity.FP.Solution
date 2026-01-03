@@ -1,12 +1,17 @@
 using System;
+using System.Collections.Generic;
 
 namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers
 {
+    /// <summary>
+    /// ViewModel for trainer details page
+    /// </summary>
     public class TrainerDetailsViewModel
     {
         public int Id { get; set; }
         public string UserId { get; set; } = null!;
         public string UserName { get; set; } = null!;
+        public string Email { get; set; } = null!;
         public string Handle { get; set; } = null!;
         public string Bio { get; set; } = string.Empty;
         public string? CoverImageUrl { get; set; }
@@ -23,5 +28,31 @@ namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers
         public string? StatusDescription { get; set; }
         public decimal AvailableBalance { get; set; } = 0m;
         public DateTimeOffset CreatedAt { get; set; }
+
+        // New properties for earnings and fees
+        public decimal TotalEarnings { get; set; } = 0m;
+        public decimal PlatformFeesGained { get; set; } = 0m;
+        public int CompletedPaymentsCount { get; set; } = 0;
+        public string Currency { get; set; } = "EGP";
+
+        // Reviews collection
+        public List<TrainerReviewViewModel> Reviews { get; set; } = new();
+        public int TotalReviewsCount { get; set; } = 0;
+    }
+
+    /// <summary>
+    /// ViewModel for trainer reviews displayed on details page
+    /// </summary>
+    public class TrainerReviewViewModel
+    {
+        public int Id { get; set; }
+        public int Rating { get; set; }
+        public string? Comment { get; set; }
+        public string ClientName { get; set; } = null!;
+        public string? ClientEmail { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public bool IsEdited { get; set; }
+        public DateTime? EditedAt { get; set; }
+        public bool IsApproved { get; set; }
     }
 }

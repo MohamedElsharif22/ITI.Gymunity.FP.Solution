@@ -55,8 +55,6 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
         public async Task<TrainerProfileDetailResponse?> GetTrainerByIdAsync(int id)
         {
             var repo = _unitOfWork.Repository<TrainerProfile>();
-            var trainer = await repo.GetWithSpecsAsync(new ITI.Gymunity.FP.Application.Specefications.Trainer.TrainerByUserIdSpecs("") );
-            // Attempt to get by id using repository GetByIdAsync
             var entity = await repo.GetByIdAsync(id);
             if (entity == null) return null;
 
@@ -75,6 +73,59 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
             }
 
             return dto;
+        }
+
+        /// <summary>
+        /// Get trainer details for admin view including earnings and reviews
+        /// </summary>
+        public async Task<(TrainerProfileDetailResponse? trainer, List<ITI.Gymunity.FP.Domain.Models.Trainer.TrainerReview> reviews, decimal totalEarnings, decimal platformFees, int completedPaymentsCount)> GetTrainerDetailsForAdminAsync(int id)
+        {
+            try
+            {
+                // Use specification to load trainer with user data (email, username)
+                var detailSpec = new TrainerDetailSpecs(id);
+                var trainers = await _unitOfWork.Repository<TrainerProfile>()
+                    .GetAllWithSpecsAsync(detailSpec);
+                
+                var entity = trainers.FirstOrDefault();
+                if (entity == null) return (null, new(), 0m, 0m, 0);
+
+                var dto = _mapper.Map<TrainerProfileDetailResponse>(entity);
+
+                // Get available balance
+                try
+                {
+                    decimal available = await ComputeAvailableBalanceAsync(entity.Id);
+                    dto.AvailableBalance = available;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error computing available balance for trainer {TrainerId}", id);
+                    dto.AvailableBalance = 0m;
+                }
+
+                // Get trainer reviews using specification
+                var reviewsSpec = new TrainerReviewsSpecs(id, pageNumber: 1, pageSize: 10);
+                var reviews = await _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Trainer.TrainerReview>()
+                    .GetAllWithSpecsAsync(reviewsSpec);
+
+                // Get trainer earnings and platform fees using specification
+                var paymentsSpec = new TrainerPaymentsEarningsSpecs(id, allRecords: true);
+                var payments = await _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Payment>()
+                    .GetAllWithSpecsAsync(paymentsSpec);
+
+                // Calculate totals from payments
+                var totalEarnings = payments.Sum(p => p.TrainerPayout);
+                var platformFees = payments.Sum(p => p.Amount - p.TrainerPayout);
+                var completedPaymentsCount = payments.Count();
+
+                return (dto, reviews.ToList(), totalEarnings, platformFees, completedPaymentsCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting trainer details for admin view: {TrainerId}", id);
+                throw;
+            }
         }
 
         private async Task<decimal> ComputeAvailableBalanceAsync(int trainerProfileId)
@@ -210,6 +261,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 else
                 {
                     trainer.SuspendedAt = null;
+                    trainer.IsDeleted = false;
                 }
 
                 _unitOfWork.Repository<TrainerProfile>().Update(trainer);

@@ -31,14 +31,21 @@
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
-                                <a href="mailto:@client.Email" class="text-blue-600 hover:text-blue-700">@client.Email</a>
+                                @if (!string.IsNullOrEmpty(client.Email))
+                                {
+                                    <a href="mailto:@client.Email" class="text-blue-600 hover:text-blue-700">@client.Email</a>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-400">No email</span>
+                                }
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-600">
-                                @client.CreatedAt.ToString()
+                                @client.CreatedAt.ToString("MMM dd, yyyy")
                             </td>
                             <td class="px-6 py-4">
                                 <div class="flex items-center justify-end gap-2">
-                                    <a href="@Url.Action("Details", new { id = client.ProfileId })" 
+                                    <a href="@Url.Action("Details", new { id = client.UserId })" 
                                        class="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg transition"
                                        title="View Details">
                                         <i class="fas fa-eye"></i>

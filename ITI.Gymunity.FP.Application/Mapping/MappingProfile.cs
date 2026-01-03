@@ -29,20 +29,8 @@ namespace ITI.Gymunity.FP.Application.Mapping
     {
         public MappingProfile()
         {
-            //*********************     Admin Mapping       ******************************//
-            CreateMap<AppUser, TrainerResponse>()
-                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom<GenericImageUrlResolver<AppUser, TrainerResponse>, string?>(u => u.ProfilePhotoUrl));
-            CreateMap<AppUser, ClientResponse>()
-                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom<GenericImageUrlResolver<AppUser, ClientResponse>, string?>(u => u.ProfilePhotoUrl));
-            CreateMap<ClientProfile, ClientResponse>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(cp => cp.User.UserName))
-                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom<GenericImageUrlResolver<ClientProfile, ClientResponse>, string?>(cp => cp.User.ProfilePhotoUrl))
-                .ForMember(dest => dest.ProfileId, opt => opt.MapFrom(p => p.Id))
-                .ForMember(dest => dest.FullName, opt => opt.MapFrom(p => p.User.FullName))
-                .ForMember(dest => dest.Email, opt => opt.MapFrom(p => p.User.Email))
-                .ForMember(dest => dest.LastLoginAt, opt => opt.MapFrom(p => p.User.LastLoginAt));
+            
 
-            //*********************    End of Admin Mapping       ******************************//
             //*********************     Client Profile Mapping       ******************************//
             CreateMap<ClientProfileRequest, ClientProfile>()
                 .ForMember(dest => dest.ExperienceLevel, opt => opt.MapFrom(r => r.ExperienceLevel.ToString() ?? ""))
@@ -98,6 +86,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
             // TrainerProfile to Detail Response (includes status fields)
             CreateMap<TrainerProfile, TrainerProfileDetailResponse>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(tp => tp.User.UserName))
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(tp => tp.User.Email))
                 .ForMember(dest => dest.CoverImageUrl, opt => opt.MapFrom<GenericImageUrlResolver<TrainerProfile, TrainerProfileDetailResponse>, string?>(tp => tp.CoverImageUrl))
                 .ForMember(dest => dest.VideoIntroUrl, opt => opt.MapFrom<GenericImageUrlResolver<TrainerProfile, TrainerProfileDetailResponse>, string?>(tp => tp.VideoIntroUrl))
                 .ForMember(dest => dest.StatusImageUrl, opt => opt.MapFrom<GenericImageUrlResolver<TrainerProfile, TrainerProfileDetailResponse>, string?>(tp => tp.StatusImageUrl));
@@ -220,6 +209,7 @@ namespace ITI.Gymunity.FP.Application.Mapping
             CreateMap<Program, ProgramGetByIdResponse>()
                 .ForMember(dest => dest.TrainerUserName, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.User.UserName : null))
                 .ForMember(dest => dest.TrainerHandle, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.Handle : null))
+                .ForMember(dest => dest.TrainerEmail, opt => opt.MapFrom(p => p.TrainerProfile != null ? p.TrainerProfile.User.Email : null))
                 .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(p => p.TrainerProfileId))
                 .ForMember(dest => dest.ThumbnailUrl, opt => opt.MapFrom<GenericImageUrlResolver<Program, ProgramGetByIdResponse>, string?>(p => p.ThumbnailUrl));
 

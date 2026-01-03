@@ -1,10 +1,10 @@
-using ITI.Gymunity.FP.Application.DTOs.ClientDto;
+using ITI.Gymunity.FP.Application.DTOs.Program;
 
-namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Clients
+namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Programs
 {
-    public class ClientsListViewModel
+    public class ProgramsListViewModel
     {
-        public List<ClientListItemDto> Clients { get; set; } = new List<ClientListItemDto>();
+        public List<ProgramGetAllResponse> Programs { get; set; } = new List<ProgramGetAllResponse>();
         
         public int PageNumber { get; set; } = 1;
         
@@ -14,7 +14,11 @@ namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Clients
         
         public string? SearchTerm { get; set; }
         
-        public bool? IsActiveFilter { get; set; }
+        public bool? IsPublicFilter { get; set; }
+        
+        public string? ProgramTypeFilter { get; set; }
+        
+        public int? TrainerFilterId { get; set; }
 
         /// <summary>
         /// Total number of pages

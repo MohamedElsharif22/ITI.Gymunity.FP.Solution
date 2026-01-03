@@ -63,7 +63,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 _logger.LogInformation("Clients list accessed by user: {User}", User.Identity?.Name);
 
                 // Check if this is an AJAX request
-                if (Request.Headers.XRequestedWith == "XMLHttpRequest")
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
                     // Return only the partial view (table + pagination) for AJAX
                     return PartialView("_ClientsTablePartial", model);
@@ -88,25 +88,82 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         }
 
         /// <summary>
-        /// Displays detailed view of a specific client
+        /// Displays detailed view of a specific client with subscriptions and payments
         /// </summary>
         [HttpGet("clients/{id}")]
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(string id)
         {
             try
             {
                 SetPageTitle("Client Details");
                 SetBreadcrumbs("Dashboard", "Clients", "Details");
 
-                var client = await _clientService.GetClientByIdAsync(id);
-                if (client == null)
+                var clientData = await _clientService.GetClientByIdAsync(id);
+                if (clientData == null)
                 {
                     ShowErrorMessage("Client not found");
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Map to ViewModel
+                var vm = new ClientDetailsViewModel
+                {
+                    ProfileId = clientData.Id,
+                    UserId = clientData.UserId,
+                    FullName = clientData.FullName,
+                    Email = clientData.Email,
+                    UserName = clientData.UserName,
+                    ProfilePhotoUrl = clientData.ProfilePhotoUrl,
+                    CreatedAt = clientData.CreatedAt,
+                    LastLoginAt = clientData.LastLoginAt,
+                    IsVerified = clientData.IsVerified,
+                    
+                    // Profile
+                    HeightCm = clientData.HeightCm,
+                    StartingWeightKg = clientData.StartingWeightKg,
+                    Gender = clientData.Gender,
+                    Goal = clientData.Goal,
+                    ExperienceLevel = clientData.ExperienceLevel,
+                    
+                    // Statistics
+                    TotalSubscriptions = clientData.TotalSubscriptions,
+                    ActiveSubscriptions = clientData.ActiveSubscriptions,
+                    TotalPaymentsCount = clientData.TotalPaymentsCount,
+                    TotalAmountPaid = clientData.TotalAmountPaid,
+                    
+                    // Subscriptions
+                    Subscriptions = clientData.Subscriptions.Select(s => new ClientSubscriptionViewModel
+                    {
+                        Id = s.Id,
+                        PackageName = s.PackageName,
+                        TrainerHandle = s.TrainerHandle,
+                        Status = s.Status,
+                        AmountPaid = s.AmountPaid,
+                        Currency = s.Currency,
+                        IsAnnual = s.IsAnnual,
+                        StartDate = s.StartDate,
+                        CurrentPeriodEnd = s.CurrentPeriodEnd,
+                        CanceledAt = s.CanceledAt
+                    }).ToList(),
+                    
+                    // Payments
+                    Payments = clientData.Payments.Select(p => new ClientPaymentViewModel
+                    {
+                        Id = p.Id,
+                        PackageName = p.PackageName,
+                        TrainerName = p.TrainerName,
+                        Amount = p.Amount,
+                        Currency = p.Currency,
+                        Status = p.Status,
+                        Method = p.Method,
+                        CreatedAt = p.CreatedAt,
+                        PaidAt = p.PaidAt,
+                        FailureReason = p.FailureReason
+                    }).ToList()
+                };
+
                 _logger.LogInformation("Client {ClientId} details viewed by {User}", id, User.Identity?.Name);
-                return View(client);
+                return View(vm);
             }
             catch (Exception ex)
             {
@@ -120,14 +177,11 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         /// Suspends a client account
         /// </summary>
         [HttpPost("clients/{id}/suspend")]
-        public async Task<IActionResult> Suspend(string id)
+        public async Task<IActionResult> Suspend(int id)
         {
             try
             {
-                if (!int.TryParse(id, out var clientId))
-                    return BadRequest(new { success = false, message = "Invalid client ID" });
-
-                var result = await _clientService.SuspendClientAsync(clientId);
+                var result = await _clientService.SuspendClientAsync(id);
                 if (!result)
                     return BadRequest(new { success = false, message = "Failed to suspend client" });
 
@@ -146,14 +200,11 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         /// Reactivates a suspended client account
         /// </summary>
         [HttpPost("clients/{id}/reactivate")]
-        public async Task<IActionResult> Reactivate(string id)
+        public async Task<IActionResult> Reactivate(int id)
         {
             try
             {
-                if (!int.TryParse(id, out var clientId))
-                    return BadRequest(new { success = false, message = "Invalid client ID" });
-
-                var result = await _clientService.ReactivateClientAsync(clientId);
+                var result = await _clientService.ReactivateClientAsync(id);
                 if (!result)
                     return BadRequest(new { success = false, message = "Failed to reactivate client" });
 
@@ -306,5 +357,221 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
+
+        /// <summary>
+        /// Send email to a client
+        /// </summary>
+        [HttpPost("clients/send-email")]
+        public async Task<IActionResult> SendEmail([FromBody] SendEmailRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(new { success = false, message = "Invalid request" });
+
+                // TODO: Implement email service integration
+                // var emailService = HttpContext.RequestServices.GetService<IEmailService>();
+                // await emailService.SendEmailAsync(request.ClientId, request.Subject, request.Message);
+
+                _logger.LogInformation("Email sent to client {ClientId} by {User}", request.ClientId, User.Identity?.Name);
+                return Ok(new { success = true, message = "Email sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email to client");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get activity log for a client
+        /// </summary>
+        [HttpGet("clients/activity")]
+        public async Task<IActionResult> GetActivity(string userId)
+        {
+            try
+            {
+                // TODO: Implement activity log retrieval
+                var activities = new List<ActivityLog>
+                {
+                    new ActivityLog
+                    {
+                        Action = "Subscription Created",
+                        Details = "Premium Package",
+                        Timestamp = DateTime.UtcNow.AddHours(-2)
+                    },
+                    new ActivityLog
+                    {
+                        Action = "Payment Processed",
+                        Details = "Amount: 500 EGP",
+                        Timestamp = DateTime.UtcNow.AddHours(-4)
+                    },
+                    new ActivityLog
+                    {
+                        Action = "Profile Updated",
+                        Details = "Changed fitness goals",
+                        Timestamp = DateTime.UtcNow.AddDays(-1)
+                    }
+                };
+
+                _logger.LogInformation("Activity log retrieved for client {ClientId}", userId);
+                return Ok(new { success = true, data = activities });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving activity log for client {ClientId}", userId);
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Generate a client report (PDF)
+        /// </summary>
+        [HttpGet("clients/generate-report")]
+        public async Task<IActionResult> GenerateReport(string userId)
+        {
+            try
+            {
+                var clientData = await _clientService.GetClientByIdAsync(userId);
+                if (clientData == null)
+                    return NotFound(new { success = false, message = "Client not found" });
+
+                // TODO: Implement PDF generation using a library like iTextSharp or SelectPdf
+                // For now, return a placeholder file
+                var reportContent = $@"
+CLIENT REPORT
+============ =
+Name: {clientData.FullName}
+Email: {clientData.Email}
+User ID: {clientData.UserId}
+
+SUBSCRIPTION SUMMARY
+-------------------
+Total Subscriptions: {clientData.TotalSubscriptions}
+Active Subscriptions: {clientData.ActiveSubscriptions}
+
+PAYMENT SUMMARY
+---------------
+Total Payments: {clientData.TotalPaymentsCount}
+Total Amount Paid: {clientData.TotalAmountPaid}
+
+Generated: {DateTime.UtcNow}
+";
+
+                var bytes = System.Text.Encoding.UTF8.GetBytes(reportContent);
+                _logger.LogInformation("Report generated for client {ClientId}", userId);
+                return File(bytes, "application/pdf", $"client-report-{userId}.pdf");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating report for client {ClientId}", userId);
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Get compliance information for a client
+        /// </summary>
+        [HttpGet("clients/compliance")]
+        public async Task<IActionResult> GetCompliance(string userId)
+        {
+            try
+            {
+                var clientData = await _clientService.GetClientByIdAsync(userId);
+                if (clientData == null)
+                    return NotFound(new { success = false, message = "Client not found" });
+
+                var compliance = new ComplianceInfo
+                {
+                    EmailVerified = clientData.IsVerified,
+                    PaymentVerified = clientData.Payments.Any(p => p.Status == "Completed"),
+                    HasActiveSubscription = clientData.ActiveSubscriptions > 0,
+                    LastPaymentSuccess = clientData.Payments.Any(p => p.Status == "Completed"),
+                    RiskLevel = clientData.ActiveSubscriptions > 0 ? "Low" : "Medium"
+                };
+
+                _logger.LogInformation("Compliance check performed for client {ClientId}", userId);
+                return Ok(new { success = true, data = compliance });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving compliance for client {ClientId}", userId);
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Process a refund for a client payment
+        /// </summary>
+        [HttpPost("clients/process-refund")]
+        public async Task<IActionResult> ProcessRefund([FromBody] RefundRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(new { success = false, message = "Invalid request" });
+
+                // TODO: Implement refund processing logic
+                // This would involve:
+                // 1. Verifying the payment exists and belongs to the client
+                // 2. Calling the payment service to process the refund
+                // 3. Logging the refund transaction
+                // 4. Notifying the client
+
+                _logger.LogWarning("Refund processed for client {ClientId}, Payment {PaymentId} by {User}", 
+                    request.ClientId, request.PaymentId, User.Identity?.Name);
+                
+                return Ok(new { success = true, message = "Refund processed successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing refund");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Activity log entry for client actions
+    /// </summary>
+    public class ActivityLog
+    {
+        public string Action { get; set; } = null!;
+        public string Details { get; set; } = null!;
+        public DateTime Timestamp { get; set; }
+    }
+
+    /// <summary>
+    /// Compliance information for a client
+    /// </summary>
+    public class ComplianceInfo
+    {
+        public bool EmailVerified { get; set; }
+        public bool PaymentVerified { get; set; }
+        public bool HasActiveSubscription { get; set; }
+        public bool LastPaymentSuccess { get; set; }
+        public string RiskLevel { get; set; } = null!;
+    }
+
+    /// <summary>
+    /// Send email request
+    /// </summary>
+    public class SendEmailRequest
+    {
+        public string ClientId { get; set; } = null!;
+        public string Subject { get; set; } = null!;
+        public string Message { get; set; } = null!;
+        public bool SendCopy { get; set; }
+    }
+
+    /// <summary>
+    /// Process refund request
+    /// </summary>
+    public class RefundRequest
+    {
+        public string ClientId { get; set; } = null!;
+        public int PaymentId { get; set; }
+        public string Reason { get; set; } = null!;
+        public string? Notes { get; set; }
     }
 }

@@ -91,6 +91,7 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             services.AddScoped<ClientAdminService>();
             services.AddScoped<PaymentAdminService>();
             services.AddScoped<SubscriptionAdminService>();
+            services.AddScoped<ProgramAdminService>();
 
             //amr end
 

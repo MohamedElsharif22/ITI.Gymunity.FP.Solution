@@ -136,18 +136,37 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 SetPageTitle("Trainer Details");
                 SetBreadcrumbs("Dashboard", "Trainers", "Details");
 
-                var trainer = await _trainerService.GetTrainerByIdAsync(id);
+                // Get trainer details with earnings and reviews using specification
+                var (trainer, reviews, totalEarnings, platformFees, completedPaymentsCount) = 
+                    await _trainerService.GetTrainerDetailsForAdminAsync(id);
+
                 if (trainer == null)
                 {
                     ShowErrorMessage("Trainer not found");
                     return RedirectToAction(nameof(Index));
                 }
 
+                // Map reviews to ViewModel
+                var reviewVMs = reviews.Select(r => new TrainerReviewViewModel
+                {
+                    Id = r.Id,
+                    Rating = r.Rating,
+                    Comment = r.Comment,
+                    ClientName = r.Client?.User?.FullName ?? "Unknown Client",
+                    ClientEmail = r.Client?.User?.Email,
+                    CreatedAt = r.CreatedAt.DateTime,
+                    IsEdited = r.IsEdited,
+                    EditedAt = r.EditedAt?.DateTime,
+                    IsApproved = r.IsApproved
+                }).ToList();
+
+                // Create ViewModel with all data
                 var vm = new TrainerDetailsViewModel
                 {
                     Id = trainer.Id,
                     UserId = trainer.UserId,
                     UserName = trainer.UserName,
+                    Email = trainer.Email,
                     Handle = trainer.Handle,
                     Bio = trainer.Bio,
                     CoverImageUrl = trainer.CoverImageUrl,
@@ -163,7 +182,13 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                     StatusImageUrl = trainer.StatusImageUrl,
                     StatusDescription = trainer.StatusDescription,
                     AvailableBalance = trainer.AvailableBalance,
-                    CreatedAt = trainer.CreatedAt
+                    CreatedAt = trainer.CreatedAt,
+                    TotalEarnings = totalEarnings,
+                    PlatformFeesGained = platformFees,
+                    CompletedPaymentsCount = completedPaymentsCount,
+                    Currency = "EGP",
+                    Reviews = reviewVMs,
+                    TotalReviewsCount = reviewVMs.Count
                 };
 
                 _logger.LogInformation("Trainer {TrainerId} details viewed by {User}", id, User.Identity?.Name);

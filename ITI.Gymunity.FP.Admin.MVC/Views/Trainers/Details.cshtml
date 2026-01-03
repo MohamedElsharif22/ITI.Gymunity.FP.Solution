@@ -21,8 +21,8 @@
         </div>
     </div>
 
-    <!-- Trainer Info Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Trainer Info Cards - Top Section -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Basic Info Card -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <h3 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
@@ -30,6 +30,12 @@
                 <div>
                     <p class="text-sm text-gray-500">Username</p>
                     <p class="font-medium text-gray-900">@Model.UserName</p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500">Email</p>
+                    <p class="font-medium text-gray-900">
+                        <a href="mailto:@Model.Email" class="text-blue-600 hover:text-blue-700">@Model.Email</a>
+                    </p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">Handle</p>
@@ -89,82 +95,121 @@
             </div>
         </div>
 
-        <!-- Statistics Card -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
-            <div class="space-y-4">
-                <div>
-                    <p class="text-sm text-gray-500">Total Clients</p>
-                    <p class="text-2xl font-bold text-blue-600">@Model.TotalClients</p>
-                </div>
-                <div>
-                    <p class="text-sm text-gray-500">Average Rating</p>
-                    <div class="flex items-center gap-2 mt-1">
-                        <div class="flex items-center gap-1">
-                            @for (int i = 0; i < 5; i++)
-                            {
-                                @if (i < (int)Model.RatingAverage)
+        <!-- Statistics & Actions Stack -->
+        <div class="flex flex-col gap-6">
+            <!-- Statistics Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
+                <div class="space-y-4">
+                    <div>
+                        <p class="text-sm text-gray-500">Total Clients</p>
+                        <p class="text-2xl font-bold text-blue-600">@Model.TotalClients</p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Average Rating</p>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div class="flex items-center gap-1">
+                                @for (int i = 0; i < 5; i++)
                                 {
-                                    <i class="fas fa-star text-yellow-400"></i>
+                                    @if (i < (int)Model.RatingAverage)
+                                    {
+                                        <i class="fas fa-star text-yellow-400"></i>
+                                    }
+                                    else if (i < Model.RatingAverage)
+                                    {
+                                        <i class="fas fa-star-half-alt text-yellow-400"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-star text-gray-300"></i>
+                                    }
                                 }
-                                else if (i < Model.RatingAverage)
-                                {
-                                    <i class="fas fa-star-half-alt text-yellow-400"></i>
-                                }
-                                else
-                                {
-                                    <i class="fas fa-star text-gray-300"></i>
-                                }
-                            }
+                            </div>
+                            <span class="font-medium text-gray-900">@Model.RatingAverage.ToString("F1")</span>
                         </div>
-                        <span class="font-medium text-gray-900">@Model.RatingAverage.ToString("F1")</span>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-500">Years of Experience</p>
+                        <p class="text-2xl font-bold text-blue-600">@Model.YearsExperience</p>
                     </div>
                 </div>
-                <div>
-                    <p class="text-sm text-gray-500">Years of Experience</p>
-                    <p class="text-2xl font-bold text-blue-600">@Model.YearsExperience</p>
+            </div>
+
+            <!-- Actions Card -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
+                <div class="space-y-3">
+                    @if (Model.IsSuspended)
+                    {
+                        <!-- Suspended Trainer - Only Reactivate Option -->
+                        <button type="button" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 reactivate-trainer-btn" data-trainer-id="@Model.Id">
+                            <i class="fas fa-redo-alt"></i>
+                            <span>Reactivate Account</span>
+                        </button>
+                    }
+                    else if (!Model.IsVerified)
+                    {
+                        <!-- Unverified Trainer - Verify or Reject Options -->
+                        <button type="button" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 verify-trainer-btn" data-trainer-id="@Model.Id">
+                            <i class="fas fa-check"></i>
+                            <span>Verify Trainer</span>
+                        </button>
+                        
+                        <button type="button" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 reject-trainer-btn" data-trainer-id="@Model.Id">
+                            <i class="fas fa-times"></i>
+                            <span>Reject Trainer</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <!-- Verified Trainer - Suspend Option -->
+                        <button type="button" class="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 suspend-trainer-btn" data-trainer-id="@Model.Id">
+                            <i class="fas fa-pause-circle"></i>
+                            <span>Suspend Account</span>
+                        </button>
+                    }
+                    
+                    <button type="button" class="w-full px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg transition font-medium flex items-center justify-center gap-2" id="email-trainer-btn">
+                        <i class="fas fa-envelope"></i>
+                        <span>Send Email</span>
+                    </button>
                 </div>
             </div>
         </div>
+    </div>
 
-        <!-- Actions Card -->
-        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Actions</h3>
-            <div class="space-y-3">
-                @if (Model.IsSuspended)
-                {
-                    <!-- Suspended Trainer - Only Reactivate Option -->
-                    <button type="button" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 reactivate-trainer-btn" data-trainer-id="@Model.Id">
-                        <i class="fas fa-redo-alt"></i>
-                        <span>Reactivate Account</span>
-                    </button>
-                }
-                else if (!Model.IsVerified)
-                {
-                    <!-- Unverified Trainer - Verify or Reject Options -->
-                    <button type="button" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 verify-trainer-btn" data-trainer-id="@Model.Id">
-                        <i class="fas fa-check"></i>
-                        <span>Verify Trainer</span>
-                    </button>
-                    
-                    <button type="button" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 reject-trainer-btn" data-trainer-id="@Model.Id">
-                        <i class="fas fa-times"></i>
-                        <span>Reject Trainer</span>
-                    </button>
-                }
-                else
-                {
-                    <!-- Verified Trainer - Suspend Option -->
-                    <button type="button" class="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 suspend-trainer-btn" data-trainer-id="@Model.Id">
-                        <i class="fas fa-pause-circle"></i>
-                        <span>Suspend Account</span>
-                    </button>
-                }
-                
-                <button type="button" class="w-full px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg transition font-medium flex items-center justify-center gap-2" id="email-trainer-btn">
-                    <i class="fas fa-envelope"></i>
-                    <span>Send Email</span>
-                </button>
+    <!-- Financial Summary - Horizontal Layout -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h3 class="text-lg font-semibold text-gray-900 mb-6">Financial Summary</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Total Earnings -->
+            <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
+                <div class="text-green-600 mb-2">
+                    <i class="fas fa-money-bill-wave text-3xl"></i>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Total Earnings</p>
+                <p class="text-3xl font-bold text-green-600 mt-2">@Model.TotalEarnings.ToString("C")</p>
+                <p class="text-xs text-gray-500 mt-1">@Model.Currency</p>
+            </div>
+
+            <!-- Platform Fees Gained -->
+            <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
+                <div class="text-blue-600 mb-2">
+                    <i class="fas fa-chart-pie text-3xl"></i>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Platform Fees Gained</p>
+                <p class="text-3xl font-bold text-blue-600 mt-2">@Model.PlatformFeesGained.ToString("C")</p>
+                <p class="text-xs text-gray-500 mt-1">Commission Earned</p>
+            </div>
+
+            <!-- Completed Payments -->
+            <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
+                <div class="text-purple-600 mb-2">
+                    <i class="fas fa-check-circle text-3xl"></i>
+                </div>
+                <p class="text-sm text-gray-600 font-medium">Completed Payments</p>
+                <p class="text-3xl font-bold text-purple-600 mt-2">@Model.CompletedPaymentsCount</p>
+                <p class="text-xs text-gray-500 mt-1">Successful Transactions</p>
             </div>
         </div>
     </div>
@@ -239,29 +284,91 @@
 
     <!-- Reviews Section -->
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Client Reviews</h3>
-        <div class="space-y-4">
-            <div class="p-4 border border-gray-200 rounded-lg">
-                <div class="flex items-start justify-between gap-4">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-2">
-                            <div class="flex items-center gap-1">
-                                @for (int i = 0; i < 5; i++)
-                                {
-                                    <i class="fas fa-star text-yellow-400"></i>
-                                }
+        <h3 class="text-lg font-semibold text-gray-900 mb-4">Client Reviews (@Model.TotalReviewsCount)</h3>
+        
+        @if (Model.Reviews.Any())
+        {
+            <div class="space-y-4">
+                @foreach (var review in Model.Reviews)
+                {
+                    <div class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <!-- Review Header -->
+                                <div class="flex items-center gap-3 mb-3">
+                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                        @review.ClientName.FirstOrDefault()
+                                    </div>
+                                    <div>
+                                        <p class="font-semibold text-gray-900">@review.ClientName</p>
+                                        <p class="text-sm text-gray-500">@review.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                                    </div>
+                                </div>
+
+                                <!-- Rating -->
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="flex items-center gap-1">
+                                        @for (int i = 0; i < 5; i++)
+                                        {
+                                            @if (i < review.Rating)
+                                            {
+                                                <i class="fas fa-star text-yellow-400"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-star text-gray-300"></i>
+                                            }
+                                        }
+                                    </div>
+                                    <span class="text-sm font-medium text-gray-900">@review.Rating.ToString("F1") rating</span>
+                                </div>
+
+                                <!-- Comment -->
+                                <div class="bg-gray-50 rounded-lg p-4 mb-3">
+                                    <p class="text-gray-700 text-sm">@(string.IsNullOrEmpty(review.Comment) ? "No comment provided" : review.Comment)</p>
+                                </div>
+
+                                <!-- Meta Info -->
+                                <div class="flex items-center gap-4 text-xs text-gray-500 pt-2 border-t border-gray-100">
+                                    <span>
+                                        @if (review.IsEdited && review.EditedAt.HasValue)
+                                        {
+                                            <span><i class="fas fa-edit mr-1"></i>Edited @review.EditedAt.Value.ToString("MMMM dd, yyyy")</span>
+                                        }
+                                        else
+                                        {
+                                            <span>Original review</span>
+                                        }
+                                    </span>
+                                    @if (review.IsApproved)
+                                    {
+                                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                            <i class="fas fa-check-circle"></i>
+                                            Approved
+                                        </span>
+                                    }
+                                </div>
                             </div>
-                            <p class="text-sm text-gray-500">5.0 rating</p>
                         </div>
-                        <p class="text-gray-700">Great trainer with excellent knowledge and approach.</p>
-                        <p class="text-xs text-gray-500 mt-2">Client - 2 days ago</p>
                     </div>
+                }
+            </div>
+
+            @if (Model.Reviews.Count > 10)
+            {
+                <div class="mt-4 text-center">
+                    <p class="text-sm text-gray-600">Showing first 10 reviews of @Model.TotalReviewsCount total</p>
                 </div>
+            }
+        }
+        else
+        {
+            <div class="text-center py-8">
+                <i class="fas fa-inbox text-3xl text-gray-300 mb-2"></i>
+                <p class="text-gray-600">No approved reviews found for this trainer</p>
+                <p class="text-sm text-gray-500 mt-1">Reviews are displayed once they are approved by admin</p>
             </div>
-            <div class="text-center text-gray-500 py-4">
-                <p class="text-sm">More reviews would be displayed in a paginated list</p>
-            </div>
-        </div>
+        }
     </div>
 </div>
 
@@ -497,7 +604,7 @@
 
         // Email button
         document.getElementById('email-trainer-btn').addEventListener('click', function() {
-            document.getElementById('trainerEmail').value = `@Model.UserName (@@${trainerHandle})`;
+            document.getElementById('trainerEmail').value = '@Model.Email';
             document.getElementById('emailSubject').value = '';
             document.getElementById('emailMessage').value = '';
             emailModal.classList.remove('hidden');

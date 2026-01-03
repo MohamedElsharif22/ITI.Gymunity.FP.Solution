@@ -1,13 +1,13 @@
 using AutoMapper;
-using ITI.Gymunity.FP.Application.DTOs.User;
+using ITI.Gymunity.FP.Application.DTOs.ClientDto;
 using ITI.Gymunity.FP.Application.Specefications.Admin;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Client;
+using ITI.Gymunity.FP.Domain.Models.Identity;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Application.Services.Admin
@@ -32,10 +32,9 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
         }
 
         /// <summary>
-        /// Get all clients with optional filtering and pagination
+        /// Get all clients with filtering and pagination
         /// </summary>
-        public async Task<IEnumerable<ClientResponse>> GetAllClientsAsync(
-            ClientFilterSpecs specs)
+        public async Task<IEnumerable<ClientListItemDto>> GetAllClientsAsync(ClientFilterSpecs specs)
         {
             try
             {
@@ -43,40 +42,125 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     .Repository<ClientProfile>()
                     .GetAllWithSpecsAsync(specs);
 
-                return _mapper.Map<IEnumerable<ClientResponse>>(clients);
+                return clients.Select(c => new ClientListItemDto
+                {
+                    UserId = c.UserId,
+                    FullName = c.User?.FullName ?? "Unknown",
+                    UserName = c.User?.UserName,
+                    Email = c.User?.Email,
+                    ProfilePhotoUrl = c.User?.ProfilePhotoUrl,
+                    CreatedAt = c.User?.CreatedAt ?? DateTime.UtcNow
+                }).ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving clients with specs");
+                _logger.LogError(ex, "Error retrieving all clients");
                 throw;
             }
         }
 
         /// <summary>
-        /// Get client by ID
+        /// Get client by ID with full details including subscriptions and payments
+        /// Uses specifications for efficient data loading with eager loading
         /// </summary>
-        public async Task<ClientResponse?> GetClientByIdAsync(int clientId)
+        public async Task<ClientDetailedResponse?> GetClientByIdAsync(string clientId)
         {
             try
             {
-                var client = await _unitOfWork
+                // Get client profile with related user data using specification
+                var clientSpec = new ClientDetailSpecs(clientId);
+                var clientProfile = await _unitOfWork
                     .Repository<ClientProfile>()
-                    .GetByIdAsync(clientId);
+                    .GetWithSpecsAsync(clientSpec);
 
-                if (client == null)
+                if (clientProfile == null)
+                {
+                    _logger.LogWarning("Client with ID {ClientId} not found", clientId);
                     return null;
+                }
 
-                return _mapper.Map<ClientResponse>(client);
+                // Get Subscriptions with all related data using specification
+                var subscriptionSpec = new ClientSubscriptionsSpecs(clientId);
+                var clientSubs = await _unitOfWork
+                    .Repository<ITI.Gymunity.FP.Domain.Models.Subscription>()
+                    .GetAllWithSpecsAsync(subscriptionSpec);
+
+                // Get Payments with all related data using specification
+                var paymentSpec = new ClientPaymentsSpecs(clientId);
+                var clientPayments = await _unitOfWork
+                    .Repository<ITI.Gymunity.FP.Domain.Models.Payment>()
+                    .GetAllWithSpecsAsync(paymentSpec);
+
+                // Build response
+                var response = new ClientDetailedResponse
+                {
+                    Id = clientProfile.Id,
+                    UserId = clientProfile.UserId,
+                    FullName = clientProfile.User?.FullName ?? "Unknown",
+                    Email = clientProfile.User?.Email,
+                    UserName = clientProfile.User?.UserName,
+                    ProfilePhotoUrl = clientProfile.User?.ProfilePhotoUrl,
+                    CreatedAt = clientProfile.User?.CreatedAt ?? DateTime.UtcNow,
+                    LastLoginAt = clientProfile.User?.LastLoginAt,
+                    IsVerified = clientProfile.User?.IsVerified ?? false,
+                    
+                    // Client Profile Data
+                    HeightCm = clientProfile.HeightCm,
+                    StartingWeightKg = clientProfile.StartingWeightKg,
+                    Gender = clientProfile.Gender,
+                    Goal = clientProfile.Goal,
+                    ExperienceLevel = clientProfile.ExperienceLevel,
+                    
+                    // Subscription Data
+                    TotalSubscriptions = clientSubs.Count(),
+                    ActiveSubscriptions = clientSubs.Count(s => s.Status == ITI.Gymunity.FP.Domain.Models.Enums.SubscriptionStatus.Active),
+                    
+                    // Payment Data
+                    TotalPaymentsCount = clientPayments.Count(),
+                    TotalAmountPaid = clientPayments.Where(p => p.Status == ITI.Gymunity.FP.Domain.Models.Enums.PaymentStatus.Completed).Sum(p => p.Amount),
+                    
+                    // Collections - map from eager-loaded data
+                    Subscriptions = clientSubs.Select(s => new ClientSubscriptionDto
+                    {
+                        Id = s.Id,
+                        PackageName = s.Package?.Name ?? "Unknown Package",
+                        TrainerHandle = s.Package?.Trainer?.Handle ?? "Unknown",
+                        Status = s.Status.ToString(),
+                        AmountPaid = s.Package?.PriceMonthly ?? 0,
+                        Currency = s.Package?.Currency ?? "EGP",
+                        IsAnnual = s.IsAnnual,
+                        StartDate = s.StartDate,
+                        CurrentPeriodEnd = s.CurrentPeriodEnd,
+                        CanceledAt = s.CanceledAt
+                    }).ToList(),
+                    
+                    Payments = clientPayments.Select(p => new ClientPaymentDto
+                    {
+                        Id = p.Id,
+                        PackageName = p.Subscription?.Package?.Name ?? "Unknown Package",
+                        TrainerName = p.Subscription?.Package?.Trainer?.User?.FullName ?? "Unknown",
+                        Amount = p.Amount,
+                        Currency = p.Currency,
+                        Status = p.Status.ToString(),
+                        Method = p.Method.ToString(),
+                        CreatedAt = p.CreatedAt,
+                        PaidAt = p.PaidAt,
+                        FailureReason = p.FailureReason
+                    }).ToList()
+                };
+
+                _logger.LogInformation("Retrieved client details for {ClientId}", clientId);
+                return response;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving client with ID {ClientId}", clientId);
+                _logger.LogError(ex, "Error retrieving client details for ID {ClientId}", clientId);
                 throw;
             }
         }
 
         /// <summary>
-        /// Get count of clients matching specification
+        /// Get total count of clients matching specifications
         /// </summary>
         public async Task<int> GetClientCountAsync(ClientFilterSpecs specs)
         {
@@ -89,6 +173,115 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting client count");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get total count of all clients
+        /// </summary>
+        public async Task<int> GetTotalClientCountAsync()
+        {
+            try
+            {
+                var specs = new ClientFilterSpecs();
+                return await _unitOfWork
+                    .Repository<ClientProfile>()
+                    .GetCountWithspecsAsync(specs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting total client count");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get active clients
+        /// </summary>
+        public async Task<IEnumerable<ClientListItemDto>> GetActiveClientsAsync(int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                var specs = new ClientFilterSpecs(pageNumber: pageNumber, pageSize: pageSize);
+                var clients = await _unitOfWork
+                    .Repository<ClientProfile>()
+                    .GetAllWithSpecsAsync(specs);
+
+                return clients.Select(c => new ClientListItemDto
+                {
+                    UserId = c.UserId,
+                    FullName = c.User?.FullName ?? "Unknown",
+                    UserName = c.User?.UserName,
+                    Email = c.User?.Email,
+                    ProfilePhotoUrl = c.User?.ProfilePhotoUrl,
+                    CreatedAt = c.User?.CreatedAt ?? DateTime.UtcNow
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving active clients");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get inactive/suspended clients
+        /// </summary>
+        public async Task<IEnumerable<ClientListItemDto>> GetInactiveClientsAsync(int pageNumber = 1, int pageSize = 10)
+        {
+            try
+            {
+                var specs = new ClientFilterSpecs(pageNumber: pageNumber, pageSize: pageSize);
+                var clients = await _unitOfWork
+                    .Repository<ClientProfile>()
+                    .GetAllWithSpecsAsync(specs);
+
+                return clients.Select(c => new ClientListItemDto
+                {
+                    UserId = c.UserId,
+                    FullName = c.User?.FullName ?? "Unknown",
+                    UserName = c.User?.UserName,
+                    Email = c.User?.Email,
+                    ProfilePhotoUrl = c.User?.ProfilePhotoUrl,
+                    CreatedAt = c.User?.CreatedAt ?? DateTime.UtcNow
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving inactive clients");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Search clients by name, email, or username
+        /// </summary>
+        public async Task<IEnumerable<ClientListItemDto>> SearchClientsAsync(
+            string searchTerm,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                var specs = new ClientFilterSpecs(pageNumber: pageNumber, pageSize: pageSize, searchTerm: searchTerm);
+                var clients = await _unitOfWork
+                    .Repository<ClientProfile>()
+                    .GetAllWithSpecsAsync(specs);
+
+                return clients.Select(c => new ClientListItemDto
+                {
+                    UserId = c.UserId,
+                    FullName = c.User?.FullName ?? "Unknown",
+                    UserName = c.User?.UserName,
+                    Email = c.User?.Email,
+                    ProfilePhotoUrl = c.User?.ProfilePhotoUrl,
+                    CreatedAt = c.User?.CreatedAt ?? DateTime.UtcNow
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching clients with term {SearchTerm}", searchTerm);
                 throw;
             }
         }
@@ -111,11 +304,10 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 }
 
                 client.IsDeleted = true;
-
                 _unitOfWork.Repository<ClientProfile>().Update(client);
                 await _unitOfWork.CompleteAsync();
 
-                _logger.LogInformation("Client {ClientId} suspended successfully", clientId);
+                _logger.LogInformation("Client {ClientId} suspended", clientId);
                 return true;
             }
             catch (Exception ex)
@@ -143,11 +335,10 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 }
 
                 client.IsDeleted = false;
-
                 _unitOfWork.Repository<ClientProfile>().Update(client);
                 await _unitOfWork.CompleteAsync();
 
-                _logger.LogInformation("Client {ClientId} reactivated successfully", clientId);
+                _logger.LogInformation("Client {ClientId} reactivated", clientId);
                 return true;
             }
             catch (Exception ex)
@@ -156,106 +347,72 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 throw;
             }
         }
+    }
 
-        /// <summary>
-        /// Get active clients
-        /// </summary>
-        public async Task<IEnumerable<ClientResponse>> GetActiveClientsAsync(
-            int pageNumber = 1,
-            int pageSize = 10)
-        {
-            try
-            {
-                var specs = new ClientFilterSpecs(
-                    isActive: true,
-                    pageNumber: pageNumber,
-                    pageSize: pageSize);
+    /// <summary>
+    /// Detailed client response DTO with subscriptions and payments
+    /// </summary>
+    public class ClientDetailedResponse
+    {
+        public int Id { get; set; }
+        public string UserId { get; set; } = null!;
+        public string FullName { get; set; } = null!;
+        public string? Email { get; set; }
+        public string? UserName { get; set; }
+        public string? ProfilePhotoUrl { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? LastLoginAt { get; set; }
+        public bool IsVerified { get; set; }
 
-                var clients = await _unitOfWork
-                    .Repository<ClientProfile>()
-                    .GetAllWithSpecsAsync(specs);
+        // Client Profile Data
+        public int? HeightCm { get; set; }
+        public decimal? StartingWeightKg { get; set; }
+        public string? Gender { get; set; }
+        public string? Goal { get; set; }
+        public string? ExperienceLevel { get; set; }
 
-                return _mapper.Map<IEnumerable<ClientResponse>>(clients.Select(c => c.User));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving active clients");
-                throw;
-            }
-        }
+        // Statistics
+        public int TotalSubscriptions { get; set; }
+        public int ActiveSubscriptions { get; set; }
+        public int TotalPaymentsCount { get; set; }
+        public decimal TotalAmountPaid { get; set; }
 
-        /// <summary>
-        /// Get inactive/suspended clients
-        /// </summary>
-        public async Task<IEnumerable<ClientResponse>> GetInactiveClientsAsync(
-            int pageNumber = 1,
-            int pageSize = 10)
-        {
-            try
-            {
-                var specs = new ClientFilterSpecs(
-                    isActive: false,
-                    pageNumber: pageNumber,
-                    pageSize: pageSize);
+        // Collections
+        public List<ClientSubscriptionDto> Subscriptions { get; set; } = new();
+        public List<ClientPaymentDto> Payments { get; set; } = new();
+    }
 
-                var clients = await _unitOfWork
-                    .Repository<ClientProfile>()
-                    .GetAllWithSpecsAsync(specs);
+    /// <summary>
+    /// Client subscription DTO for detailed view
+    /// </summary>
+    public class ClientSubscriptionDto
+    {
+        public int Id { get; set; }
+        public string PackageName { get; set; } = null!;
+        public string TrainerHandle { get; set; } = null!;
+        public string Status { get; set; } = null!;
+        public decimal AmountPaid { get; set; }
+        public string Currency { get; set; } = "EGP";
+        public bool IsAnnual { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime CurrentPeriodEnd { get; set; }
+        public DateTime? CanceledAt { get; set; }
+    }
 
-                return _mapper.Map<IEnumerable<ClientResponse>>(clients.Select(c => c.User));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving inactive clients");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Search clients by name, email, or username
-        /// </summary>
-        public async Task<IEnumerable<ClientResponse>> SearchClientsAsync(
-            string searchTerm,
-            int pageNumber = 1,
-            int pageSize = 10)
-        {
-            try
-            {
-                var specs = new ClientFilterSpecs(
-                    pageNumber: pageNumber,
-                    pageSize: pageSize,
-                    searchTerm: searchTerm);
-
-                var clients = await _unitOfWork
-                    .Repository<ClientProfile>()
-                    .GetAllWithSpecsAsync(specs);
-
-                return _mapper.Map<IEnumerable<ClientResponse>>(clients.Select(c => c.User));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error searching clients with term {SearchTerm}", searchTerm);
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Get total client count
-        /// </summary>
-        public async Task<int> GetTotalClientCountAsync()
-        {
-            try
-            {
-                var specs = new ClientFilterSpecs();
-                return await _unitOfWork
-                    .Repository<ClientProfile>()
-                    .GetCountWithspecsAsync(specs);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting total client count");
-                throw;
-            }
-        }
+    /// <summary>
+    /// Client payment DTO for detailed view
+    /// </summary>
+    public class ClientPaymentDto
+    {
+        public int Id { get; set; }
+        public string PackageName { get; set; } = null!;
+        public string TrainerName { get; set; } = null!;
+        public decimal Amount { get; set; }
+        public string Currency { get; set; } = "EGP";
+        public string Status { get; set; } = null!;
+        public string Method { get; set; } = null!;
+        public DateTime CreatedAt { get; set; }
+        public DateTime? PaidAt { get; set; }
+        public string? FailureReason { get; set; }
     }
 }
