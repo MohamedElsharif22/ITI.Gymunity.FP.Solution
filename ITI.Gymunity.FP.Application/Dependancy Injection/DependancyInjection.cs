@@ -77,6 +77,9 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             services.AddHttpClient();
             services.AddScoped<IChatBotService, ChatBotService>();
 
+            // AI Program service
+            services.AddScoped<IAiProgramService, AiProgramService>();
+            services.AddScoped<IProgramImportService, ProgramImportService>();
             //clients for trainer
             services.AddScoped<IClientService, ClientService>();
 
