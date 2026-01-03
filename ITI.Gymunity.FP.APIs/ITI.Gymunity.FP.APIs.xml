@@ -114,6 +114,11 @@
             POST: api/client/subscriptions/{id}/activate
             </summary>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.TrainerDiscoveryController.SearchTrainers">
+            <summary>
+            Search and browse all trainers with filters
+            </summary>
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Trainer.TrainerProfileController.GetMyProfile">
             <summary>
             Retrieves the profile details of the currently authenticated trainer.

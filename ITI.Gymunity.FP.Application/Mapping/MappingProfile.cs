@@ -45,6 +45,17 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.Gender, opt => opt.MapFrom(p => Enum.Parse<Gender>(p.Gender ?? "")));
 
 
+            CreateMap<TrainerProfile, TrainerCardDto>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.UserId))
+            .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.User.FullName))
+            .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom(src => src.User.ProfilePhotoUrl))
+            .ForMember(dest => dest.TotalReviews, opt => opt.MapFrom(src => src.TrainerReviews.Count))
+            .ForMember(dest => dest.Specializations, opt => opt.Ignore()) // Can be added if you have this field
+            .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => "EGP"))
+            .ForMember(dest => dest.HasActiveSubscription, opt => opt.Ignore());
+
+
+
             CreateMap<ClientProfile, ClientProfileDashboardResponse>()
                 .ForMember(dest => dest.UserName,
                     opt => opt.MapFrom(src => src.User != null ? src.User.UserName : "User"))
