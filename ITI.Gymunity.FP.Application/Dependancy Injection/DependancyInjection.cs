@@ -43,6 +43,7 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             services.AddScoped<OnboardingService>();
             services.AddScoped<BodyStateLogService>();
             services.AddScoped<WorkoutLogService>();
+            services.AddScoped<TrainerDiscoveryService>();
 
 
             // Subscription & Payment

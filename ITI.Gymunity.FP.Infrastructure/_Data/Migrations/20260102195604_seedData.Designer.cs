@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260102140653_seedData")]
+    [Migration("20260102195604_seedData")]
     partial class seedData
     {
         /// <inheritdoc />
@@ -1116,7 +1116,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                             ThumbnailUrl = "https://www.example.com/images/programs/beginner-strength-8w.jpg",
                             Title = "Beginner Strength - 8 Weeks",
                             TrainerId = "",
-                            TrainerProfileId = 6,
+                            TrainerProfileId = 1,
                             Type = 1,
                             UpdatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
@@ -3369,7 +3369,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                             PriceMonthly = 29.99m,
                             PromoCode = "STARTER6",
                             ThumbnailUrl = "https://www.example.com/images/packages/starter-pack.jpg",
-                            TrainerId = 6,
+                            TrainerId = 1,
                             UpdatedAt = new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });

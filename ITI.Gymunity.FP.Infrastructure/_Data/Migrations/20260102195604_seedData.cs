@@ -57,12 +57,12 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
             migrationBuilder.InsertData(
                 table: "Packages",
                 columns: new[] { "Id", "CreatedAt", "Currency", "Description", "FeaturesJson", "IsActive", "Name", "PriceMonthly", "PriceYearly", "PromoCode", "ThumbnailUrl", "TrainerId", "TrainerProfileId", "UpdatedAt" },
-                values: new object[] { 6001, new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc), "EGP", "8-week beginner program + monthly check-in", "{\"allPrograms\":false}", true, "Starter Pack", 29.99m, null, "STARTER6", "https://www.example.com/images/packages/starter-pack.jpg", 6, null, new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) });
+                values: new object[] { 6001, new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Utc), "EGP", "8-week beginner program + monthly check-in", "{\"allPrograms\":false}", true, "Starter Pack", 29.99m, null, "STARTER6", "https://www.example.com/images/packages/starter-pack.jpg", 1, null, new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) });
 
             migrationBuilder.InsertData(
                 table: "Programs",
                 columns: new[] { "Id", "CreatedAt", "Description", "DurationWeeks", "IsPublic", "MaxClients", "Price", "ThumbnailUrl", "Title", "TrainerId", "TrainerProfileId", "Type", "UpdatedAt" },
-                values: new object[] { 2001, new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "8-week foundational strength program", 8, true, 500, 49.99m, "https://www.example.com/images/programs/beginner-strength-8w.jpg", "Beginner Strength - 8 Weeks", "", 6, 1, new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) });
+                values: new object[] { 2001, new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)), "8-week foundational strength program", 8, true, 500, 49.99m, "https://www.example.com/images/programs/beginner-strength-8w.jpg", "Beginner Strength - 8 Weeks", "", 1, 1, new DateTimeOffset(new DateTime(2024, 1, 15, 10, 30, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)) });
 
             migrationBuilder.InsertData(
                 table: "PackagePrograms",

@@ -17,7 +17,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data
     {
         public static void SeedDatabase(ModelBuilder modelBuilder)
         {
-            var trainerProfileId = 6;
+            var trainerProfileId = 1;
             var fixedDateTime = new DateTime(2024, 1, 15, 10, 30, 0, DateTimeKind.Utc);
             var fixedDateTimeOffset = new DateTimeOffset(fixedDateTime);
 
