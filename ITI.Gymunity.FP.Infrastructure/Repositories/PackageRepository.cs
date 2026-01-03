@@ -38,5 +38,16 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  .Include(p => p.Trainer)
  .FirstOrDefaultAsync();
  }
+
+ public async Task<IReadOnlyList<Package>> GetAllActiveWithTrainerUserAsync()
+ {
+ return await _Context.Packages
+ .Where(p => p.IsActive && !p.IsDeleted)
+ .Include(p => p.Trainer)
+ .ThenInclude(t => t.User)
+ .Include(p => p.PackagePrograms)
+ .ThenInclude(pp => pp.Program)
+ .ToListAsync();
+ }
  }
 }

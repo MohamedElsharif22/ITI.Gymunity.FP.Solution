@@ -198,6 +198,28 @@
             <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.AuthResponse"/> if the password reset is
             successful; otherwise, a bad request response with error details.</returns>
         </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatBotController">
+            <summary>
+            Controller for chatbot that answers questions about packages
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatBotController.AskQuestion(ITI.Gymunity.FP.APIs.Controllers.ChatBotRequest)">
+            <summary>
+            Ask a question about packages
+            </summary>
+            <param name="request">The question to ask</param>
+            <returns>Answer from the chatbot</returns>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatBotRequest">
+            <summary>
+            Request model for chatbot
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatBotResponse">
+            <summary>
+            Response model for chatbot
+            </summary>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatController">
             <summary>
             Provides API endpoints for managing chat threads and messages for authenticated users.

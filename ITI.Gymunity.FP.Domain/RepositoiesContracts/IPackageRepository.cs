@@ -7,5 +7,6 @@ namespace ITI.Gymunity.FP.Domain.RepositoiesContracts
         Task<IReadOnlyList<Package>> GetByTrainerIdAsync(int trainerId);
         Task<IReadOnlyList<Package>> GetAllActiveWithProgramsAsync();
         Task<Package?> GetByIdWithProgramsAsync(int id);
+        Task<IReadOnlyList<Package>> GetAllActiveWithTrainerUserAsync();
     }
 }
