@@ -79,7 +79,8 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 SetPageTitle("Subscription Details");
                 SetBreadcrumbs("Dashboard", "Subscriptions", "Details");
 
-                var subscription = await _subscriptionService.GetSubscriptionByIdAsync(id);
+                // Use the method that loads trainer information with the specification
+                var subscription = await _subscriptionService.GetSubscriptionDetailsWithTrainerAsync(id);
                 if (subscription == null)
                 {
                     ShowErrorMessage("Subscription not found");
@@ -296,6 +297,144 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
             {
                 _logger.LogError(ex, "Error getting subscriptions JSON");
                 return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// AJAX endpoint for advanced subscription filtering with multiple criteria
+        /// Supports status, trainer, search term, and date range filters
+        /// </summary>
+        [HttpPost("subscriptions/filter")]
+        public async Task<IActionResult> FilterSubscriptions([FromBody] SubscriptionFilterRequest filterRequest)
+        {
+            try
+            {
+                if (filterRequest == null)
+                {
+                    return BadRequest(new { success = false, message = "Invalid filter request" });
+                }
+
+                // Get filtered subscriptions using specification
+                var subscriptions = await _subscriptionService.GetSubscriptionsWithAdvancedFilterAsync(
+                    status: filterRequest.Status,
+                    trainerId: filterRequest.TrainerId,
+                    searchTerm: filterRequest.SearchTerm,
+                    startDate: filterRequest.StartDate,
+                    endDate: filterRequest.EndDate,
+                    pageNumber: filterRequest.PageNumber,
+                    pageSize: filterRequest.PageSize);
+
+                // Get total count for pagination
+                var totalCount = await _subscriptionService.GetSubscriptionCountWithAdvancedFilterAsync(
+                    status: filterRequest.Status,
+                    trainerId: filterRequest.TrainerId,
+                    searchTerm: filterRequest.SearchTerm,
+                    startDate: filterRequest.StartDate,
+                    endDate: filterRequest.EndDate);
+
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / filterRequest.PageSize);
+
+                var filterResponse = new SubscriptionFilterResponse
+                {
+                    Subscriptions = subscriptions.Select(s => new SubscriptionFilterItem
+                    {
+                        Id = s.Id,
+                        ClientId = 0,
+                        ClientName = s.TrainerName ?? "Unknown",
+                        ClientEmail = "",
+                        PackageId = s.PackageId,
+                        PackageName = s.PackageName ?? "Unknown",
+                        TrainerId = 0,
+                        TrainerName = s.TrainerName ?? "Unknown",
+                        Amount = s.AmountPaid,
+                        Status = s.Status,
+                        StartDate = s.StartDate,
+                        CurrentPeriodEnd = s.CurrentPeriodEnd,
+                        CreatedAt = s.StartDate
+                    }),
+                    TotalCount = totalCount,
+                    PageNumber = filterRequest.PageNumber,
+                    PageSize = filterRequest.PageSize,
+                    HasNextPage = filterRequest.PageNumber < totalPages,
+                    HasPreviousPage = filterRequest.PageNumber > 1,
+                    TotalPages = totalPages
+                };
+
+                _logger.LogDebug("Applied subscription filters: Status={Status}, Trainer={Trainer}, Search={Search}",
+                    filterRequest.Status, filterRequest.TrainerId, filterRequest.SearchTerm);
+
+                return Json(new
+                {
+                    success = true,
+                    data = filterResponse
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error filtering subscriptions");
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Error applying filters",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// AJAX endpoint for getting subscription details with trainer information
+        /// </summary>
+        [HttpGet("subscriptions/{id}/details-ajax")]
+        public async Task<IActionResult> GetSubscriptionDetailsAjax(int id)
+        {
+            try
+            {
+                var subscription = await _subscriptionService.GetSubscriptionDetailsWithTrainerAsync(id);
+                if (subscription == null)
+                {
+                    return NotFound(new { success = false, message = "Subscription not found" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    data = subscription
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting subscription details for ID {SubscriptionId}", id);
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// AJAX endpoint for getting subscription statistics
+        /// </summary>
+        [HttpGet("subscriptions/stats")]
+        public async Task<IActionResult> GetSubscriptionStats()
+        {
+            try
+            {
+                var (activeCount, unpaidCount, canceledCount, totalRevenue) = 
+                    await _subscriptionService.GetSubscriptionStatsAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        activeCount,
+                        unpaidCount,
+                        canceledCount,
+                        totalRevenue
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting subscription statistics");
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
     }

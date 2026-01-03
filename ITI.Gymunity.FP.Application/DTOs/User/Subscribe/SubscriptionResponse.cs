@@ -18,6 +18,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.User.Subscribe
 
         // Trainer Info
         public string TrainerId { get; set; } = null!;
+        public int TrainerProfileId { get; set; }
         public string TrainerName { get; set; } = null!;
         public string TrainerHandle { get; set; } = null!;
         public string? TrainerPhotoUrl { get; set; }

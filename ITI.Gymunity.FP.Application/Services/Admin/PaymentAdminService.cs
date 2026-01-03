@@ -304,5 +304,147 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 throw;
             }
         }
+
+        /// <summary>
+        /// Get payment details with client and subscription information using specification
+        /// </summary>
+        public async Task<PaymentResponse?> GetPaymentDetailsWithClientAsync(int paymentId)
+        {
+            try
+            {
+                var spec = new PaymentDetailWithClientSpecs(paymentId);
+                var payments = await _unitOfWork
+                    .Repository<Domain.Models.Payment>()
+                    .GetAllWithSpecsAsync(spec);
+
+                var payment = payments.FirstOrDefault();
+                if (payment == null)
+                {
+                    _logger.LogWarning("Payment with ID {PaymentId} not found", paymentId);
+                    return null;
+                }
+
+                _logger.LogDebug("Retrieved payment {PaymentId} with client data", paymentId);
+                return _mapper.Map<PaymentResponse>(payment);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payment details with client for ID {PaymentId}", paymentId);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get all payments with advanced filtering using specification
+        /// Supports multiple filter criteria for AJAX requests
+        /// </summary>
+        public async Task<IEnumerable<PaymentResponse>> GetPaymentsWithAdvancedFilterAsync(
+            PaymentStatus? status = null,
+            string? clientSearch = null,
+            int? trainerProfileId = null,
+            decimal? minAmount = null,
+            decimal? maxAmount = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                var spec = new PaymentAdvancedFilterSpecs(
+                    status: status,
+                    clientSearch: clientSearch,
+                    trainerProfileId: trainerProfileId,
+                    minAmount: minAmount,
+                    maxAmount: maxAmount,
+                    startDate: startDate,
+                    endDate: endDate,
+                    pageNumber: pageNumber,
+                    pageSize: pageSize);
+
+                var payments = await _unitOfWork
+                    .Repository<Domain.Models.Payment>()
+                    .GetAllWithSpecsAsync(spec);
+
+                _logger.LogDebug("Retrieved {Count} payments with advanced filters", payments.Count());
+                return _mapper.Map<IEnumerable<PaymentResponse>>(payments);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payments with advanced filters");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get count of payments with advanced filtering
+        /// </summary>
+        public async Task<int> GetPaymentCountWithAdvancedFilterAsync(
+            PaymentStatus? status = null,
+            string? clientSearch = null,
+            int? trainerProfileId = null,
+            decimal? minAmount = null,
+            decimal? maxAmount = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null)
+        {
+            try
+            {
+                var spec = new PaymentAdvancedFilterSpecs(
+                    status: status,
+                    clientSearch: clientSearch,
+                    trainerProfileId: trainerProfileId,
+                    minAmount: minAmount,
+                    maxAmount: maxAmount,
+                    startDate: startDate,
+                    endDate: endDate);
+
+                return await _unitOfWork
+                    .Repository<Domain.Models.Payment>()
+                    .GetCountWithspecsAsync(spec);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment count with advanced filters");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get revenue statistics for dashboard
+        /// </summary>
+        public async Task<(int totalPayments, decimal totalRevenue, int completedCount, int failedCount)> GetPaymentStatsAsync()
+        {
+            try
+            {
+                var totalSpecs = new PaymentFilterSpecs();
+                var totalCount = await _unitOfWork
+                    .Repository<Domain.Models.Payment>()
+                    .GetCountWithspecsAsync(totalSpecs);
+
+                var completedSpecs = new PaymentFilterSpecs(status: PaymentStatus.Completed);
+                var completedPayments = await _unitOfWork
+                    .Repository<Domain.Models.Payment>()
+                    .GetAllWithSpecsAsync(completedSpecs);
+
+                var totalRevenue = completedPayments.Sum(p => p.Amount);
+                var completedCount = completedPayments.Count();
+
+                var failedSpecs = new PaymentFilterSpecs(status: PaymentStatus.Failed);
+                var failedCount = await _unitOfWork
+                    .Repository<Domain.Models.Payment>()
+                    .GetCountWithspecsAsync(failedSpecs);
+
+                _logger.LogDebug("Retrieved payment stats: Total={Total}, Revenue={Revenue}, Completed={Completed}, Failed={Failed}",
+                    totalCount, totalRevenue, completedCount, failedCount);
+
+                return (totalCount, totalRevenue, completedCount, failedCount);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving payment statistics");
+                throw;
+            }
+        }
     }
 }

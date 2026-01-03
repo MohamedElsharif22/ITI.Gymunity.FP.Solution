@@ -259,5 +259,145 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 throw;
             }
         }
+
+        /// <summary>
+        /// Get subscription details with trainer information using specification
+        /// </summary>
+        public async Task<SubscriptionResponse?> GetSubscriptionDetailsWithTrainerAsync(int subscriptionId)
+        {
+            try
+            {
+                var spec = new SubscriptionDetailWithTrainerSpecs(subscriptionId);
+                var subscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(spec);
+
+                var subscription = subscriptions.FirstOrDefault();
+                if (subscription == null)
+                {
+                    _logger.LogWarning("Subscription with ID {SubscriptionId} not found", subscriptionId);
+                    return null;
+                }
+
+                _logger.LogDebug("Retrieved subscription {SubscriptionId} with trainer data", subscriptionId);
+                return _mapper.Map<SubscriptionResponse>(subscription);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subscription details with trainer for ID {SubscriptionId}", subscriptionId);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get all subscriptions with advanced filtering using specification
+        /// Supports multiple filter criteria for AJAX requests
+        /// </summary>
+        public async Task<IEnumerable<SubscriptionResponse>> GetSubscriptionsWithAdvancedFilterAsync(
+            SubscriptionStatus? status = null,
+            int? trainerId = null,
+            string? searchTerm = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            int pageNumber = 1,
+            int pageSize = 10)
+        {
+            try
+            {
+                var spec = new SubscriptionAdvancedFilterSpecs(
+                    status: status,
+                    trainerId: trainerId,
+                    searchTerm: searchTerm,
+                    startDate: startDate,
+                    endDate: endDate,
+                    pageNumber: pageNumber,
+                    pageSize: pageSize);
+
+                var subscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(spec);
+
+                _logger.LogDebug("Retrieved {Count} subscriptions with advanced filters", subscriptions.Count());
+                return _mapper.Map<IEnumerable<SubscriptionResponse>>(subscriptions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subscriptions with advanced filters");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get count of subscriptions with advanced filtering
+        /// </summary>
+        public async Task<int> GetSubscriptionCountWithAdvancedFilterAsync(
+            SubscriptionStatus? status = null,
+            int? trainerId = null,
+            string? searchTerm = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null)
+        {
+            try
+            {
+                var spec = new SubscriptionAdvancedFilterSpecs(
+                    status: status,
+                    trainerId: trainerId,
+                    searchTerm: searchTerm,
+                    startDate: startDate,
+                    endDate: endDate);
+
+                return await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetCountWithspecsAsync(spec);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting subscription count with advanced filters");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get subscription statistics for dashboard
+        /// </summary>
+        public async Task<(int activeCount, int unpaidCount, int canceledCount, decimal totalRevenue)> GetSubscriptionStatsAsync()
+        {
+            try
+            {
+                var activeCount = await GetActiveSubscriptionCountAsync();
+                
+                var unpaidSpecs = new SubscriptionFilterSpecs(status: SubscriptionStatus.Unpaid);
+                var unpaidCount = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetCountWithspecsAsync(unpaidSpecs);
+
+                var canceledSpecs = new SubscriptionFilterSpecs(status: SubscriptionStatus.Canceled);
+                var canceledCount = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetCountWithspecsAsync(canceledSpecs);
+
+                // Calculate total revenue from active subscriptions using specification
+                var activeWithPaymentsSpecs = new ActiveSubscriptionsWithPaymentsSpecs();
+                var activeSubscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(activeWithPaymentsSpecs);
+
+                // Sum completed payment amounts from active subscriptions
+                var totalRevenue = activeSubscriptions
+                    .SelectMany(s => s.Payments ?? new List<Payment>())
+                    .Where(p => p.Status == PaymentStatus.Completed && !p.IsDeleted)
+                    .Sum(p => p.Amount);
+
+                _logger.LogDebug("Retrieved subscription stats: Active={Active}, Unpaid={Unpaid}, Canceled={Canceled}, Revenue={Revenue}",
+                    activeCount, unpaidCount, canceledCount, totalRevenue);
+
+                return (activeCount, unpaidCount, canceledCount, totalRevenue);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subscription statistics");
+                throw;
+            }
+        }
     }
 }

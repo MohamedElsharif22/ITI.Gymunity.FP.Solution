@@ -123,6 +123,12 @@ namespace ITI.Gymunity.FP.Application.Mapping
                             ? src.Package.Trainer.UserId
                             : string.Empty))
 
+                .ForMember(dest => dest.TrainerProfileId,
+                    opt => opt.MapFrom(src =>
+                        src.Package != null && src.Package.Trainer != null
+                            ? src.Package.Trainer.Id
+                            : 0))
+
                 .ForMember(dest => dest.TrainerName,
                     opt => opt.MapFrom(src =>
                         src.Package != null && src.Package.Trainer != null && src.Package.Trainer.User != null
@@ -150,18 +156,97 @@ namespace ITI.Gymunity.FP.Application.Mapping
             CreateMap<Payment, PaymentResponse>()
                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
                .ForMember(dest => dest.SubscriptionId, opt => opt.MapFrom(src => src.SubscriptionId))
+               
+               // Client Information
+               .ForMember(dest => dest.ClientId, opt => opt.MapFrom(src => src.ClientId))
+               .ForMember(dest => dest.ClientName, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Client != null
+                       ? src.Subscription.Client.FullName
+                       : string.Empty))
+               .ForMember(dest => dest.ClientEmail, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Client != null
+                       ? src.Subscription.Client.Email ?? string.Empty
+                       : string.Empty))
+               
+               // Subscription & Package Information
+               .ForMember(dest => dest.PackageId, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null
+                       ? src.Subscription.Package.Id
+                       : 0))
+               .ForMember(dest => dest.PackageName, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null
+                       ? src.Subscription.Package.Name
+                       : string.Empty))
+               .ForMember(dest => dest.SubscriptionStatus, opt => opt.MapFrom(src =>
+                   src.Subscription != null 
+                       ? (SubscriptionStatus?)src.Subscription.Status
+                       : null))
+               .ForMember(dest => dest.SubscriptionStartDate, opt => opt.MapFrom(src =>
+                   src.Subscription != null 
+                       ? (DateTime?)src.Subscription.StartDate
+                       : null))
+               .ForMember(dest => dest.SubscriptionEndDate, opt => opt.MapFrom(src =>
+                   src.Subscription != null 
+                       ? (DateTime?)src.Subscription.CurrentPeriodEnd
+                       : null))
+               .ForMember(dest => dest.IsAnnualSubscription, opt => opt.MapFrom(src =>
+                   src.Subscription != null 
+                       ? src.Subscription.IsAnnual
+                       : false))
+               
+               // Trainer Information
+               .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null && src.Subscription.Package.Trainer != null
+                       ? src.Subscription.Package.Trainer.Id
+                       : 0))
+               .ForMember(dest => dest.TrainerName, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null && src.Subscription.Package.Trainer != null && src.Subscription.Package.Trainer.User != null
+                       ? src.Subscription.Package.Trainer.User.FullName
+                       : string.Empty))
+               .ForMember(dest => dest.TrainerHandle, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null && src.Subscription.Package.Trainer != null
+                       ? src.Subscription.Package.Trainer.Handle
+                       : null))
+               .ForMember(dest => dest.IsTrainerVerified, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null && src.Subscription.Package.Trainer != null
+                       ? src.Subscription.Package.Trainer.IsVerified
+                       : false))
+               .ForMember(dest => dest.TrainerRating, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null && src.Subscription.Package.Trainer != null
+                       ? (decimal?)src.Subscription.Package.Trainer.RatingAverage
+                       : null))
+               .ForMember(dest => dest.TrainerTotalClients, opt => opt.MapFrom(src =>
+                   src.Subscription != null && src.Subscription.Package != null && src.Subscription.Package.Trainer != null
+                       ? (int?)src.Subscription.Package.Trainer.TotalClients
+                       : null))
+               
+               // Payment Amount Details
                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount))
                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency))
+               .ForMember(dest => dest.PlatformFee, opt => opt.MapFrom(src => src.PlatformFee))
+               .ForMember(dest => dest.TrainerPayout, opt => opt.MapFrom(src => src.TrainerPayout))
+               
+               // Status & Method
                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status))
                .ForMember(dest => dest.Method, opt => opt.MapFrom(src => src.Method))
-               .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
-               .ForMember(dest => dest.PaidAt, opt => opt.MapFrom(src => src.PaidAt))
-               .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason))
+               
+               // Transaction Information
                .ForMember(dest => dest.TransactionId, opt => opt.MapFrom(src =>
-                   src.Method == Domain.Models.Enums.PaymentMethod.Paymob
+                   src.Method == PaymentMethod.Paymob
                        ? src.PaymobTransactionId
                        : src.PayPalCaptureId))
-               .ForMember(dest => dest.PaymentUrl, opt => opt.Ignore()); // Will be set manually
+               .ForMember(dest => dest.FailureReason, opt => opt.MapFrom(src => src.FailureReason))
+               
+               // Payment URLs
+               .ForMember(dest => dest.PaymentUrl, opt => opt.Ignore())
+               .ForMember(dest => dest.PaymobOrderId, opt => opt.MapFrom(src => src.PaymobOrderId))
+               .ForMember(dest => dest.PayPalOrderId, opt => opt.MapFrom(src => src.PayPalOrderId))
+               
+               // Dates
+               .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+               .ForMember(dest => dest.PaidAt, opt => opt.MapFrom(src => src.PaidAt))
+               .ForMember(dest => dest.FailedAt, opt => opt.MapFrom(src => src.FailedAt));
+
 
             // Message mappings
             CreateMap<Message, MessageResponse>()
@@ -170,12 +255,6 @@ namespace ITI.Gymunity.FP.Application.Mapping
 
             // Notification mappings
             CreateMap<Notification, NotificationResponse>();
-
-            CreateMap<Payment, PaymentResponse>()
-               .ForMember(d => d.TransactionId,
-                   o => o.MapFrom(s => s.PaymobTransactionId ?? s.PayPalOrderId))
-               .ForMember(d => d.PaymentUrl,
-                   o => o.Ignore());
 
             //start amr mapping
 

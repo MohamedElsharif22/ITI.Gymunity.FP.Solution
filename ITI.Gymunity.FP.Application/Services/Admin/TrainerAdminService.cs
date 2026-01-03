@@ -2,6 +2,8 @@ using AutoMapper;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Specefications.Admin;
 using ITI.Gymunity.FP.Domain;
+using ITI.Gymunity.FP.Domain.Models;
+using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using Microsoft.Extensions.Logging;
 using System;
@@ -78,7 +80,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
         /// <summary>
         /// Get trainer details for admin view including earnings and reviews
         /// </summary>
-        public async Task<(TrainerProfileDetailResponse? trainer, List<ITI.Gymunity.FP.Domain.Models.Trainer.TrainerReview> reviews, decimal totalEarnings, decimal platformFees, int completedPaymentsCount)> GetTrainerDetailsForAdminAsync(int id)
+        public async Task<(TrainerProfileDetailResponse? trainer, List<TrainerReview> reviews, decimal totalEarnings, decimal platformFees, int completedPaymentsCount)> GetTrainerDetailsForAdminAsync(int id)
         {
             try
             {
@@ -130,26 +132,35 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
         private async Task<decimal> ComputeAvailableBalanceAsync(int trainerProfileId)
         {
-            // Find package ids for trainer
-            var packageRepo = _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Trainer.Package>();
-            var packages = await packageRepo.GetAllAsync();
-            var trainerPackageIds = packages.Where(p => p.TrainerId == trainerProfileId).Select(p => p.Id).ToList();
+            try
+            {
+                // Use specification pattern to load trainer's packages with completed payments
+                var spec = new TrainerPackagesWithEarningsSpecs(trainerProfileId);
+                var packages = await _unitOfWork.Repository<Package>()
+                    .GetAllWithSpecsAsync(spec);
 
-            if (!trainerPackageIds.Any()) return 0m;
+                if (!packages.Any()) 
+                {
+                    _logger.LogDebug("No packages found for trainer {TrainerId}", trainerProfileId);
+                    return 0m;
+                }
 
-            // Query payments with specs: payments where subscription.packageId in trainerPackageIds and status == Completed
-            var paymentRepo = _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Payment>();
-            var allPayments = await paymentRepo.GetAllAsync();
+                // Calculate total trainer payout from all completed payments across all packages
+                var totalPayout = packages
+                    .SelectMany(p => p.Subscriptions ?? new List<Subscription>())  // Get all subscriptions for all packages
+                    .SelectMany(s => s.Payments ?? new List<Payment>())             // Get all payments for each subscription
+                    .Where(p => p.Status == PaymentStatus.Completed && !p.IsDeleted) // Only completed, non-deleted payments
+                    .Sum(p => p.TrainerPayout);                                     // Sum trainer payouts
 
-            var paymentsForTrainer = allPayments.Where(p => p.Status == ITI.Gymunity.FP.Domain.Models.Enums.PaymentStatus.Completed
-                                                           && trainerPackageIds.Contains(p.Subscription.PackageId));
-
-            var totalPayout = paymentsForTrainer.Sum(p => p.TrainerPayout);
-
-            // If there is a Payouts table or records of payouts to trainers, subtract them here.
-            // Currently there's no payouts entity in the project; assume platform holds funds until admin pays out.
-
-            return totalPayout;
+                _logger.LogDebug("Calculated available balance for trainer {TrainerId}: {Balance}", trainerProfileId, totalPayout);
+                return totalPayout;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error computing available balance for trainer {TrainerId}", trainerProfileId);
+                // Return 0 on error to prevent service failure
+                return 0m;
+            }
         }
 
         /// <summary>

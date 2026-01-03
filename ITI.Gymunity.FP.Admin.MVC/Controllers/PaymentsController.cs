@@ -85,7 +85,8 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 SetPageTitle("Payment Details");
                 SetBreadcrumbs("Dashboard", "Payments", "Details");
 
-                var payment = await _paymentService.GetPaymentByIdAsync(id);
+                // Use the method that loads all client and subscription information with the specification
+                var payment = await _paymentService.GetPaymentDetailsWithClientAsync(id);
                 if (payment == null)
                 {
                     ShowErrorMessage("Payment not found");
@@ -296,6 +297,121 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
             {
                 _logger.LogError(ex, "Error getting payments JSON");
                 return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// AJAX endpoint for advanced payment filtering with multiple criteria
+        /// Supports status, client, trainer, amount range, and date range filters
+        /// </summary>
+        [HttpPost("payments/filter")]
+        public async Task<IActionResult> FilterPayments([FromBody] PaymentFilterRequest filterRequest)
+        {
+            try
+            {
+                if (filterRequest == null)
+                {
+                    return BadRequest(new { success = false, message = "Invalid filter request" });
+                }
+
+                // Get filtered payments using specification
+                var payments = await _paymentService.GetPaymentsWithAdvancedFilterAsync(
+                    status: filterRequest.Status,
+                    clientSearch: filterRequest.ClientSearch,
+                    trainerProfileId: filterRequest.TrainerProfileId,
+                    minAmount: filterRequest.MinAmount,
+                    maxAmount: filterRequest.MaxAmount,
+                    startDate: filterRequest.StartDate,
+                    endDate: filterRequest.EndDate,
+                    pageNumber: filterRequest.PageNumber,
+                    pageSize: filterRequest.PageSize);
+
+                // Get total count for pagination
+                var totalCount = await _paymentService.GetPaymentCountWithAdvancedFilterAsync(
+                    status: filterRequest.Status,
+                    clientSearch: filterRequest.ClientSearch,
+                    trainerProfileId: filterRequest.TrainerProfileId,
+                    minAmount: filterRequest.MinAmount,
+                    maxAmount: filterRequest.MaxAmount,
+                    startDate: filterRequest.StartDate,
+                    endDate: filterRequest.EndDate);
+
+                int totalPages = (int)Math.Ceiling((decimal)totalCount / filterRequest.PageSize);
+
+                var filterResponse = new
+                {
+                    success = true,
+                    data = new
+                    {
+                        payments = payments.Select(p => new
+                        {
+                            id = p.Id,
+                            clientName = p.ClientName,
+                            clientEmail = p.ClientEmail,
+                            packageName = p.PackageName,
+                            trainerName = p.TrainerName,
+                            amount = p.Amount,
+                            currency = p.Currency,
+                            status = p.Status.ToString(),
+                            method = p.Method.ToString(),
+                            createdAt = p.CreatedAt.ToString("MMM dd, yyyy HH:mm"),
+                            paidAt = p.PaidAt?.ToString("MMM dd, yyyy HH:mm"),
+                            failureReason = p.FailureReason
+                        }),
+                        totalCount = totalCount,
+                        pageNumber = filterRequest.PageNumber,
+                        pageSize = filterRequest.PageSize,
+                        hasNextPage = filterRequest.PageNumber < totalPages,
+                        hasPreviousPage = filterRequest.PageNumber > 1,
+                        totalPages = totalPages,
+                        totalRevenue = payments.Sum(p => p.Amount)
+                    }
+                };
+
+                _logger.LogDebug("Applied payment filters: Status={Status}, Client={Client}, Trainer={Trainer}",
+                    filterRequest.Status, filterRequest.ClientSearch, filterRequest.TrainerProfileId);
+
+                return Json(filterResponse);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error filtering payments");
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Error applying filters",
+                    error = ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// AJAX endpoint for getting payment statistics
+        /// </summary>
+        [HttpGet("payments/stats")]
+        public async Task<IActionResult> GetPaymentStats()
+        {
+            try
+            {
+                var (totalPayments, totalRevenue, completedCount, failedCount) =
+                    await _paymentService.GetPaymentStatsAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    data = new
+                    {
+                        totalPayments,
+                        totalRevenue,
+                        completedCount,
+                        failedCount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment statistics");
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
     }

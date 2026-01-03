@@ -8,6 +8,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
     /// <summary>
     /// Admin Dashboard Controller
     /// Displays key metrics, charts, and system overview.
+    /// Provides dynamic data loading with aggregations and analytics.
     /// </summary>
     [Authorize(Roles = "Admin")]
     [Route("admin")]
@@ -52,7 +53,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         /// <summary>
         /// Refreshes dashboard data (API endpoint).
         /// </summary>
-        [HttpPost("refresh")]
+        [HttpPost("dashboard/refresh")]
         public async Task<IActionResult> Refresh()
         {
             try
@@ -70,7 +71,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         /// <summary>
         /// Gets dashboard statistics (API endpoint).
         /// </summary>
-        [HttpGet("stats")]
+        [HttpGet("dashboard/stats")]
         public async Task<IActionResult> GetStatistics()
         {
             try
@@ -79,9 +80,14 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 return Ok(new
                 {
                     totalUsers = model.TotalUsers,
+                    totalClients = model.TotalClients,
                     totalTrainers = model.TotalTrainers,
+                    unverifiedTrainers = model.UnverifiedTrainers,
                     activeSubscriptions = model.ActiveSubscriptions,
                     totalRevenue = model.TotalRevenue,
+                    failedPayments = model.FailedPayments,
+                    pendingReviews = model.PendingReviews,
+                    systemHealth = model.SystemHealth,
                     usersTrend = model.UsersTrend,
                     trainersTrend = model.TrainersTrend,
                     subscriptionsTrend = model.SubscriptionsTrend,
@@ -98,8 +104,8 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         /// <summary>
         /// Gets chart data for revenue trends.
         /// </summary>
-        [HttpGet("chart-data")]
-        public async Task<IActionResult> GetChartData([FromQuery] int days = 30)
+        [HttpGet("dashboard/chart-data/revenue")]
+        public async Task<IActionResult> GetRevenueChartData([FromQuery] int days = 30)
         {
             try
             {
@@ -111,16 +117,37 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting chart data");
-                return BadRequest(new { success = false, message = "Error getting chart data" });
+                _logger.LogError(ex, "Error getting revenue chart data");
+                return BadRequest(new { success = false, message = "Error getting revenue chart data" });
+            }
+        }
+
+        /// <summary>
+        /// Gets subscription growth chart data.
+        /// </summary>
+        [HttpGet("dashboard/chart-data/subscriptions")]
+        public async Task<IActionResult> GetSubscriptionChartData([FromQuery] int days = 30)
+        {
+            try
+            {
+                if (days < 7 || days > 365)
+                    days = 30;
+
+                var chartData = await _dashboardService.GetSubscriptionGrowthChartDataAsync(days);
+                return Ok(chartData);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting subscription chart data");
+                return BadRequest(new { success = false, message = "Error getting subscription chart data" });
             }
         }
 
         /// <summary>
         /// Gets user distribution chart data.
         /// </summary>
-        [HttpGet("user-distribution")]
-        public async Task<IActionResult> GetUserDistribution()
+        [HttpGet("dashboard/chart-data/users")]
+        public async Task<IActionResult> GetUserDistributionChartData()
         {
             try
             {
@@ -131,6 +158,42 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
             {
                 _logger.LogError(ex, "Error getting user distribution data");
                 return BadRequest(new { success = false, message = "Error getting user distribution data" });
+            }
+        }
+
+        /// <summary>
+        /// Gets payment status breakdown chart data.
+        /// </summary>
+        [HttpGet("dashboard/chart-data/payments")]
+        public async Task<IActionResult> GetPaymentStatusChartData()
+        {
+            try
+            {
+                var chartData = await _dashboardService.GetPaymentStatusChartDataAsync();
+                return Ok(chartData);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment status data");
+                return BadRequest(new { success = false, message = "Error getting payment status data" });
+            }
+        }
+
+        /// <summary>
+        /// Gets subscription status breakdown chart data.
+        /// </summary>
+        [HttpGet("dashboard/chart-data/subscription-status")]
+        public async Task<IActionResult> GetSubscriptionStatusChartData()
+        {
+            try
+            {
+                var chartData = await _dashboardService.GetSubscriptionStatusChartDataAsync();
+                return Ok(chartData);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting subscription status data");
+                return BadRequest(new { success = false, message = "Error getting subscription status data" });
             }
         }
     }

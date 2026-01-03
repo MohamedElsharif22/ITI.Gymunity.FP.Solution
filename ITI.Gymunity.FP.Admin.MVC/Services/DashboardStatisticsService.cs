@@ -1,16 +1,19 @@
 using ITI.Gymunity.FP.Admin.MVC.ViewModels.Dashboard;
 using ITI.Gymunity.FP.Admin.MVC.ViewModels.Dashboard.Components;
+using ITI.Gymunity.FP.Application.Specefications.Admin;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Identity;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using Microsoft.AspNetCore.Identity;
+using DomainPayment = ITI.Gymunity.FP.Domain.Models.Payment;
 
 namespace ITI.Gymunity.FP.Admin.MVC.Services
 {
     /// <summary>
     /// Service for retrieving dashboard statistics and analysis
+    /// Implements aggregation and analytics with efficient database queries
     /// </summary>
     public class DashboardStatisticsService
     {
@@ -30,6 +33,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
 
         /// <summary>
         /// Get complete dashboard overview with all statistics
+        /// Uses specifications for efficient data loading
         /// </summary>
         public async Task<DashboardOverviewViewModel> GetDashboardOverviewAsync()
         {
@@ -37,50 +41,68 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
             {
                 var model = new DashboardOverviewViewModel();
 
-                // Get subscription data
-                var subscriptions = await _unitOfWork.Repository<Subscription>().GetAllAsync();
-                var activeSubscriptions = subscriptions.Where(s => s.Status == SubscriptionStatus.Active).ToList();
-                
+                // Get subscription analytics
+                var subscriptionsSpec = new DashboardSubscriptionAnalyticsSpecs();
+                var allSubscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(subscriptionsSpec);
+
+                var activeSubscriptions = allSubscriptions
+                    .Where(s => s.Status == SubscriptionStatus.Active)
+                    .ToList();
+
                 model.ActiveSubscriptions = activeSubscriptions.Count;
-                model.SubscriptionsTrend = 24;
+                model.SubscriptionsTrend = await CalculateSubscriptionTrendAsync();
 
-                // Get payment data
-                var payments = await _unitOfWork.Repository<Payment>().GetAllAsync();
-                var completedPayments = payments.Where(p => p.Status == PaymentStatus.Completed).ToList();
-                
+                // Get payment analytics
+                var paymentSpec = new DashboardPaymentAnalyticsSpecs();
+                var allPayments = await _unitOfWork
+                    .Repository<DomainPayment>()
+                    .GetAllWithSpecsAsync(paymentSpec);
+
+                var completedPayments = allPayments
+                    .Where(p => p.Status == PaymentStatus.Completed)
+                    .ToList();
+
                 model.TotalRevenue = completedPayments.Sum(p => p.Amount);
-                model.RevenueTrend = 15;
+                model.RevenueTrend = await CalculateRevenueTrendAsync();
 
-                // Get trainer profiles
-                var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllAsync();
-                model.TotalTrainers = trainers.Count();
-                model.TrainersTrend = 8;
+                // Get trainer analytics
+                var trainersSpec = new DashboardTrainerAnalyticsSpecs();
+                var allTrainers = await _unitOfWork
+                    .Repository<TrainerProfile>()
+                    .GetAllWithSpecsAsync(trainersSpec);
 
-                // Get total users count (approximate from subscriptions and trainers)
-                model.TotalUsers = trainers.Count() + activeSubscriptions.Count + 100; // Approximation
-                model.UsersTrend = 12;
+                var verifiedTrainers = allTrainers.Where(t => t.IsVerified).ToList();
+                model.TotalTrainers = verifiedTrainers.Count;
+                model.UnverifiedTrainers = allTrainers.Count() - model.TotalTrainers;
+                model.TrainersTrend = await CalculateTrainerTrendAsync();
 
-                // Get trainer reviews (pending approval)
-                var trainerReviews = await _unitOfWork.Repository<TrainerReview>().GetAllAsync();
-                model.PendingReviews = trainerReviews.Count(r => !r.IsApproved);
+                // Calculate total users (clients + trainers)
+                var uniqueClients = allSubscriptions
+                    .Select(s => s.ClientId)
+                    .Distinct()
+                    .Count();
 
-                // Get unverified trainers
-                model.UnverifiedTrainers = trainers.Count(t => !t.IsVerified);
+                model.TotalUsers = uniqueClients + model.TotalTrainers;
+                model.TotalClients = uniqueClients;
+                model.UsersTrend = await CalculateUserTrendAsync();
 
-                // Get failed payments
-                model.FailedPayments = payments.Count(p => p.Status == PaymentStatus.Failed);
-
-                // System health
-                model.SystemHealth = 98;
+                // Get pending/alert metrics
+                model.PendingReviews = await GetPendingReviewsCountAsync();
+                model.FailedPayments = allPayments.Count(p => p.Status == PaymentStatus.Failed);
+                model.SystemHealth = 98; // Default system health
 
                 // Populate statistics cards
                 model.StatisticsCards = GetStatisticsCards(model);
 
                 // Get top trainers
-                model.TopTrainers = GetTopTrainers(trainers);
+                model.TopTrainers = GetTopTrainers(verifiedTrainers);
 
                 // Get recent activities
-                model.RecentActivities = GetRecentActivities();
+                model.RecentActivities = await GetRecentActivitiesAsync(
+                    allSubscriptions.ToList(), 
+                    allPayments.ToList());
 
                 _logger.LogInformation("Dashboard overview generated successfully");
                 return model;
@@ -89,6 +111,172 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
             {
                 _logger.LogError(ex, "Error generating dashboard overview");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Calculate subscription trend (percentage change from last period)
+        /// </summary>
+        private async Task<decimal> CalculateSubscriptionTrendAsync()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var currentPeriodStart = now.AddDays(-30);
+                var previousPeriodStart = now.AddDays(-60);
+
+                var currentSpec = new DashboardSubscriptionAnalyticsSpecs(currentPeriodStart, now);
+                var previousSpec = new DashboardSubscriptionAnalyticsSpecs(previousPeriodStart, currentPeriodStart);
+
+                var currentCount = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetCountWithspecsAsync(currentSpec);
+
+                var previousCount = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetCountWithspecsAsync(previousSpec);
+
+                if (previousCount == 0) return 0;
+                return ((currentCount - previousCount) / (decimal)previousCount) * 100;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating subscription trend");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Calculate revenue trend (percentage change from last period)
+        /// </summary>
+        private async Task<decimal> CalculateRevenueTrendAsync()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var currentPeriodStart = now.AddDays(-30);
+                var previousPeriodStart = now.AddDays(-60);
+
+                var currentSpec = new DashboardPaymentAnalyticsSpecs(currentPeriodStart, now);
+                var previousSpec = new DashboardPaymentAnalyticsSpecs(previousPeriodStart, currentPeriodStart);
+
+                var currentPayments = await _unitOfWork
+                    .Repository<DomainPayment>()
+                    .GetAllWithSpecsAsync(currentSpec);
+
+                var previousPayments = await _unitOfWork
+                    .Repository<DomainPayment>()
+                    .GetAllWithSpecsAsync(previousSpec);
+
+                var currentRevenue = currentPayments
+                    .Where(p => p.Status == PaymentStatus.Completed)
+                    .Sum(p => p.Amount);
+
+                var previousRevenue = previousPayments
+                    .Where(p => p.Status == PaymentStatus.Completed)
+                    .Sum(p => p.Amount);
+
+                if (previousRevenue == 0) return 0;
+                return ((currentRevenue - previousRevenue) / previousRevenue) * 100;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating revenue trend");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Calculate trainer trend (percentage change)
+        /// </summary>
+        private async Task<decimal> CalculateTrainerTrendAsync()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var currentPeriodStart = now.AddDays(-30);
+                var previousPeriodStart = now.AddDays(-60);
+
+                var allTrainers = await _unitOfWork
+                    .Repository<TrainerProfile>()
+                    .GetAllAsync();
+
+                var currentCount = allTrainers
+                    .Where(t => t.VerifiedAt.HasValue && t.VerifiedAt >= currentPeriodStart)
+                    .Count();
+
+                var previousCount = allTrainers
+                    .Where(t => t.VerifiedAt.HasValue && 
+                               t.VerifiedAt >= previousPeriodStart && 
+                               t.VerifiedAt < currentPeriodStart)
+                    .Count();
+
+                if (previousCount == 0) return 0;
+                return ((currentCount - previousCount) / (decimal)previousCount) * 100;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating trainer trend");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Calculate user trend (percentage change)
+        /// </summary>
+        private async Task<decimal> CalculateUserTrendAsync()
+        {
+            try
+            {
+                var now = DateTime.UtcNow;
+                var currentPeriodStart = now.AddDays(-30);
+                var previousPeriodStart = now.AddDays(-60);
+
+                var currentSpec = new DashboardSubscriptionAnalyticsSpecs(currentPeriodStart, now);
+                var previousSpec = new DashboardSubscriptionAnalyticsSpecs(previousPeriodStart, currentPeriodStart);
+
+                var currentSubscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(currentSpec);
+
+                var previousSubscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(previousSpec);
+
+                var currentUsers = currentSubscriptions
+                    .Select(s => s.ClientId)
+                    .Distinct()
+                    .Count();
+
+                var previousUsers = previousSubscriptions
+                    .Select(s => s.ClientId)
+                    .Distinct()
+                    .Count();
+
+                if (previousUsers == 0) return 0;
+                return ((currentUsers - previousUsers) / (decimal)previousUsers) * 100;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calculating user trend");
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Get count of pending reviews
+        /// </summary>
+        private async Task<int> GetPendingReviewsCountAsync()
+        {
+            try
+            {
+                var reviews = await _unitOfWork.Repository<TrainerReview>().GetAllAsync();
+                return reviews.Count(r => !r.IsApproved);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pending reviews count");
+                return 0;
             }
         }
 
@@ -103,7 +291,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
                 {
                     Title = "Total Users",
                     Value = model.TotalUsers.ToString("N0"),
-                    Subtitle = $"▲ +{model.UsersTrend}% from last month",
+                    Subtitle = $"▲ +{Math.Round(model.UsersTrend, 1)}% from last month",
                     IconClass = "fas fa-users",
                     ColorClass = "primary",
                     Trend = model.UsersTrend,
@@ -113,7 +301,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
                 {
                     Title = "Active Trainers",
                     Value = model.TotalTrainers.ToString("N0"),
-                    Subtitle = $"▲ +{model.TrainersTrend}% from last month",
+                    Subtitle = $"▲ +{Math.Round(model.TrainersTrend, 1)}% from last month",
                     IconClass = "fas fa-dumbbell",
                     ColorClass = "success",
                     Trend = model.TrainersTrend,
@@ -123,7 +311,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
                 {
                     Title = "Active Subscriptions",
                     Value = model.ActiveSubscriptions.ToString("N0"),
-                    Subtitle = $"▲ +{model.SubscriptionsTrend}% from last month",
+                    Subtitle = $"▲ +{Math.Round(model.SubscriptionsTrend, 1)}% from last month",
                     IconClass = "fas fa-check-circle",
                     ColorClass = "success",
                     Trend = model.SubscriptionsTrend,
@@ -133,7 +321,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
                 {
                     Title = "Total Revenue",
                     Value = $"EGP {model.TotalRevenue:N0}",
-                    Subtitle = $"▲ +{model.RevenueTrend}% from last month",
+                    Subtitle = $"▲ +{Math.Round(model.RevenueTrend, 1)}% from last month",
                     IconClass = "fas fa-money-bill-wave",
                     ColorClass = "primary",
                     Trend = model.RevenueTrend,
@@ -143,7 +331,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
         }
 
         /// <summary>
-        /// Get top trainers by rating/client count
+        /// Get top trainers by rating and client count
         /// </summary>
         private List<TopTrainerViewModel> GetTopTrainers(IEnumerable<TrainerProfile> trainers)
         {
@@ -156,9 +344,11 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
                     .Select(t => new TopTrainerViewModel
                     {
                         TrainerId = t.Id,
-                        Name = t.Handle,
+                        Name = t.User?.FullName ?? t.Handle,
+                        Handle = t.Handle,
                         ClientCount = t.TotalClients,
-                        Rating = t.RatingAverage
+                        Rating = t.RatingAverage,
+                        YearsExperience = t.YearsExperience
                     })
                     .ToList();
             }
@@ -170,80 +360,129 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
         }
 
         /// <summary>
-        /// Get recent activities
+        /// Get recent activities from subscriptions and payments
         /// </summary>
-        private List<RecentActivityViewModel> GetRecentActivities()
+        private async Task<List<RecentActivityViewModel>> GetRecentActivitiesAsync(
+            List<Subscription> subscriptions,
+            List<DomainPayment> payments)
         {
-            return new List<RecentActivityViewModel>
+            try
             {
-                new RecentActivityViewModel
+                var activities = new List<RecentActivityViewModel>();
+
+                // Add recent subscriptions (new users)
+                foreach (var sub in subscriptions
+                    .OrderByDescending(s => s.CreatedAt)
+                    .Take(3))
                 {
-                    Title = "New User Registration",
-                    Description = "Ahmed Mohammed registered as a new client",
-                    IconClass = "fas fa-user-plus",
-                    ColorClass = "success",
-                    Timestamp = DateTime.UtcNow.AddMinutes(-2)
-                },
-                new RecentActivityViewModel
-                {
-                    Title = "Payment Received",
-                    Description = "Payment of EGP 299 from Sarah Ali for subscription",
-                    IconClass = "fas fa-money-bill-wave",
-                    ColorClass = "primary",
-                    Timestamp = DateTime.UtcNow.AddMinutes(-5)
-                },
-                new RecentActivityViewModel
-                {
-                    Title = "New Review Submitted",
-                    Description = "5-star review pending approval for Trainer Ahmed",
-                    IconClass = "fas fa-star",
-                    ColorClass = "warning",
-                    Timestamp = DateTime.UtcNow.AddMinutes(-15)
-                },
-                new RecentActivityViewModel
-                {
-                    Title = "Trainer Verified",
-                    Description = "Fatima Noor has been verified as a trainer",
-                    IconClass = "fas fa-check-circle",
-                    ColorClass = "success",
-                    Timestamp = DateTime.UtcNow.AddHours(-1)
-                },
-                new RecentActivityViewModel
-                {
-                    Title = "Payment Failed",
-                    Description = "Payment of EGP 399 failed for Mohammed Hassan",
-                    IconClass = "fas fa-exclamation-circle",
-                    ColorClass = "danger",
-                    Timestamp = DateTime.UtcNow.AddHours(-2)
+                    if (sub.Client != null)
+                    {
+                        activities.Add(new RecentActivityViewModel
+                        {
+                            Title = "New Subscription",
+                            Description = $"{sub.Client.FullName} subscribed to {sub.Package?.Name ?? "a package"}",
+                            IconClass = "fas fa-check-circle",
+                            ColorClass = "success",
+                            Timestamp = sub.CreatedAt
+                        });
+                    }
                 }
-            };
+
+                // Add completed payments
+                foreach (var p in payments
+                    .Where(p => p.Status == PaymentStatus.Completed)
+                    .OrderByDescending(p => p.PaidAt)
+                    .Take(3))
+                {
+                    if (p.Subscription?.Client != null)
+                    {
+                        activities.Add(new RecentActivityViewModel
+                        {
+                            Title = "Payment Completed",
+                            Description = $"Payment of EGP {p.Amount:N0} from {p.Subscription.Client.FullName}",
+                            IconClass = "fas fa-money-bill-wave",
+                            ColorClass = "primary",
+                            Timestamp = p.PaidAt ?? p.CreatedAt
+                        });
+                    }
+                }
+
+                // Add failed payments
+                foreach (var p in payments
+                    .Where(p => p.Status == PaymentStatus.Failed)
+                    .OrderByDescending(p => p.FailedAt)
+                    .Take(2))
+                {
+                    if (p.Subscription?.Client != null)
+                    {
+                        activities.Add(new RecentActivityViewModel
+                        {
+                            Title = "Payment Failed",
+                            Description = $"Payment failed for {p.Subscription.Client.FullName}: {p.FailureReason}",
+                            IconClass = "fas fa-exclamation-circle",
+                            ColorClass = "danger",
+                            Timestamp = p.FailedAt ?? p.CreatedAt
+                        });
+                    }
+                }
+
+                return activities
+                    .OrderByDescending(a => a.Timestamp)
+                    .Take(5)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting recent activities");
+                return new List<RecentActivityViewModel>();
+            }
         }
 
         /// <summary>
         /// Get revenue analytics for specified period
+        /// Aggregates daily revenue data from payments
         /// </summary>
         public async Task<ChartDataViewModel> GetRevenueChartDataAsync(int days = 30)
         {
             try
             {
+                if (days < 7 || days > 365)
+                    days = 30;
+
                 var chartData = new ChartDataViewModel();
-                
-                // Generate labels
+                var endDate = DateTime.UtcNow.Date;
+                var startDate = endDate.AddDays(-days);
+
+                // Get payments for the period
+                var spec = new DashboardPaymentAnalyticsSpecs(startDate, endDate.AddDays(1));
+                var payments = await _unitOfWork
+                    .Repository<DomainPayment>()
+                    .GetAllWithSpecsAsync(spec);
+
+                // Aggregate by day
+                var dailyRevenue = payments
+                    .Where(p => p.Status == PaymentStatus.Completed)
+                    .GroupBy(p => p.PaidAt?.Date ?? p.CreatedAt.Date)
+                    .OrderBy(g => g.Key)
+                    .ToDictionary(g => g.Key, g => (decimal)g.Sum(p => p.Amount));
+
+                // Generate labels and data
                 for (int i = 0; i < days; i++)
                 {
-                    chartData.Labels.Add($"Day {i + 1}");
+                    var date = startDate.AddDays(i);
+                    chartData.Labels.Add(date.ToString("MMM dd"));
+                    var value = dailyRevenue.ContainsKey(date) ? dailyRevenue[date] : 0m;
+                    chartData.Data.Add(value);
                 }
-
-                // TODO: Get actual revenue data from database
-                // For now, generate mock data
-                var revenueData = GenerateMockRevenueData(days);
 
                 chartData.Datasets.Add(new ChartDatasetViewModel
                 {
                     Label = "Revenue (EGP)",
-                    Data = revenueData,
-                    BackgroundColor = "rgba(13, 110, 253, 0.1)",
-                    BorderColor = "#0D6EFD"
+                    Data = chartData.Data.OfType<decimal>().ToList(),
+                    BackgroundColor = "rgba(37, 99, 235, 0.1)",
+                    BorderColor = "#2563EB",
+                    BorderWidth = 2,
+                    Tension = 0.4
                 });
 
                 return chartData;
@@ -256,20 +495,56 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
         }
 
         /// <summary>
-        /// Helper method to generate mock revenue data
-        /// TODO: Replace with actual database queries
+        /// Get subscription growth analytics
         /// </summary>
-        private List<decimal> GenerateMockRevenueData(int days)
+        public async Task<ChartDataViewModel> GetSubscriptionGrowthChartDataAsync(int days = 30)
         {
-            var data = new List<decimal>();
-            var random = new Random();
-
-            for (int i = 0; i < days; i++)
+            try
             {
-                data.Add(random.Next(7000, 24000));
-            }
+                if (days < 7 || days > 365)
+                    days = 30;
 
-            return data;
+                var chartData = new ChartDataViewModel();
+                var endDate = DateTime.UtcNow.Date;
+                var startDate = endDate.AddDays(-days);
+
+                // Get subscriptions for the period
+                var spec = new DashboardSubscriptionAnalyticsSpecs(startDate, endDate.AddDays(1));
+                var subscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(spec);
+
+                // Aggregate by day
+                var dailyCounts = subscriptions
+                    .GroupBy(s => s.CreatedAt.Date)
+                    .OrderBy(g => g.Key)
+                    .ToDictionary(g => g.Key, g => (decimal)g.Count());
+
+                // Generate labels and data
+                for (int i = 0; i < days; i++)
+                {
+                    var date = startDate.AddDays(i);
+                    chartData.Labels.Add(date.ToString("MMM dd"));
+                    var value = dailyCounts.ContainsKey(date) ? dailyCounts[date] : 0m;
+                    chartData.Data.Add(value);
+                }
+
+                chartData.Datasets.Add(new ChartDatasetViewModel
+                {
+                    Label = "New Subscriptions",
+                    Data = chartData.Data.OfType<decimal>().ToList(),
+                    BackgroundColor = "rgba(34, 197, 94, 0.8)",
+                    BorderColor = "#22C55E",
+                    BorderWidth = 2
+                });
+
+                return chartData;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting subscription growth chart data");
+                throw;
+            }
         }
 
         /// <summary>
@@ -281,20 +556,21 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
             {
                 var subscriptions = await _unitOfWork.Repository<Subscription>().GetAllAsync();
                 var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllAsync();
-                
+
                 var clients = subscriptions.Select(s => s.ClientId).Distinct().Count();
                 var activeTrainers = trainers.Count(t => t.IsVerified);
+                var admins = 5; // Mock admin count
 
                 return new ChartDataViewModel
                 {
                     Labels = new List<string> { "Clients", "Trainers", "Admins" },
+                    Data = new List<object> { clients, activeTrainers, admins },
                     Datasets = new List<ChartDatasetViewModel>
                     {
                         new ChartDatasetViewModel
                         {
                             Label = "User Distribution",
-                            Data = new List<decimal> { clients, activeTrainers, 5 }, // 5 admins (mock)
-                            BackgroundColor = "rgba(13, 110, 253, 0.8), rgba(25, 135, 84, 0.8), rgba(220, 53, 69, 0.8)"
+                            Data = new List<decimal> { clients, activeTrainers, admins }
                         }
                     }
                 };
@@ -302,6 +578,80 @@ namespace ITI.Gymunity.FP.Admin.MVC.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user distribution data");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get payment status breakdown
+        /// </summary>
+        public async Task<ChartDataViewModel> GetPaymentStatusChartDataAsync()
+        {
+            try
+            {
+                var spec = new DashboardPaymentAnalyticsSpecs();
+                var payments = await _unitOfWork
+                    .Repository<DomainPayment>()
+                    .GetAllWithSpecsAsync(spec);
+
+                var completed = (decimal)payments.Count(p => p.Status == PaymentStatus.Completed);
+                var failed = (decimal)payments.Count(p => p.Status == PaymentStatus.Failed);
+                var pending = (decimal)payments.Count(p => p.Status == PaymentStatus.Pending);
+
+                return new ChartDataViewModel
+                {
+                    Labels = new List<string> { "Completed", "Failed", "Pending" },
+                    Data = new List<object> { completed, failed, pending },
+                    Datasets = new List<ChartDatasetViewModel>
+                    {
+                        new ChartDatasetViewModel
+                        {
+                            Label = "Payment Status",
+                            Data = new List<decimal> { completed, failed, pending }
+                        }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting payment status chart data");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Get subscription status breakdown
+        /// </summary>
+        public async Task<ChartDataViewModel> GetSubscriptionStatusChartDataAsync()
+        {
+            try
+            {
+                var spec = new DashboardSubscriptionAnalyticsSpecs();
+                var subscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(spec);
+
+                var active = (decimal)subscriptions.Count(s => s.Status == SubscriptionStatus.Active);
+                var unpaid = (decimal)subscriptions.Count(s => s.Status == SubscriptionStatus.Unpaid);
+                var canceled = (decimal)subscriptions.Count(s => s.Status == SubscriptionStatus.Canceled);
+
+                return new ChartDataViewModel
+                {
+                    Labels = new List<string> { "Active", "Unpaid", "Canceled" },
+                    Data = new List<object> { active, unpaid, canceled },
+                    Datasets = new List<ChartDatasetViewModel>
+                    {
+                        new ChartDatasetViewModel
+                        {
+                            Label = "Subscription Status",
+                            Data = new List<decimal> { active, unpaid, canceled }
+                        }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting subscription status chart data");
                 throw;
             }
         }
