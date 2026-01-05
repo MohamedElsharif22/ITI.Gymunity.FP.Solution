@@ -1,8 +1,7 @@
-using ITI.Gymunity.FP.Admin.MVC.Hubs;
-using ITI.Gymunity.FP.Admin.MVC.Services;
 using ITI.Gymunity.FP.APIs.Extensions;
 using ITI.Gymunity.FP.APIs.Hubs;
 using ITI.Gymunity.FP.APIs.Middlewares;
+using ITI.Gymunity.FP.APIs.Services;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DependencyInjection;
 using ITI.Gymunity.FP.Infrastructure._Data;

@@ -1,10 +1,10 @@
-﻿using ITI.Gymunity.FP.Admin.MVC.Services;
-using ITI.Gymunity.FP.APIs.Responses;
+﻿using ITI.Gymunity.FP.APIs.Responses;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Application.DTOs.User.Payment;
 using ITI.Gymunity.FP.Application.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ITI.Gymunity.FP.APIs.Services;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {

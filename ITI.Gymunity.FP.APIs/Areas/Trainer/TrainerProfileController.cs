@@ -1,5 +1,5 @@
-﻿using ITI.Gymunity.FP.Admin.MVC.Services;
-using ITI.Gymunity.FP.APIs.Responses;
+﻿using ITI.Gymunity.FP.APIs.Responses;
+using ITI.Gymunity.FP.APIs.Services;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Services;
 using ITI.Gymunity.FP.Domain.Models.Enums;

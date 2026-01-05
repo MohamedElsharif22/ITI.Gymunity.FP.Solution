@@ -171,7 +171,7 @@
             responses based on the outcome of the requested operation.</remarks>
             <param name="accountService">The account service used to perform user registration and authentication operations. Cannot be null.</param>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.#ctor(ITI.Gymunity.FP.Application.Contracts.ExternalServices.IAccountService,ITI.Gymunity.FP.Admin.MVC.Services.IAdminNotificationService,ITI.Gymunity.FP.Admin.MVC.Services.AdminUserResolverService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.AccountController})">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.#ctor(ITI.Gymunity.FP.Application.Contracts.ExternalServices.IAccountService,ITI.Gymunity.FP.APIs.Services.IAdminNotificationService,ITI.Gymunity.FP.APIs.Services.AdminUserResolverService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.AccountController})">
             <summary>
             Provides API endpoints for user account registration and authentication operations.
             </summary>
@@ -375,6 +375,37 @@
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendFailureEmail(System.String)">
              NEW: Test payment failure email (Development only!)
         </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub">
+            <summary>
+            SignalR hub for real-time admin notifications
+            Handles notification broadcasting to connected admin users
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.SendNotificationToUser(System.String,System.String,System.String,System.String,System.String)">
+            <summary>
+            Send notification to specific admin user
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.BroadcastNotification(System.String,System.String,System.String,System.String)">
+            <summary>
+            Broadcast notification to all admins
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.SendCriticalAlert(System.String,System.String,System.String)">
+            <summary>
+            Send alert for critical events
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.UpdateNotificationCount(System.String,System.Int32)">
+            <summary>
+            Update unread notification count for user
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.NotifyActionRequired(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of action required
+            </summary>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Hubs.ChatHub">
             <summary>
             SignalR Hub for real-time messaging
@@ -516,6 +547,137 @@
         <member name="P:ITI.Gymunity.FP.APIs.Responses.ApiResponse`1.Data">
             <summary>
             Gets the data associated with the current instance.
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Services.AdminNotificationService">
+            <summary>
+            Service for managing admin notifications
+            Handles creation, retrieval, and real-time notification delivery to admin users
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.CreateAdminNotificationAsync(System.String,System.String,System.String,ITI.Gymunity.FP.Domain.Models.Enums.NotificationType,System.String,System.Boolean)">
+            <summary>
+            Create and broadcast admin notification
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyNewClientRegistrationAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of new client registration
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyNewTrainerRegistrationAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of new trainer registration
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyNewSubscriptionAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of new subscription
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifySubscriptionCancelledAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of subscription cancellation
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyNewPaymentAsync(System.String,System.Decimal,System.String,System.String)">
+            <summary>
+            Notify admin of new payment
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyPaymentFailureAsync(System.String,System.Decimal,System.String,System.String)">
+            <summary>
+            Notify admin of payment failure
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyTrainerVerificationRequiredAsync(System.String,System.String,System.String)">
+            <summary>
+            Notify admin that trainer profile requires verification
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyReviewCreatedAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of review creation
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyReviewFlaggedAsync(System.String,System.String,System.String)">
+            <summary>
+            Notify admin of flagged review for moderation
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyTrainerProfileCreatedAsync(System.String,System.String,System.String)">
+            <summary>
+            Notify admin of trainer profile creation
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyAccountSuspendedAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of account suspension
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyAccountReactivatedAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of account reactivation
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyContentDeletedAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of content deletion
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifyUnusualActivityAsync(System.String,System.String,System.String,System.String)">
+            <summary>
+            Notify admin of unusual activity
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.NotifySecurityIssueAsync(System.String,System.String,System.String)">
+            <summary>
+            Notify admin of security issue
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.GetAdminUnreadNotificationsAsync(System.String)">
+            <summary>
+            Get admin's unread notifications
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.GetAdminNotificationsAsync(System.String,System.Int32,System.Int32)">
+            <summary>
+            Get all admin notifications
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.MarkNotificationAsReadAsync(System.Int32,System.String)">
+            <summary>
+            Mark notification as read and update count via SignalR
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminNotificationService.GetUnreadNotificationCountAsync(System.String)">
+            <summary>
+            Get unread notification count for admin
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Services.AdminUserResolverService">
+            <summary>
+            Helper service to get admin user(s) for notification purposes
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminUserResolverService.GetPrimaryAdminAsync">
+            <summary>
+            Get the primary admin user (usually the first admin)
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminUserResolverService.GetAllAdminsAsync">
+            <summary>
+            Get all admin users
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Services.AdminUserResolverService.GetAdminByIdAsync(System.String)">
+            <summary>
+            Get admin user by ID
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Services.IAdminNotificationService">
+            <summary>
+            Interface for admin notification management
             </summary>
         </member>
     </members>

@@ -1,5 +1,4 @@
 ﻿using ITI.Gymunity.FP.APIs.Responses;
-using ITI.Gymunity.FP.Admin.MVC.Services;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.Account;
 using ITI.Gymunity.FP.Domain.Models.Enums;
@@ -8,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ITI.Gymunity.FP.APIs.Services;
 
 namespace ITI.Gymunity.FP.APIs.Controllers
 {

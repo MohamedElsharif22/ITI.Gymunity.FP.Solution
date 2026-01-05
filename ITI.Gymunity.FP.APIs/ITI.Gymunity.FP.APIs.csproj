@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ITI.Gymunity.FP.Admin.MVC\ITI.Gymunity.FP.Admin.MVC.csproj" />
+    <ProjectReference Include="..\ITI.Gymunity.FP.Infrastructure\ITI.Gymunity.FP.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

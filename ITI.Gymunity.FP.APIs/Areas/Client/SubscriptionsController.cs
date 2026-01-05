@@ -1,4 +1,4 @@
-﻿using ITI.Gymunity.FP.Admin.MVC.Services;
+﻿using ITI.Gymunity.FP.APIs.Services;
 using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 using ITI.Gymunity.FP.Application.Services;
 using ITI.Gymunity.FP.Domain.Models.Enums;
