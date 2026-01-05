@@ -84,6 +84,19 @@
             GET: /api/client/payments/{id}
             </summary>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.PaymentsController.NotifyAdminOfPaymentAsync(ITI.Gymunity.FP.Application.DTOs.User.Payment.PaymentResponse,System.String)">
+            <summary>
+            Sends admin notification for new payment
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.HasActiveSubscription(System.Int32)">
+            <summary>
+            Determines whether the current user has an active subscription to the specified package.
+            </summary>
+            <param name="packageId">The identifier of the package to check for an active subscription.</param>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.IActionResult"/> containing a boolean value: <see langword="true"/> if the user has an active
+            subscription to the package; otherwise, <see langword="false"/>.</returns>
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.Subscribe(ITI.Gymunity.FP.Application.DTOs.User.Subscribe.SubscribePackageRequest)">
             <summary>
             Subscribe to a package (creates UNPAID subscription)
@@ -114,6 +127,21 @@
             POST: api/client/subscriptions/{id}/activate
             </summary>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.NotifyAdminOfSubscriptionAsync(System.Object,System.Boolean)">
+            <summary>
+            Sends admin notification for new subscription
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.NotifyAdminOfSubscriptionCancellationAsync(System.Int32)">
+            <summary>
+            Sends admin notification for subscription cancellation
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.SubscriptionsController.NotifyAdminOfSubscriptionActivationAsync(System.Object)">
+            <summary>
+            Sends admin notification for subscription activation
+            </summary>
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.TrainerDiscoveryController.SearchTrainers">
             <summary>
             Search and browse all trainers with filters
@@ -129,6 +157,11 @@
             status code 404 (Not Found) if the profile does not exist; or status code 401 (Unauthorized) if the user is
             not authenticated.</returns>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Trainer.TrainerProfileController.NotifyAdminOfProfileCreationAsync(ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerProfileDetailResponse,System.String)">
+            <summary>
+            Sends admin notification for trainer profile creation
+            </summary>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.AccountController">
             <summary>
             Provides API endpoints for user account registration and authentication operations.
@@ -138,7 +171,7 @@
             responses based on the outcome of the requested operation.</remarks>
             <param name="accountService">The account service used to perform user registration and authentication operations. Cannot be null.</param>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.#ctor(ITI.Gymunity.FP.Application.Contracts.ExternalServices.IAccountService)">
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.#ctor(ITI.Gymunity.FP.Application.Contracts.ExternalServices.IAccountService,ITI.Gymunity.FP.Admin.MVC.Services.IAdminNotificationService,ITI.Gymunity.FP.Admin.MVC.Services.AdminUserResolverService,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Controllers.AccountController})">
             <summary>
             Provides API endpoints for user account registration and authentication operations.
             </summary>
@@ -212,6 +245,16 @@
             <param name="request">The request containing the user's password reset information. Must not be null.</param>
             <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a <see cref="T:ITI.Gymunity.FP.Application.DTOs.Account.AuthResponse"/> if the password reset is
             successful; otherwise, a bad request response with error details.</returns>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.NotifyAdminOfRegistrationAsync(ITI.Gymunity.FP.Application.DTOs.Account.AuthResponse)">
+            <summary>
+            Sends admin notification for new user registration
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.AccountController.NotifyAdminOfGoogleRegistrationAsync(ITI.Gymunity.FP.Application.DTOs.Account.AuthResponse)">
+            <summary>
+            Sends admin notification for Google registration
+            </summary>
         </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatController">
             <summary>
@@ -314,6 +357,12 @@
             PayPal webhook endpoint
             Called by PayPal for various payment events
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.StripeWebhook">
+            <summary>
+            Stripe webhook endpoint
+            Called by Stripe for payment_intent events
+            </summary>
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestWebhook">
             Test endpoint for webhook validation (Development only!)
         </member>
@@ -325,41 +374,6 @@
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.TestSendFailureEmail(System.String)">
              NEW: Test payment failure email (Development only!)
-        </member>
-        <member name="T:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub">
-            <summary>
-            SignalR Hub for admin-specific real-time notifications and communications
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.#ctor(ITI.Gymunity.FP.Application.Contracts.Services.INotificationService,ITI.Gymunity.FP.Application.Contracts.ExternalServices.ISignalRConnectionManager,Microsoft.Extensions.Logging.ILogger{ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub})">
-            <summary>
-            SignalR Hub for admin-specific real-time notifications and communications
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.GetAdminNotifications">
-            <summary>
-            Get all notifications for admin
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.GetUnreadCount">
-            <summary>
-            Get unread count
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.BroadcastAdminNotification(System.String,System.String,System.Int32)">
-            <summary>
-            Broadcast notification to all admins
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.SendUrgentAlert(System.String,System.String,System.String)">
-            <summary>
-            Send urgent alert to specific admin
-            </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Hubs.AdminNotificationHub.MarkAsRead(System.Int32)">
-            <summary>
-            Mark notification as read
-            </summary>
         </member>
         <member name="T:ITI.Gymunity.FP.APIs.Hubs.ChatHub">
             <summary>

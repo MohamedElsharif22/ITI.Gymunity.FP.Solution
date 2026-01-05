@@ -532,7 +532,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.Property<int>("Method")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("PaidAt")
+                    b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("PayPalCaptureId")
@@ -3214,6 +3214,12 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.Property<int>("PackageId")
                         .HasColumnType("int");
 
+                    b.Property<string>("PayPalApprovalUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PayPalOrderId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("PayPalSubscriptionId")
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
@@ -3237,6 +3243,12 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<string>("StripeClientSecret")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset");

@@ -15,12 +15,17 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 {
     /// <summary>
     /// Admin service for managing subscriptions and subscription lifecycle
+    /// Events are raised when important operations complete for notification handlers to subscribe to
     /// </summary>
     public class SubscriptionAdminService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<SubscriptionAdminService> _logger;
+
+        // ✅ Observable events for notification handlers
+        public event Func<int, Subscription, Task>? SubscriptionCancelledByAdminAsync;
+        public event Func<int, Subscription, Task>? SubscriptionCreatedAsync;
 
         public SubscriptionAdminService(
             IUnitOfWork unitOfWork,
@@ -177,6 +182,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
         /// <summary>
         /// Cancel subscription (admin action)
+        /// Raises SubscriptionCancelledByAdminAsync event after successful completion
         /// </summary>
         public async Task<bool> CancelSubscriptionAsync(int subscriptionId, string reason = "")
         {
@@ -206,6 +212,21 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
                 _logger.LogInformation("Subscription {SubscriptionId} canceled by admin. Reason: {Reason}", 
                     subscriptionId, reason);
+
+                // ✅ Raise event for notification handlers
+                if (SubscriptionCancelledByAdminAsync != null)
+                {
+                    try
+                    {
+                        await SubscriptionCancelledByAdminAsync(subscriptionId, subscription);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Event notification failed for subscription cancellation {SubscriptionId}", subscriptionId);
+                        // Don't rethrow - cancellation already succeeded
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)

@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ITI.Gymunity.FP.Domain.Models.Enums;
 
 namespace ITI.Gymunity.FP.Application.DTOs.User.Subscribe
 {
@@ -16,5 +17,11 @@ namespace ITI.Gymunity.FP.Application.DTOs.User.Subscribe
         public bool IsAnnual { get; set; } = false;
 
         public string? PromoCode { get; set; }
+
+        // ✅ NEW: Payment method support
+        public PaymentMethod? PaymentMethod { get; set; }
+
+        // ✅ NEW: Return URL for payment confirmation
+        public string? ReturnUrl { get; set; }
     }
 }

@@ -10,7 +10,7 @@ namespace ITI.Gymunity.FP.Domain.Models
 
         // Amount Details
         public decimal Amount { get; set; }
-        public string Currency { get; set; } = "EGP";
+        public string Currency { get; set; } = "USD";
         public decimal PlatformFee { get; set; } = 0;// 15% of Amount
         public decimal TrainerPayout { get; set; } = 0; // Amount - PlatformFee
 

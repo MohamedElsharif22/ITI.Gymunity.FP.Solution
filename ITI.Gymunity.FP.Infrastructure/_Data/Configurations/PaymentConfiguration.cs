@@ -42,9 +42,6 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
                 .HasConversion<int>()
                 .IsRequired();
 
-            builder.Property(p => p.PaidAt)
-                .IsRequired();
-
             // Soft Delete
             builder.Property(p => p.IsDeleted)
                 .HasDefaultValue(false);

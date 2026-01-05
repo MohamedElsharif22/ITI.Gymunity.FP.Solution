@@ -1,14 +1,16 @@
+using ITI.Gymunity.FP.Admin.MVC.Hubs;
+using ITI.Gymunity.FP.Admin.MVC.Services;
 using ITI.Gymunity.FP.APIs.Extensions;
 using ITI.Gymunity.FP.APIs.Hubs;
 using ITI.Gymunity.FP.APIs.Middlewares;
-using ITI.Gymunity.FP.Application.DependencyInjection;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+using ITI.Gymunity.FP.Application.DependencyInjection;
+using ITI.Gymunity.FP.Infrastructure._Data;
+using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
 using Microsoft.OpenApi.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using ITI.Gymunity.FP.Infrastructure._Data;
-using ITI.Gymunity.FP.Infrastructure.Dependancy_Injection;
 
 namespace ITI.Gymunity.FP.APIs
 {
@@ -90,6 +92,14 @@ namespace ITI.Gymunity.FP.APIs
             // register image resolver for DI (used by AutoMapper resolver)
 
             builder.Services.AddAuthenticationServices(builder.Configuration);
+            
+            // ✅ Register Admin Notification Service for API
+            // This allows API controllers to send real-time notifications to admins
+            // NOTE: Only register IAdminNotificationService and AdminUserResolverService here
+            // The notification HANDLERS (PaymentNotificationService, etc.) are only needed in Admin.MVC
+            // where they subscribe to events from business logic services
+            builder.Services.AddScoped<IAdminNotificationService, AdminNotificationService>();
+            builder.Services.AddScoped<AdminUserResolverService>();
 
             builder.Services.AddMemoryCache();
             //Confiure Api Invalid Model State Response

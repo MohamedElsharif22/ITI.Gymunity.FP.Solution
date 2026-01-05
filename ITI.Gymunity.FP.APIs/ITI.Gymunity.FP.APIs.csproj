@@ -15,18 +15,19 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Stripe.net" Version="50.1.0" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.6" />
     <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\ITI.Gymunity.FP.Infrastructure\ITI.Gymunity.FP.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Filters\" />
     <Folder Include="wwwroot\images\profile-photos\" />
     <Folder Include="wwwroot\videos\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ITI.Gymunity.FP.Admin.MVC\ITI.Gymunity.FP.Admin.MVC.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,4 +1,5 @@
-﻿using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
+﻿using ITI.Gymunity.FP.Admin.MVC.Services;
+using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 using ITI.Gymunity.FP.Application.Services;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -10,10 +11,36 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
     public class SubscriptionsController : ClientBaseController
     {
         private readonly SubscriptionService _subscriptionService;
+        private readonly IAdminNotificationService _adminNotificationService;
+        private readonly AdminUserResolverService _adminUserResolver;
+        private readonly ILogger<SubscriptionsController> _logger;
 
-        public SubscriptionsController(SubscriptionService subscriptionService)
+        public SubscriptionsController(
+            SubscriptionService subscriptionService,
+            IAdminNotificationService adminNotificationService,
+            AdminUserResolverService adminUserResolver,
+            ILogger<SubscriptionsController> logger)
         {
             _subscriptionService = subscriptionService;
+            _adminNotificationService = adminNotificationService;
+            _adminUserResolver = adminUserResolver;
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Determines whether the current user has an active subscription to the specified package.
+        /// </summary>
+        /// <param name="packageId">The identifier of the package to check for an active subscription.</param>
+        /// <returns>An <see cref="IActionResult"/> containing a boolean value: <see langword="true"/> if the user has an active
+        /// subscription to the package; otherwise, <see langword="false"/>.</returns>
+        [HttpGet("HasActiveSubscription/{packageId}")]
+        public async Task<IActionResult> HasActiveSubscription(int packageId)
+        {
+            var clientId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? "b8f4c7e9-1c1f-4c5c-a12d-9a8f12345678";
+            var result = await _subscriptionService
+                .HasActiveSubscribtionToPackageAsync(clientId, packageId);
+            return Ok(result);
         }
 
         /// <summary>
@@ -37,6 +64,9 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
                     success = false,
                     message = result.ErrorMessage
                 });
+
+            // ✅ Notify admin of new subscription
+            await NotifyAdminOfSubscriptionAsync(result.Data, true);
 
             return Ok(new
             {
@@ -121,6 +151,9 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
                     message = result.ErrorMessage
                 });
 
+            // ✅ Notify admin of subscription cancellation
+            await NotifyAdminOfSubscriptionCancellationAsync(id);
+
             return Ok(new
             {
                 success = true,
@@ -147,12 +180,118 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
                     message = result.ErrorMessage
                 });
 
+            // ✅ Notify admin of subscription activation
+            await NotifyAdminOfSubscriptionActivationAsync(result.Data);
+
             return Ok(new
             {
                 success = true,
                 message = "Subscription activated successfully",
                 data = result.Data
             });
+        }
+
+        /// <summary>
+        /// Sends admin notification for new subscription
+        /// </summary>
+        private async Task NotifyAdminOfSubscriptionAsync(object subscription, bool isCreation)
+        {
+            try
+            {
+                if (subscription == null)
+                    return;
+
+                var admin = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (admin == null)
+                {
+                    _logger.LogWarning("No admin user found to notify about subscription");
+                    return;
+                }
+
+                await _adminNotificationService.CreateAdminNotificationAsync(
+                    adminUserId: admin.Id,
+                    title: "New Subscription Created",
+                    message: "A new subscription has been created and is pending payment",
+                    type: NotificationType.NewSubscription,
+                    relatedEntityId: subscription.GetType().GetProperty("Id")?.GetValue(subscription)?.ToString(),
+                    broadcastToAll: true
+                );
+
+                _logger.LogInformation("Admin notified of new subscription");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admin of subscription");
+                // Don't rethrow - subscription operation already succeeded
+            }
+        }
+
+        /// <summary>
+        /// Sends admin notification for subscription cancellation
+        /// </summary>
+        private async Task NotifyAdminOfSubscriptionCancellationAsync(int subscriptionId)
+        {
+            try
+            {
+                var admin = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (admin == null)
+                {
+                    _logger.LogWarning("No admin user found to notify about subscription cancellation");
+                    return;
+                }
+
+                await _adminNotificationService.CreateAdminNotificationAsync(
+                    adminUserId: admin.Id,
+                    title: "Subscription Cancelled",
+                    message: $"Subscription {subscriptionId} has been cancelled",
+                    type: NotificationType.SubscriptionCancelled,
+                    relatedEntityId: subscriptionId.ToString(),
+                    broadcastToAll: true
+                );
+
+                _logger.LogInformation("Admin notified of subscription cancellation {SubscriptionId}", subscriptionId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admin of subscription cancellation");
+                // Don't rethrow - cancellation operation already succeeded
+            }
+        }
+
+
+        /// <summary>
+        /// Sends admin notification for subscription activation
+        /// </summary>
+        private async Task NotifyAdminOfSubscriptionActivationAsync(object subscription)
+        {
+            try
+            {
+                if (subscription == null)
+                    return;
+
+                var admin = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (admin == null)
+                {
+                    _logger.LogWarning("No admin user found to notify about subscription activation");
+                    return;
+                }
+
+                await _adminNotificationService.CreateAdminNotificationAsync(
+                    adminUserId: admin.Id,
+                    title: "Subscription Activated",
+                    message: "A subscription has been activated after successful payment",
+                    type: NotificationType.NewSubscription,
+                    relatedEntityId: subscription.GetType().GetProperty("Id")?.GetValue(subscription)?.ToString(),
+                    broadcastToAll: true
+                );
+
+                _logger.LogInformation("Admin notified of subscription activation");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admin of subscription activation");
+                // Don't rethrow - activation operation already succeeded
+            }
         }
     }
 

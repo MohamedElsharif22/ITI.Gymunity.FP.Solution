@@ -1,4 +1,5 @@
-﻿using ITI.Gymunity.FP.APIs.Responses;
+﻿using ITI.Gymunity.FP.Admin.MVC.Services;
+using ITI.Gymunity.FP.APIs.Responses;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Application.DTOs.User.Payment;
 using ITI.Gymunity.FP.Application.Services;
@@ -10,13 +11,19 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
     public class PaymentsController : ClientBaseController
     {
         private readonly PaymentService _service;
+        private readonly IAdminNotificationService _adminNotificationService;
+        private readonly AdminUserResolverService _adminUserResolver;
         private readonly ILogger<PaymentsController> _logger;
 
         public PaymentsController(
             PaymentService service,
+            IAdminNotificationService adminNotificationService,
+            AdminUserResolverService adminUserResolver,
             ILogger<PaymentsController> logger)
         {
             _service = service;
+            _adminNotificationService = adminNotificationService;
+            _adminUserResolver = adminUserResolver;
             _logger = logger;
         }
 
@@ -42,6 +49,9 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
                 "Client {ClientId} initiated payment for subscription {SubscriptionId}",
                 clientId,
                 request.SubscriptionId);
+
+            // ✅ Notify admin of new payment
+            await NotifyAdminOfPaymentAsync(result.Data, clientId);
 
             return Ok(result.Data);
         }
@@ -85,6 +95,41 @@ namespace ITI.Gymunity.FP.APIs.Areas.Client
                 return NotFound(new ApiResponse(404, result.ErrorMessage));
 
             return Ok(result.Data);
+        }
+
+        /// <summary>
+        /// Sends admin notification for new payment
+        /// </summary>
+        private async Task NotifyAdminOfPaymentAsync(PaymentResponse payment, string clientId)
+        {
+            try
+            {
+                if (payment == null)
+                    return;
+
+                var admin = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (admin == null)
+                {
+                    _logger.LogWarning("No admin user found to notify about payment");
+                    return;
+                }
+
+                await _adminNotificationService.CreateAdminNotificationAsync(
+                    adminUserId: admin.Id,
+                    title: "New Payment Initiated",
+                    message: $"Payment of {payment.Amount:C} has been initiated",
+                    type: NotificationType.NewPayment,
+                    relatedEntityId: payment.Id.ToString(),
+                    broadcastToAll: true
+                );
+
+                _logger.LogInformation("Admin notified of new payment {PaymentId}", payment.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admin of payment");
+                // Don't rethrow - payment operation already succeeded
+            }
         }
     }
 }

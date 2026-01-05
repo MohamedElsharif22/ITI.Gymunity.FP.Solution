@@ -1,6 +1,8 @@
-﻿using ITI.Gymunity.FP.APIs.Responses;
+﻿using ITI.Gymunity.FP.Admin.MVC.Services;
+using ITI.Gymunity.FP.APIs.Responses;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
 using ITI.Gymunity.FP.Application.Services;
+using ITI.Gymunity.FP.Domain.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,9 +10,24 @@ using System.Security.Claims;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
-    public class TrainerProfileController(TrainerProfileService trainerProfileService) : TrainerBaseController
+    public class TrainerProfileController : TrainerBaseController
     {
-        private readonly TrainerProfileService _trainerProfileService = trainerProfileService;
+        private readonly TrainerProfileService _trainerProfileService;
+        private readonly IAdminNotificationService _adminNotificationService;
+        private readonly AdminUserResolverService _adminUserResolver;
+        private readonly ILogger<TrainerProfileController> _logger;
+
+        public TrainerProfileController(
+            TrainerProfileService trainerProfileService,
+            IAdminNotificationService adminNotificationService,
+            AdminUserResolverService adminUserResolver,
+            ILogger<TrainerProfileController> logger)
+        {
+            _trainerProfileService = trainerProfileService;
+            _adminNotificationService = adminNotificationService;
+            _adminUserResolver = adminUserResolver;
+            _logger = logger;
+        }
 
         //// GET: api/trainer/trainerprofile/getallprofiles
         //[HttpGet("AllProfiles")]
@@ -104,6 +121,10 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
                 request.UserId = currentUserId;
 
                 var profile = await _trainerProfileService.CreateProfile(request);
+                
+                // ✅ Notify admin of new trainer profile creation
+                await NotifyAdminOfProfileCreationAsync(profile, currentUserId);
+                
                 return CreatedAtAction(nameof(GetById), new { id = profile.Id }, profile);
             }
             catch (InvalidOperationException ex)
@@ -209,5 +230,39 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
         //    return Ok(profile);
         //}
 
+        /// <summary>
+        /// Sends admin notification for trainer profile creation
+        /// </summary>
+        private async Task NotifyAdminOfProfileCreationAsync(TrainerProfileDetailResponse profile, string userId)
+        {
+            try
+            {
+                if (profile == null)
+                    return;
+
+                var admin = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (admin == null)
+                {
+                    _logger.LogWarning("No admin user found to notify about trainer profile creation");
+                    return;
+                }
+
+                await _adminNotificationService.CreateAdminNotificationAsync(
+                    adminUserId: admin.Id,
+                    title: "New Trainer Profile Created",
+                    message: $"New trainer profile for '{profile.UserName}' (Handle: @{profile.Handle}) has been created",
+                    type: NotificationType.TrainerVerificationRequired,
+                    relatedEntityId: profile.Id.ToString(),
+                    broadcastToAll: true
+                );
+
+                _logger.LogInformation("Admin notified of new trainer profile creation {ProfileId}", profile.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admin of trainer profile creation");
+                // Don't rethrow - profile creation already succeeded
+            }
+        }
     }
 }

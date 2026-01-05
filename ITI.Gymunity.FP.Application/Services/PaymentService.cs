@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ITI.Gymunity.FP.Application.Common;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.User.Payment;
 using ITI.Gymunity.FP.Application.Specefications.Payment;
 using ITI.Gymunity.FP.Application.Specefications.Subscriptions;
@@ -15,20 +16,23 @@ namespace ITI.Gymunity.FP.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly PayPalService _paypalService;
+        private readonly IPayPalService _paypalService;
+        private readonly IStripePaymentService _stripePaymentService;
         private readonly ILogger<PaymentService> _logger;
         private readonly IConfiguration _configuration;
 
         public PaymentService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
-            PayPalService paypalService,
+            IPayPalService paypalService,
+            IStripePaymentService stripePaymentService,
             ILogger<PaymentService> logger,
             IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _paypalService = paypalService;
+            _stripePaymentService = stripePaymentService;
             _logger = logger;
             _configuration = configuration;
         }
@@ -66,7 +70,7 @@ namespace ITI.Gymunity.FP.Application.Services
                 var existingPayments = await _unitOfWork
                     .Repository<Payment>()
                     .GetAllWithSpecsAsync(
-                        new PaymentBySubscriptionSpecs(subscription.Id));
+                        new PaymentBySubscriptionSpecs(subscription.Id,clientId));
 
                 var pendingPayment = existingPayments.FirstOrDefault(p =>
                     p.Status == PaymentStatus.Pending ||
@@ -84,9 +88,8 @@ namespace ITI.Gymunity.FP.Application.Services
                     SubscriptionId = subscription.Id,
                     ClientId = clientId,
                     Amount = subscription.AmountPaid,
-                    Currency = "USD",
+                    Currency = subscription.Currency ?? "USD",  // ✅ Use subscription currency instead of hardcoded USD
                     Method = request.PaymentMethod,
-                    PaidAt = DateTime.UtcNow,
                     Status = PaymentStatus.Pending,
                     CreatedAt = DateTime.UtcNow
                 };
@@ -108,8 +111,9 @@ namespace ITI.Gymunity.FP.Application.Services
                     var cancelUrl =
                         $"{_configuration["BaseApiUrl"]}/api/payment/paypal/cancel";
 
+                    // ✅ Pass subscription to PayPal service (new architecture)
                     var result = await _paypalService.CreateOrderAsync(
-                        payment,
+                        subscription,
                         returnUrl,
                         cancelUrl);
 
@@ -117,14 +121,44 @@ namespace ITI.Gymunity.FP.Application.Services
                         return ServiceResult<PaymentResponse>
                             .Failure(result.ErrorMessage ?? "PayPal error");
 
-                    // ✅ FIXED HERE
+                    // ✅ Store PayPal order on BOTH subscription AND payment
+                    subscription.PayPalOrderId = result.OrderId;
+                    subscription.PayPalApprovalUrl = result.ApprovalUrl;
+                    
+                    // ✅ NEW: Also set PayPal order ID on payment record
                     payment.PayPalOrderId = result.OrderId;
+                    
                     paymentUrl = result.ApprovalUrl;
+
+                    _unitOfWork.Repository<Subscription>().Update(subscription);
+                    _unitOfWork.Repository<Payment>().Update(payment);
+                }
+                else if (request.PaymentMethod == PaymentMethod.Stripe)
+                {
+                    var returnUrl =
+                        request.ReturnUrl ??
+                        $"{_configuration["BaseApiUrl"]}/api/payment/stripe/return";
+
+                    // ✅ Pass subscription to Stripe service (new architecture)
+                    var result = await _stripePaymentService.CreatePaymentIntentAsync(
+                        subscription,
+                        returnUrl);
+
+                    if (!result.Success)
+                        return ServiceResult<PaymentResponse>
+                            .Failure(result.ErrorMessage ?? "Stripe error");
+
+                    // ✅ Store Stripe intent on subscription instead of payment
+                    subscription.StripePaymentIntentId = result.SessionId;
+                    subscription.StripeClientSecret = result.ClientSecret;
+                    paymentUrl = result.ClientSecret;
+
+                    _unitOfWork.Repository<Subscription>().Update(subscription);
                 }
                 else
                 {
                     return ServiceResult<PaymentResponse>
-                        .Failure("Payment method not supported yet");
+                        .Failure("Payment method not supported");
                 }
 
                 await _unitOfWork.CompleteAsync();
@@ -144,7 +178,7 @@ namespace ITI.Gymunity.FP.Application.Services
         }
 
         // ===============================
-        // Confirm Payment (after PayPal return)
+        // Confirm Payment (after PayPal/Stripe return)
         // ===============================
         public async Task ConfirmPaymentAsync(int paymentId, string captureId)
         {
@@ -156,14 +190,26 @@ namespace ITI.Gymunity.FP.Application.Services
 
             payment.Status = PaymentStatus.Completed;
             payment.PaidAt = DateTime.UtcNow;
-            payment.PayPalCaptureId = captureId;
+            
+            if (payment.Method == PaymentMethod.PayPal)
+            {
+                payment.PayPalCaptureId = captureId;
+            }
 
             var subscription = await _unitOfWork
                 .Repository<Subscription>()
                 .GetByIdAsync(payment.SubscriptionId);
 
             if (subscription != null)
+            {
                 subscription.Status = SubscriptionStatus.Active;
+                
+                // ✅ Update subscription with payment intent if Stripe
+                if (payment.Method == PaymentMethod.Stripe)
+                {
+                    subscription.StripePaymentIntentId = captureId;
+                }
+            }
 
             await _unitOfWork.CompleteAsync();
         }
@@ -211,8 +257,8 @@ namespace ITI.Gymunity.FP.Application.Services
         }
 
         public async Task<ServiceResult<PaymentResponse>> GetPaymentByIdAsync(
-    int paymentId,
-    string clientId)
+            int paymentId,
+            string clientId)
         {
             var payment = await _unitOfWork
                 .Repository<Payment>()
@@ -227,6 +273,5 @@ namespace ITI.Gymunity.FP.Application.Services
             var response = _mapper.Map<PaymentResponse>(payment);
             return ServiceResult<PaymentResponse>.Success(response);
         }
-
     }
 }

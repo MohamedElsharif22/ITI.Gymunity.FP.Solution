@@ -7,12 +7,15 @@ using ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers;
 using ITI.Gymunity.FP.Application.Services.Admin;
 using ITI.Gymunity.FP.Application.Specefications.Admin;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Admin.MVC.Services;
+using System.Security.Claims;
 
 namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 {
     /// <summary>
     /// Admin Trainers Controller
     /// Manages trainer profiles, verification, and account actions
+    /// Integrated with admin notification system
     /// </summary>
     [Authorize(Roles = "Admin")]
     [Route("admin")]
@@ -20,13 +23,19 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
     {
         private readonly ILogger<TrainersController> _logger;
         private readonly TrainerAdminService _trainerService;
+        private readonly IAdminNotificationService _notificationService;
+        private readonly AdminUserResolverService _adminUserResolver;
 
         public TrainersController(
             ILogger<TrainersController> logger,
-            TrainerAdminService trainerService)
+            TrainerAdminService trainerService,
+            IAdminNotificationService notificationService,
+            AdminUserResolverService adminUserResolver)
         {
             _logger = logger;
             _trainerService = trainerService;
+            _notificationService = notificationService;
+            _adminUserResolver = adminUserResolver;
         }
 
         /// <summary>
@@ -204,18 +213,35 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 
         /// <summary>
         /// Verifies a trainer profile (marks as verified)
+        /// Sends notification to all admins
         /// </summary>
         [HttpPost("trainers/{id}/verify")]
         public async Task<IActionResult> Verify(int id)
         {
             try
             {
+                var trainer = await _trainerService.GetTrainerByIdAsync(id);
+                if (trainer == null)
+                    return BadRequest(new { success = false, message = "Trainer not found" });
+
                 var result = await _trainerService.VerifyTrainerAsync(id);
                 if (!result)
                     return BadRequest(new { success = false, message = "Failed to verify trainer" });
 
+                // Send notification to all admins
+                var adminUser = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (adminUser != null)
+                {
+                    await _notificationService.NotifyTrainerProfileCreatedAsync(
+                        adminUser.Id,
+                        trainer.UserName,
+                        trainer.Id.ToString());
+                }
+
                 ShowSuccessMessage("Trainer verified successfully");
-                _logger.LogInformation("Trainer {TrainerId} verified by {User}", id, User.Identity?.Name);
+                _logger.LogInformation("Trainer {TrainerId} ({TrainerName}) verified by {User}", 
+                    id, trainer.UserName, User.Identity?.Name);
+                
                 return Ok(new { success = true, message = "Trainer verified successfully" });
             }
             catch (Exception ex)
@@ -233,12 +259,18 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         {
             try
             {
+                var trainer = await _trainerService.GetTrainerByIdAsync(id);
+                if (trainer == null)
+                    return BadRequest(new { success = false, message = "Trainer not found" });
+
                 var result = await _trainerService.RejectTrainerAsync(id);
                 if (!result)
                     return BadRequest(new { success = false, message = "Failed to reject trainer" });
 
                 ShowSuccessMessage("Trainer rejected successfully");
-                _logger.LogInformation("Trainer {TrainerId} rejected by {User}", id, User.Identity?.Name);
+                _logger.LogInformation("Trainer {TrainerId} ({TrainerName}) rejected by {User}", 
+                    id, trainer.UserName, User.Identity?.Name);
+                
                 return Ok(new { success = true, message = "Trainer rejected successfully" });
             }
             catch (Exception ex)
@@ -250,18 +282,36 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 
         /// <summary>
         /// Suspends a trainer account
+        /// Sends notification to all admins
         /// </summary>
         [HttpPost("trainers/{id}/suspend")]
         public async Task<IActionResult> Suspend(int id)
         {
             try
             {
+                var trainer = await _trainerService.GetTrainerByIdAsync(id);
+                if (trainer == null)
+                    return BadRequest(new { success = false, message = "Trainer not found" });
+
                 var result = await _trainerService.SuspendTrainerAsync(id, suspend: true);
                 if (!result)
                     return BadRequest(new { success = false, message = "Failed to suspend trainer" });
 
+                // Send notification to all admins
+                var adminUser = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (adminUser != null)
+                {
+                    await _notificationService.NotifyAccountSuspendedAsync(
+                        adminUser.Id,
+                        trainer.UserName,
+                        "Trainer",
+                        trainer.UserId);
+                }
+
                 ShowSuccessMessage("Trainer suspended successfully");
-                _logger.LogInformation("Trainer {TrainerId} suspended by {User}", id, User.Identity?.Name);
+                _logger.LogInformation("Trainer {TrainerId} ({TrainerName}) suspended by {User}", 
+                    id, trainer.UserName, User.Identity?.Name);
+                
                 return Ok(new { success = true, message = "Trainer suspended successfully" });
             }
             catch (Exception ex)
@@ -273,18 +323,36 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 
         /// <summary>
         /// Reactivates a suspended trainer account
+        /// Sends notification to all admins
         /// </summary>
         [HttpPost("trainers/{id}/reactivate")]
         public async Task<IActionResult> Reactivate(int id)
         {
             try
             {
+                var trainer = await _trainerService.GetTrainerByIdAsync(id);
+                if (trainer == null)
+                    return BadRequest(new { success = false, message = "Trainer not found" });
+
                 var result = await _trainerService.SuspendTrainerAsync(id, suspend: false);
                 if (!result)
                     return BadRequest(new { success = false, message = "Failed to reactivate trainer" });
 
+                // Send notification to all admins
+                var adminUser = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (adminUser != null)
+                {
+                    await _notificationService.NotifyAccountReactivatedAsync(
+                        adminUser.Id,
+                        trainer.UserName,
+                        "Trainer",
+                        trainer.UserId);
+                }
+
                 ShowSuccessMessage("Trainer reactivated successfully");
-                _logger.LogInformation("Trainer {TrainerId} reactivated by {User}", id, User.Identity?.Name);
+                _logger.LogInformation("Trainer {TrainerId} ({TrainerName}) reactivated by {User}", 
+                    id, trainer.UserName, User.Identity?.Name);
+                
                 return Ok(new { success = true, message = "Trainer reactivated successfully" });
             }
             catch (Exception ex)

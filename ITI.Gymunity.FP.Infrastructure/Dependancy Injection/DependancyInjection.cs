@@ -109,19 +109,25 @@ namespace ITI.Gymunity.FP.Infrastructure.Dependancy_Injection
             // Register External Services
             services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<EmailTemplateService>();
             services.AddScoped<IFileUploadService, FileUploadService>();
             services.AddScoped<IAuthService, AuthService>();
             //services.AddScoped<IPaymentService, PaymentService>();
             services.AddScoped<IGoogleAuthService, GoogleAuthService>();
             services.AddScoped<IImageUrlResolver, ImageUrlResolver>();
 
+            // Payment Gateway Services
+            services.AddScoped<IStripePaymentService, StripePaymentService>();
+            services.AddScoped<IPayPalService, PayPalService>();
+            services.AddScoped<WebhookService>();
+            
+            // ✅ Admin Notification Services (Event-Driven)
+            services.AddScoped<IAdminNotificationPublisher, AdminNotificationPublisher>();
+
             // Register SignalR Services
             services.AddSingleton<ISignalRConnectionManager, SignalRConnectionManager>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<INotificationService, NotificationService>();
-
-
-
 
             return services;
         }

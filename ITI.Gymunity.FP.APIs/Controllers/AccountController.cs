@@ -1,6 +1,8 @@
 ﻿using ITI.Gymunity.FP.APIs.Responses;
+using ITI.Gymunity.FP.Admin.MVC.Services;
 using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.Account;
+using ITI.Gymunity.FP.Domain.Models.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -16,9 +18,16 @@ namespace ITI.Gymunity.FP.APIs.Controllers
     /// users, including support for standard and Google-based authentication. All endpoints return appropriate HTTP
     /// responses based on the outcome of the requested operation.</remarks>
     /// <param name="accountService">The account service used to perform user registration and authentication operations. Cannot be null.</param>
-    public class AccountController(IAccountService accountService) : BaseApiController
+    public class AccountController(
+        IAccountService accountService,
+        IAdminNotificationService adminNotificationService,
+        AdminUserResolverService adminUserResolver,
+        ILogger<AccountController> logger) : BaseApiController
     {
         private readonly IAccountService _accountService = accountService;
+        private readonly IAdminNotificationService _adminNotificationService = adminNotificationService;
+        private readonly AdminUserResolverService _adminUserResolver = adminUserResolver;
+        private readonly ILogger<AccountController> _logger = logger;
 
         /// <summary>
         /// Registers a new user account using the provided registration details.
@@ -36,6 +45,10 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             try
             {
                 var userResponse = await _accountService.RegisterAsync(request);
+                
+                // ✅ Notify admin of new registration
+                await NotifyAdminOfRegistrationAsync(userResponse);
+                
                 return Ok(userResponse);
             }
             catch (Exception ex)
@@ -79,6 +92,10 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             try
             {
                 var userResponse = await _accountService.GoogleAuthAsync(request);
+                
+                // ✅ Notify admin of new Google registration
+                await NotifyAdminOfGoogleRegistrationAsync(userResponse);
+                
                 return Ok(userResponse);
             }
             catch (Exception ex)
@@ -178,6 +195,86 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             }
         }
 
+        /// <summary>
+        /// Sends admin notification for new user registration
+        /// </summary>
+        private async Task NotifyAdminOfRegistrationAsync(AuthResponse userResponse)
+        {
+            try
+            {
+                if (userResponse == null)
+                    return;
+
+                var admin = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (admin == null)
+                {
+                    _logger.LogWarning("No admin user found to notify about new registration");
+                    return;
+                }
+
+                // Determine user role from the role string in response
+                var notificationType = userResponse.Role?.Equals("Trainer", StringComparison.OrdinalIgnoreCase) ?? false
+                    ? NotificationType.NewTrainerRegistration
+                    : NotificationType.NewClientRegistration;
+
+                await _adminNotificationService.CreateAdminNotificationAsync(
+                    adminUserId: admin.Id,
+                    title: $"New {userResponse.Role} Registration",
+                    message: $"{userResponse.Name} ({userResponse.Email}) has registered as a {userResponse.Role}",
+                    type: notificationType,
+                    relatedEntityId: userResponse.Id,
+                    broadcastToAll: true
+                );
+
+                _logger.LogInformation("Admin notified of new {Role} registration: {Email}", 
+                    userResponse.Role, userResponse.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admin of new registration");
+                // Don't rethrow - registration already succeeded
+            }
+        }
+
+        /// <summary>
+        /// Sends admin notification for Google registration
+        /// </summary>
+        private async Task NotifyAdminOfGoogleRegistrationAsync(AuthResponse userResponse)
+        {
+            try
+            {
+                if (userResponse == null)
+                    return;
+
+                var admin = await _adminUserResolver.GetPrimaryAdminAsync();
+                if (admin == null)
+                {
+                    _logger.LogWarning("No admin user found to notify about Google registration");
+                    return;
+                }
+
+                var notificationType = userResponse.Role?.Equals("Trainer", StringComparison.OrdinalIgnoreCase) ?? false
+                    ? NotificationType.NewTrainerRegistration
+                    : NotificationType.NewClientRegistration;
+
+                await _adminNotificationService.CreateAdminNotificationAsync(
+                    adminUserId: admin.Id,
+                    title: $"New {userResponse.Role} Registration (Google Auth)",
+                    message: $"{userResponse.Name} ({userResponse.Email}) has registered as a {userResponse.Role} using Google authentication",
+                    type: notificationType,
+                    relatedEntityId: userResponse.Id,
+                    broadcastToAll: true
+                );
+
+                _logger.LogInformation("Admin notified of new Google {Role} registration: {Email}",
+                    userResponse.Role, userResponse.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to notify admin of Google registration");
+                // Don't rethrow - registration already succeeded
+            }
+        }
 
         private string? GetUserId()
         {

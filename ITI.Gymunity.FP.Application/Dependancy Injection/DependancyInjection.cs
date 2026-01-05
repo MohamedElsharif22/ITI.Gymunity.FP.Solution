@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using ITI.Gymunity.FP.Application.Configuration;
 using ITI.Gymunity.FP.Application.Services.Admin;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 
 namespace ITI.Gymunity.FP.Application.DependencyInjection
 {
@@ -26,6 +27,14 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
                 options.ClientSecret = paypalSection["ClientSecret"] ?? options.ClientSecret;
                 options.ReturnUrl = paypalSection["ReturnUrl"] ?? options.ReturnUrl;
                 options.CancelUrl = paypalSection["CancelUrl"] ?? options.CancelUrl;
+            });
+
+            var stripeSection = configuration.GetSection("Stripe");
+            services.Configure<StripeSettings>(options =>
+            {
+                options.SecretKey = stripeSection["SecretKey"] ?? options.SecretKey;
+                options.PublishableKey = stripeSection["PublishableKey"] ?? options.PublishableKey;
+                options.WebhookSecret = stripeSection["WebhookSecret"] ?? options.WebhookSecret;
             });
 
             // ===========================
@@ -49,8 +58,6 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             // Subscription & Payment
             services.AddScoped<SubscriptionService>();
             services.AddScoped<PaymentService>();
-            services.AddScoped<WebhookService>();
-            services.AddScoped<PayPalService>();
             services.AddScoped<UsersService>();
 
             //amr start

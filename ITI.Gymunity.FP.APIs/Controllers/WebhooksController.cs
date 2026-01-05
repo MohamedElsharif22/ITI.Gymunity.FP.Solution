@@ -1,10 +1,8 @@
 ﻿using ITI.Gymunity.FP.Application.DTOs.Email;
 using ITI.Gymunity.FP.Application.DTOs.User.Webhook;
-using ITI.Gymunity.FP.Application.DTOs.Email;
-using ITI.Gymunity.FP.Application.DTOs.User.Webhook;
-using ITI.Gymunity.FP.Application.ExternalServices;
 using ITI.Gymunity.FP.Application.Services;
 using Microsoft.AspNetCore.Mvc;
+using ITI.Gymunity.FP.Infrastructure.ExternalServices;
 
 namespace ITI.Gymunity.FP.APIs.Controllers
 {
@@ -110,6 +108,59 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             return Ok(result);
         }
 
+        /// <summary>
+        /// Stripe webhook endpoint
+        /// Called by Stripe for payment_intent events
+        /// </summary>
+        [HttpPost("stripe")]
+        [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(WebhookResponse), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> StripeWebhook()
+        {
+            try
+            {
+                // Read raw request body
+                var json = await new StreamReader(Request.Body).ReadToEndAsync();
+                var signature = Request.Headers["Stripe-Signature"].ToString();
+
+                if (string.IsNullOrEmpty(signature))
+                {
+                    _logger.LogWarning("Missing Stripe-Signature header in webhook request");
+                    return BadRequest(new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Missing signature header"
+                    });
+                }
+
+                _logger.LogInformation("📥 Stripe webhook received | Signature present");
+
+                var result = await _webhookService.ProcessStripeWebhookAsync(json, signature);
+
+                if (!result.Success)
+                {
+                    _logger.LogWarning("❌ Stripe webhook failed | Reason: {Reason}", result.Message);
+                    return BadRequest(result);
+                }
+
+                _logger.LogInformation(
+                    "✅ Stripe webhook processed | Payment: {PaymentId} | Message: {Message}",
+                    result.PaymentId,
+                    result.Message);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing Stripe webhook");
+                return StatusCode(500, new WebhookResponse
+                {
+                    Success = false,
+                    Message = "Internal error processing webhook"
+                });
+            }
+        }
+
         /// Test endpoint for webhook validation (Development only!)
         [HttpGet("test")]
         [ApiExplorerSettings(IgnoreApi = true)]
@@ -121,13 +172,15 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                 endpoints = new
                 {
                     paymob = $"{Request.Scheme}://{Request.Host}/api/webhooks/paymob",
-                    paypal = $"{Request.Scheme}://{Request.Host}/api/webhooks/paypal"
+                    paypal = $"{Request.Scheme}://{Request.Host}/api/webhooks/paypal",
+                    stripe = $"{Request.Scheme}://{Request.Host}/api/webhooks/stripe"
                 },
                 timestamp = DateTime.UtcNow,
                 features = new
                 {
                     emailNotifications = "Enabled",
                     hmacVerification = "Enabled",
+                    stripeSignatureVerification = "Enabled",
                     rateLimiting = "Enabled"
                 }
             });

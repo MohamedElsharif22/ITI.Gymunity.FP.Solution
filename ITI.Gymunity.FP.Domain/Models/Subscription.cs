@@ -25,8 +25,14 @@ namespace ITI.Gymunity.FP.Domain.Models
 
         // PayPal
         public string? PayPalSubscriptionId { get; set; }
+        public string? PayPalOrderId { get; set; }        // ✅ NEW: Order ID
+        public string? PayPalApprovalUrl { get; set; }    // ✅ NEW: Approval URL
 
-        public string Currency { get; set; } = "EGP";
+        // Stripe
+        public string? StripePaymentIntentId { get; set; }
+        public string? StripeClientSecret { get; set; }
+
+        public string Currency { get; set; } = "USD";
         public decimal AmountPaid { get; set; }
         public decimal PlatformFeePercentage { get; set; } = 15m;
 

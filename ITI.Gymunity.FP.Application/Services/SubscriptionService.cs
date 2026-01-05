@@ -1,11 +1,13 @@
 ﻿using AutoMapper;
 using ITI.Gymunity.FP.Application.Common;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.User.Subscribe;
 using ITI.Gymunity.FP.Application.Specefications.Subscriptions;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models;
 using ITI.Gymunity.FP.Domain.Models.Enums;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace ITI.Gymunity.FP.Application.Services
@@ -14,20 +16,41 @@ namespace ITI.Gymunity.FP.Application.Services
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IStripePaymentService _stripePaymentService;
+        private readonly IPayPalService _paypalService;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<SubscriptionService> _logger;
 
         public SubscriptionService(
             IUnitOfWork unitOfWork,
             IMapper mapper,
+            IStripePaymentService stripePaymentService,
+            IPayPalService paypalService,
+            IConfiguration configuration,
             ILogger<SubscriptionService> logger)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _stripePaymentService = stripePaymentService;
+            _paypalService = paypalService;
+            _configuration = configuration;
             _logger = logger;
+        }
+
+        public async Task<bool> HasActiveSubscribtionToPackageAsync(
+            string clientId,
+            int packageId)
+        {
+            var spec = new ActiveClientSubscriptionForPackageSpecs(clientId, packageId);
+            var subscription = await _unitOfWork
+                .Repository<Subscription>()
+                .GetWithSpecsAsync(spec);
+            return subscription != null;
         }
 
         /// <summary>
         /// Create subscription (UNPAID – waiting for payment)
+        /// Now also creates Stripe Payment Intent
         /// </summary>
         public async Task<ServiceResult<SubscriptionResponse>> SubscribeAsync(
             string clientId,
@@ -55,7 +78,7 @@ namespace ITI.Gymunity.FP.Application.Services
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(existingSpec);
 
-                if (existingSubscription != null)
+                if (existingSubscription != null && existingSubscription.Status == SubscriptionStatus.Active)
                 {
                     return ServiceResult<SubscriptionResponse>.Failure(
                         "You already subscribed to this package");
@@ -79,7 +102,7 @@ namespace ITI.Gymunity.FP.Application.Services
                     StartDate = DateTime.UtcNow,
                     CurrentPeriodEnd = periodEnd,
                     AmountPaid = amount,
-                    Currency = "EGP",
+                    Currency = "USD",
                     PlatformFeePercentage = 15m,
                     IsAnnual = request.IsAnnual
                 };
@@ -99,9 +122,76 @@ namespace ITI.Gymunity.FP.Application.Services
                         "Failed to load created subscription");
                 }
 
-                // 6️⃣ Map safely
-                var response =
-                    _mapper.Map<SubscriptionResponse>(createdSubscription);
+                // 6️⃣ Create Stripe Payment Intent ✅
+                if (request.PaymentMethod == PaymentMethod.Stripe)
+                {
+                    var returnUrl = request.ReturnUrl ??
+                        $"{_configuration["BaseApiUrl"]}/api/payment/stripe/return";
+
+                    var stripeResult = await _stripePaymentService
+                        .CreatePaymentIntentAsync(createdSubscription, returnUrl);
+
+                    if (!stripeResult.Success)
+                    {
+                        _logger.LogWarning(
+                            "Failed to create Stripe intent for subscription {SubscriptionId}: {Error}",
+                            createdSubscription.Id,
+                            stripeResult.ErrorMessage);
+
+                        // Continue anyway - client can retry payment
+                    }
+                    else
+                    {
+                        // ✅ Store intent on subscription
+                        createdSubscription.StripePaymentIntentId = stripeResult.SessionId;
+                        createdSubscription.StripeClientSecret = stripeResult.ClientSecret;
+
+                        _unitOfWork.Repository<Subscription>().Update(createdSubscription);
+                        await _unitOfWork.CompleteAsync();
+
+                        _logger.LogInformation(
+                            "Stripe payment intent created for subscription {SubscriptionId}: {IntentId}",
+                            createdSubscription.Id,
+                            stripeResult.SessionId);
+                    }
+                }
+                else if (request.PaymentMethod == PaymentMethod.PayPal)
+                {
+                    // 7️⃣ Create PayPal Order
+                    var returnUrl = request.ReturnUrl ??
+                        $"{_configuration["BaseApiUrl"]}/api/payment/paypal/return";
+
+                    var cancelUrl =
+                        $"{_configuration["BaseApiUrl"]}/api/payment/paypal/cancel";
+
+                    var paypalResult = await _paypalService.CreateOrderAsync(
+                        createdSubscription, returnUrl, cancelUrl);
+
+                    if (!paypalResult.Success)
+                    {
+                        _logger.LogWarning(
+                            "Failed to create PayPal order for subscription {SubscriptionId}: {Error}",
+                            createdSubscription.Id,
+                            paypalResult.ErrorMessage);
+
+                        return ServiceResult<SubscriptionResponse>.Failure("Failed to create PayPal order");
+                    }
+
+                    // ✅ Store PayPal order details on subscription
+                    createdSubscription.PayPalOrderId = paypalResult.OrderId;
+                    createdSubscription.PayPalApprovalUrl = paypalResult.ApprovalUrl;
+
+                    _unitOfWork.Repository<Subscription>().Update(createdSubscription);
+                    await _unitOfWork.CompleteAsync();
+
+                    _logger.LogInformation(
+                        "PayPal order created for subscription {SubscriptionId}: {OrderId}",
+                        createdSubscription.Id,
+                        paypalResult.OrderId);
+                }
+
+                // 8️⃣ Map safely
+                var response = _mapper.Map<SubscriptionResponse>(createdSubscription);
 
                 _logger.LogInformation(
                     "Client {ClientId} subscribed to package {PackageId} successfully",

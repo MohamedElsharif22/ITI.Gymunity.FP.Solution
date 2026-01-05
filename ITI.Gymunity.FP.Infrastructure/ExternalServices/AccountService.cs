@@ -36,6 +36,10 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         private readonly IConfiguration _configuration = configuration;
         private readonly IImageUrlResolver _imageUrlResolver = imageUrlResolver;
 
+        // ✅ Observable events for notification handlers
+        public event Func<string, string, string, UserRole, Task>? NewUserRegisteredAsync;
+        public event Func<string, string, string, UserRole, Task>? NewGoogleUserRegisteredAsync;
+
 
         //ToDo: Get all users
         //ToDo: Delete User
@@ -116,6 +120,20 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 {
                     _logger.LogError("Failed to assign role to user {Email}", googleUser.Email);
                 }
+
+                // ✅ Raise event for notification handlers
+                if (NewGoogleUserRegisteredAsync != null)
+                {
+                    try
+                    {
+                        await NewGoogleUserRegisteredAsync(user.Id, user.FullName, user.Email, user.Role);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Event notification failed for new Google user registration {UserId}", user.Id);
+                        // Don't rethrow - registration already succeeded
+                    }
+                }
             }
 
             // Generate JWT token
@@ -166,7 +184,6 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         {
             if (!await IsEmailUniqueAsync(request.Email))
             {
-
                 throw new Exception("Email is already registered.");
             }
             if (!await IsUserNameUniqueAsync(request.UserName))
@@ -208,6 +225,21 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             };
 
             await _emailService.SendEmailAsync(emailRequset);
+
+            // ✅ Raise event for notification handlers
+            if (NewUserRegisteredAsync != null)
+            {
+                try
+                {
+                    await NewUserRegisteredAsync(user.Id, user.FullName, user.Email, user.Role);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Event notification failed for new user registration {UserId}", user.Id);
+                    // Don't rethrow - registration already succeeded
+                }
+            }
+
             return user.ToUserResponse(token, _imageUrlResolver.ResolveImageUrl(user.ProfilePhotoUrl ?? ""));
         }
 

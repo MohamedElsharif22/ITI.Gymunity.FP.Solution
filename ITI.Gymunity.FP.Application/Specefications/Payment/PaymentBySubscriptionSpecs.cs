@@ -15,6 +15,16 @@ namespace ITI.Gymunity.FP.Application.Specefications.Payment
             AddInclude(p => p.Subscription);
             AddOrderByDesc(p => p.CreatedAt);
         }
+
+        public PaymentBySubscriptionSpecs(int subscriptionId, string clientId)
+             : base(p =>
+                p.SubscriptionId == subscriptionId &&
+                p.ClientId == clientId &&
+                !p.IsDeleted)
+        {
+            AddInclude(p => p.Subscription);
+            AddOrderByDesc(p => p.CreatedAt);
+        }
     }
 }
     

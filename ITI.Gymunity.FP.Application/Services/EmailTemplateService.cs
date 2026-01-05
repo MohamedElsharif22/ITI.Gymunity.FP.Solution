@@ -1,12 +1,8 @@
-﻿using ITI.Gymunity.FP.Application.DTOs.Email;
-using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
+﻿using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Application.DTOs.Email;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
-namespace ITI.Gymunity.FP.Application.ExternalServices
+namespace ITI.Gymunity.FP.Application.Services
 {
     public class EmailTemplateService
     {

@@ -1,4 +1,5 @@
 using AutoMapper;
+using ITI.Gymunity.FP.Application.Contracts.Services;
 using ITI.Gymunity.FP.Application.DTOs.User.Payment;
 using ITI.Gymunity.FP.Application.Specefications.Admin;
 using ITI.Gymunity.FP.Domain;
@@ -15,12 +16,17 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 {
     /// <summary>
     /// Admin service for managing payments, refunds, and payment analytics
+    /// Events are raised when important operations complete for notification handlers to subscribe to
     /// </summary>
     public class PaymentAdminService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<PaymentAdminService> _logger;
+
+        // ✅ Observable events for notification handlers
+        public event Func<int, Domain.Models.Payment, Task>? RefundCompletedAsync;
+        public event Func<int, Domain.Models.Payment, Task>? PaymentMarkedAsFailedAsync;
 
         public PaymentAdminService(
             IUnitOfWork unitOfWork,
@@ -229,6 +235,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
         /// <summary>
         /// Process refund for a payment
+        /// Raises RefundCompletedAsync event after successful completion
         /// </summary>
         public async Task<bool> ProcessRefundAsync(int paymentId)
         {
@@ -256,6 +263,21 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation("Payment {PaymentId} refunded successfully", paymentId);
+                
+                // ✅ Raise event for notification handlers
+                if (RefundCompletedAsync != null)
+                {
+                    try
+                    {
+                        await RefundCompletedAsync(paymentId, payment);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Event notification failed for refund {PaymentId}", paymentId);
+                        // Don't rethrow - refund already succeeded
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)

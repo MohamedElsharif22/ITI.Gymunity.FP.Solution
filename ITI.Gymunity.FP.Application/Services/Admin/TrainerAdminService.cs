@@ -16,12 +16,19 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 {
     /// <summary>
     /// Admin service for managing trainer profiles, verification, and actions
+    /// Events are raised when important operations complete for notification handlers to subscribe to
     /// </summary>
     public class TrainerAdminService
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<TrainerAdminService> _logger;
+
+        // ✅ Observable events for notification handlers
+        public event Func<int, TrainerProfile, Task>? TrainerVerifiedAsync;
+        public event Func<int, TrainerProfile, Task>? TrainerRejectedAsync;
+        public event Func<int, TrainerProfile, Task>? TrainerSuspendedAsync;
+        public event Func<int, TrainerProfile, Task>? TrainerReactivatedAsync;
 
         public TrainerAdminService(IUnitOfWork unitOfWork, IMapper mapper, ILogger<TrainerAdminService> logger)
         {
@@ -42,7 +49,21 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     .Repository<TrainerProfile>()
                     .GetAllWithSpecsAsync(specs);
 
-                return _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+                var dtos = _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+
+                // Compute TotalClients for each trainer from subscriptions
+                var result = new List<TrainerProfileDetailResponse>();
+                foreach (var dto in dtos)
+                {
+                    var trainer = trainers.FirstOrDefault(t => t.Id == dto.Id);
+                    if (trainer != null)
+                    {
+                        dto.TotalClients = await ComputeTotalClientsAsync(trainer.Id);
+                    }
+                    result.Add(dto);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -72,6 +93,17 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
             {
                 _logger.LogError(ex, "Error computing available balance for trainer {TrainerId}", id);
                 dto.AvailableBalance = 0m;
+            }
+
+            // Compute total clients
+            try
+            {
+                dto.TotalClients = await ComputeTotalClientsAsync(entity.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error computing total clients for trainer {TrainerId}", id);
+                dto.TotalClients = 0;
             }
 
             return dto;
@@ -106,6 +138,17 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     dto.AvailableBalance = 0m;
                 }
 
+                // Compute total clients
+                try
+                {
+                    dto.TotalClients = await ComputeTotalClientsAsync(entity.Id);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error computing total clients for trainer {TrainerId}", id);
+                    dto.TotalClients = 0;
+                }
+
                 // Get trainer reviews using specification
                 var reviewsSpec = new TrainerReviewsSpecs(id, pageNumber: 1, pageSize: 10);
                 var reviews = await _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Trainer.TrainerReview>()
@@ -127,6 +170,40 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
             {
                 _logger.LogError(ex, "Error getting trainer details for admin view: {TrainerId}", id);
                 throw;
+            }
+        }
+
+        private async Task<int> ComputeTotalClientsAsync(int trainerProfileId)
+        {
+            try
+            {
+                // Load trainer's packages with all subscriptions
+                var spec = new TrainerPackagesWithEarningsSpecs(trainerProfileId);
+                var packages = await _unitOfWork.Repository<Package>()
+                    .GetAllWithSpecsAsync(spec);
+
+                if (!packages.Any())
+                {
+                    _logger.LogDebug("No packages found for trainer {TrainerId}", trainerProfileId);
+                    return 0;
+                }
+
+                // Count distinct clients from all active subscriptions across all packages
+                var distinctClientCount = packages
+                    .SelectMany(p => p.Subscriptions ?? new List<Subscription>())  // Get all subscriptions for all packages
+                    .Where(s => s.Status == SubscriptionStatus.Active && !s.IsDeleted) // Only active, non-deleted subscriptions
+                    .Select(s => s.ClientId)
+                    .Distinct()
+                    .Count();
+
+                _logger.LogDebug("Calculated total clients for trainer {TrainerId}: {ClientCount}", trainerProfileId, distinctClientCount);
+                return distinctClientCount;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error computing total clients for trainer {TrainerId}", trainerProfileId);
+                // Return 0 on error to prevent service failure
+                return 0;
             }
         }
 
@@ -183,6 +260,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
         /// <summary>
         /// Verify a trainer profile (mark as verified)
+        /// Raises TrainerVerifiedAsync event after successful completion
         /// </summary>
         public async Task<bool> VerifyTrainerAsync(int trainerId)
         {
@@ -205,6 +283,20 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation("Trainer {TrainerId} verified successfully", trainerId);
+
+                // ✅ Raise event for notification handlers
+                if (TrainerVerifiedAsync != null)
+                {
+                    try
+                    {
+                        await TrainerVerifiedAsync(trainerId, trainer);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Event notification failed for trainer verification {TrainerId}", trainerId);
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -216,6 +308,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
         /// <summary>
         /// Reject trainer verification (soft delete)
+        /// Raises TrainerRejectedAsync event after successful completion
         /// </summary>
         public async Task<bool> RejectTrainerAsync(int trainerId)
         {
@@ -238,6 +331,20 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation("Trainer {TrainerId} rejected and soft-deleted", trainerId);
+
+                // ✅ Raise event for notification handlers
+                if (TrainerRejectedAsync != null)
+                {
+                    try
+                    {
+                        await TrainerRejectedAsync(trainerId, trainer);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Event notification failed for trainer rejection {TrainerId}", trainerId);
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -249,6 +356,7 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
         /// <summary>
         /// Suspend/Reactivate trainer account
+        /// Raises TrainerSuspendedAsync or TrainerReactivatedAsync event after successful completion
         /// </summary>
         public async Task<bool> SuspendTrainerAsync(int trainerId, bool suspend = true)
         {
@@ -280,6 +388,31 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
 
                 var action = suspend ? "suspended" : "reactivated";
                 _logger.LogInformation("Trainer {TrainerId} {Action}", trainerId, action);
+
+                // ✅ Raise appropriate event for notification handlers
+                if (suspend && TrainerSuspendedAsync != null)
+                {
+                    try
+                    {
+                        await TrainerSuspendedAsync(trainerId, trainer);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Event notification failed for trainer suspension {TrainerId}", trainerId);
+                    }
+                }
+                else if (!suspend && TrainerReactivatedAsync != null)
+                {
+                    try
+                    {
+                        await TrainerReactivatedAsync(trainerId, trainer);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Event notification failed for trainer reactivation {TrainerId}", trainerId);
+                    }
+                }
+
                 return true;
             }
             catch (Exception ex)
@@ -308,7 +441,21 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     .Repository<TrainerProfile>()
                     .GetAllWithSpecsAsync(specs);
 
-                return _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+                var dtos = _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+
+                // Compute TotalClients for each trainer
+                var result = new List<TrainerProfileDetailResponse>();
+                foreach (var dto in dtos)
+                {
+                    var trainer = trainers.FirstOrDefault(t => t.Id == dto.Id);
+                    if (trainer != null)
+                    {
+                        dto.TotalClients = await ComputeTotalClientsAsync(trainer.Id);
+                    }
+                    result.Add(dto);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -355,7 +502,21 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     .Repository<TrainerProfile>()
                     .GetAllWithSpecsAsync(specs);
 
-                return _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+                var dtos = _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+
+                // Compute TotalClients for each trainer
+                var result = new List<TrainerProfileDetailResponse>();
+                foreach (var dto in dtos)
+                {
+                    var trainer = trainers.FirstOrDefault(t => t.Id == dto.Id);
+                    if (trainer != null)
+                    {
+                        dto.TotalClients = await ComputeTotalClientsAsync(trainer.Id);
+                    }
+                    result.Add(dto);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -382,7 +543,21 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     .Repository<TrainerProfile>()
                     .GetAllWithSpecsAsync(specs);
 
-                return _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+                var dtos = _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+
+                // Compute TotalClients for each trainer
+                var result = new List<TrainerProfileDetailResponse>();
+                foreach (var dto in dtos)
+                {
+                    var trainer = trainers.FirstOrDefault(t => t.Id == dto.Id);
+                    if (trainer != null)
+                    {
+                        dto.TotalClients = await ComputeTotalClientsAsync(trainer.Id);
+                    }
+                    result.Add(dto);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -429,7 +604,21 @@ namespace ITI.Gymunity.FP.Application.Services.Admin
                     .Repository<TrainerProfile>()
                     .GetAllWithSpecsAsync(specs);
 
-                return _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+                var dtos = _mapper.Map<IEnumerable<TrainerProfileDetailResponse>>(trainers);
+
+                // Compute TotalClients for each trainer
+                var result = new List<TrainerProfileDetailResponse>();
+                foreach (var dto in dtos)
+                {
+                    var trainer = trainers.FirstOrDefault(t => t.Id == dto.Id);
+                    if (trainer != null)
+                    {
+                        dto.TotalClients = await ComputeTotalClientsAsync(trainer.Id);
+                    }
+                    result.Add(dto);
+                }
+
+                return result;
             }
             catch (Exception ex)
             {

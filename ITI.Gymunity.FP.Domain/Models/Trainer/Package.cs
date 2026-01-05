@@ -17,7 +17,7 @@ namespace ITI.Gymunity.FP.Domain.Models.Trainer
         public string Description { get; set; } = string.Empty;
         public decimal PriceMonthly { get; set; }
         public decimal? PriceYearly { get; set; }
-        public string Currency { get; set; } = "EGP";
+        public string Currency { get; set; } = "USD";
 
         public string FeaturesJson { get; set; } = "{}";
         public bool IsActive { get; set; } = true;
