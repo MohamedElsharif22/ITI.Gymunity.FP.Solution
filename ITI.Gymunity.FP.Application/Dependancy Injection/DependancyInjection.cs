@@ -81,6 +81,10 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
 
             services.AddScoped<IPackageService, PackageService>();
 
+            // ChatBot Service
+            services.AddHttpClient();
+            services.AddScoped<IChatBotService, ChatBotService>();
+
             //clients for trainer
             services.AddScoped<IClientService, ClientService>();
 
@@ -104,6 +108,7 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
             //amr end
 
             
+
 
 
 

@@ -256,6 +256,28 @@
             Sends admin notification for Google registration
             </summary>
         </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatBotController">
+            <summary>
+            Controller for chatbot that answers questions about packages
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatBotController.AskQuestion(ITI.Gymunity.FP.APIs.Controllers.ChatBotController.ChatBotRequest)">
+            <summary>
+            Ask a question about packages
+            </summary>
+            <param name="request">The question to ask</param>
+            <returns>Answer from the chatbot</returns>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatBotController.ChatBotRequest">
+            <summary>
+            Request model for chatbot
+            </summary>
+        </member>
+        <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatBotController.ChatBotResponse">
+            <summary>
+            Response model for chatbot
+            </summary>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.ChatController">
             <summary>
             Provides API endpoints for managing chat threads and messages for authenticated users.
