@@ -16,6 +16,8 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  .Where(p => p.TrainerId == trainerId && !p.IsDeleted)
  .Include(p => p.PackagePrograms)
  .ThenInclude(pp => pp.Program)
+ .Include(p => p.Trainer)
+ .ThenInclude(t => t.User)
  .ToListAsync();
  }
 
@@ -26,6 +28,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  .Include(p => p.PackagePrograms)
  .ThenInclude(pp => pp.Program)
  .Include(p => p.Trainer)
+ .ThenInclude(t => t.User)
  .ToListAsync();
  }
 
@@ -36,6 +39,7 @@ namespace ITI.Gymunity.FP.Infrastructure.Repositories
  .Include(p => p.PackagePrograms)
  .ThenInclude(pp => pp.Program)
  .Include(p => p.Trainer)
+ .ThenInclude(t => t.User)
  .FirstOrDefaultAsync();
  }
  }
