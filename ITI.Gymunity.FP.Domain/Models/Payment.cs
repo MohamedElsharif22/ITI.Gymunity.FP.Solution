@@ -39,6 +39,7 @@ namespace ITI.Gymunity.FP.Domain.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? PaidAt { get; set; }
         public DateTime? FailedAt { get; set; }
+        public DateTime? RefundedAt { get; set; }
 
         // Navigation
         public Subscription Subscription { get; set; } = null!;

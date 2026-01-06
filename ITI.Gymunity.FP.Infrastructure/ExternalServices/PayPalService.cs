@@ -8,6 +8,9 @@ using PayPalCheckoutSdk.Orders;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
@@ -17,13 +20,16 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         private readonly PayPalSettings _settings;
         private readonly ILogger<PayPalService> _logger;
         private readonly PayPalHttpClient _client;
+        private readonly HttpClient _httpClient;
 
         public PayPalService(
             IOptions<PayPalSettings> settings,
-            ILogger<PayPalService> logger)
+            ILogger<PayPalService> logger,
+            HttpClient httpClient)
         {
             _settings = settings.Value;
             _logger = logger;
+            _httpClient = httpClient;
 
             // Initialize PayPal client
             PayPalEnvironment environment;
@@ -185,6 +191,63 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             {
                 _logger.LogError(ex, "Error refunding PayPal capture {CaptureId}", captureId);
                 return (false, null, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Verifies PayPal webhook signature authenticity
+        /// </summary>
+        public async Task<bool> VerifyWebhookSignatureAsync(
+            string transmissionId,
+            string transmissionTime,
+            string certUrl,
+            string authAlgo,
+            string transmissionSig,
+            string webhookId,
+            string webhookEvent)
+        {
+            try
+            {
+                // Download certificate from PayPal
+                var certificateData = await _httpClient.GetByteArrayAsync(certUrl);
+                var certificate = new X509Certificate2(certificateData);
+
+                // Build the expected signature string
+                var expectedSignature = $"{transmissionId}|{transmissionTime}|{webhookId}|{webhookEvent}";
+
+                // Decode the signature from base64
+                var signatureBytes = Convert.FromBase64String(transmissionSig);
+
+                // Get the public key from certificate
+                var publicKey = certificate.GetRSAPublicKey();
+                if (publicKey == null)
+                {
+                    _logger.LogWarning("Failed to extract RSA public key from PayPal certificate");
+                    return false;
+                }
+
+                // Verify the signature
+                var isValid = publicKey.VerifyData(
+                    Encoding.UTF8.GetBytes(expectedSignature),
+                    signatureBytes,
+                    HashAlgorithmName.SHA256,
+                    RSASignaturePadding.Pkcs1);
+
+                if (isValid)
+                {
+                    _logger.LogInformation("PayPal webhook signature verified successfully");
+                }
+                else
+                {
+                    _logger.LogWarning("PayPal webhook signature verification failed");
+                }
+
+                return isValid;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verifying PayPal webhook signature");
+                return false;
             }
         }
     }

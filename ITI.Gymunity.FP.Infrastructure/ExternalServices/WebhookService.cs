@@ -23,6 +23,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         private readonly ILogger<WebhookService> _logger;
         private readonly IConfiguration _configuration;
         private readonly IStripePaymentService _stripePaymentService;
+        private readonly IPayPalService _paypalService;
         private readonly EmailTemplateService _emailService;
         private readonly IAdminNotificationPublisher _adminNotificationPublisher;
 
@@ -31,6 +32,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             ILogger<WebhookService> logger,
             IConfiguration configuration,
             IStripePaymentService stripePaymentService,
+            IPayPalService paypalService,
             EmailTemplateService emailService,
             IAdminNotificationPublisher adminNotificationPublisher)
         {
@@ -38,6 +40,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             _logger = logger;
             _configuration = configuration;
             _stripePaymentService = stripePaymentService;
+            _paypalService = paypalService;
             _emailService = emailService;
             _adminNotificationPublisher = adminNotificationPublisher;
         }
@@ -235,17 +238,75 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             }
         }
 
-        /// Process PayPal webhook
+        /// <summary>
+        /// Process PayPal webhook events
+        /// Handles: PAYMENT.CAPTURE.COMPLETED, PAYMENT.CAPTURE.DENIED, PAYMENT.CAPTURE.REFUNDED, payment failures
+        /// </summary>
         public async Task<WebhookResponse> ProcessPayPalWebhookAsync(
-            PayPalWebhookPayload payload)
+            PayPalWebhookPayload payload,
+            string transmissionId,
+            string transmissionTime,
+            string certUrl,
+            string authAlgo,
+            string transmissionSig)
         {
             try
             {
-                // 1. Verify webhook signature (PayPal has its own verification API)
-                // TODO: Implement PayPal signature verification
+                // 1. Verify webhook signature
+                var paypalSettings = _configuration.GetSection("PayPal");
+                var webhookId = paypalSettings["WebhookId"];
 
-                // 2. Check event type
-                if (payload.Event_Type != "PAYMENT.CAPTURE.COMPLETED")
+                if (string.IsNullOrEmpty(webhookId))
+                {
+                    _logger.LogWarning("PayPal WebhookId not configured");
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Webhook not configured"
+                    };
+                }
+
+                // Serialize payload to JSON for signature verification
+                var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
+
+                var isSignatureValid = await _paypalService.VerifyWebhookSignatureAsync(
+                    transmissionId,
+                    transmissionTime,
+                    certUrl,
+                    authAlgo,
+                    transmissionSig,
+                    webhookId,
+                    payloadJson);
+
+                if (!isSignatureValid)
+                {
+                    _logger.LogWarning("Invalid PayPal webhook signature");
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Invalid signature"
+                    };
+                }
+
+                _logger.LogInformation(
+                    "📥 PayPal webhook received | Event: {EventType} | ID: {EventId}",
+                    payload.Event_Type,
+                    payload.Id);
+
+                // 2. Handle event types
+                if (payload.Event_Type == "PAYMENT.CAPTURE.COMPLETED")
+                {
+                    return await HandlePayPalCaptureCompletedAsync(payload);
+                }
+                else if (payload.Event_Type == "PAYMENT.CAPTURE.DENIED")
+                {
+                    return await HandlePayPalCaptureDeniedAsync(payload);
+                }
+                else if (payload.Event_Type == "PAYMENT.CAPTURE.REFUNDED")
+                {
+                    return await HandlePayPalCaptureRefundedAsync(payload);
+                }
+                else
                 {
                     _logger.LogInformation(
                         "Ignored PayPal event type: {EventType}",
@@ -256,105 +317,6 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                         Message = "Event ignored"
                     };
                 }
-
-                // 3. Extract payment ID from reference
-                var referenceId = payload.Resource.Purchase_Units[0].Reference_Id;
-                if (!int.TryParse(referenceId, out int paymentId))
-                {
-                    _logger.LogWarning("Invalid PayPal reference ID: {ReferenceId}", referenceId);
-                    return new WebhookResponse
-                    {
-                        Success = false,
-                        Message = "Invalid reference ID"
-                    };
-                }
-
-                // 4. Get payment from database
-                var payment = await _unitOfWork
-                    .Repository<Payment>()
-                    .GetByIdAsync(paymentId);
-
-                if (payment == null)
-                {
-                    _logger.LogWarning("Payment not found: {PaymentId}", paymentId);
-                    return new WebhookResponse
-                    {
-                        Success = false,
-                        Message = "Payment not found"
-                    };
-                }
-
-                // 5. Check if already processed (idempotency)
-                if (payment.Status == PaymentStatus.Completed)
-                {
-                    _logger.LogInformation(
-                        "Payment {PaymentId} already processed",
-                        paymentId);
-                    return new WebhookResponse
-                    {
-                        Success = true,
-                        Message = "Payment already processed",
-                        PaymentId = paymentId
-                    };
-                }
-
-                // 6. Update payment and subscription
-                payment.Status = PaymentStatus.Completed;
-                payment.PaidAt = DateTime.UtcNow;
-                payment.PayPalOrderId = payload.Resource.Id;
-
-                var subscription = await _unitOfWork
-                    .Repository<Subscription>()
-                    .GetByIdAsync(payment.SubscriptionId);
-
-                if (subscription != null)
-                {
-                    subscription.Status = SubscriptionStatus.Active;
-                    _unitOfWork.Repository<Subscription>().Update(subscription);
-                }
-
-                _unitOfWork.Repository<Payment>().Update(payment);
-                await _unitOfWork.CompleteAsync();
-
-                _logger.LogInformation(
-                    "✅ PayPal payment completed | Payment: {PaymentId}",
-                    paymentId);
-
-                // Send confirmation emails
-                try
-                {
-                    if (subscription != null)
-                    {
-                        await SendPayPalSuccessNotificationsAsync(subscription, payment);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to send email notifications for PayPal payment");
-                    // Don't fail the webhook response - payment already processed
-                }
-
-                // ✅ Notify admins of new payment
-                try
-                {
-                    var clientName = subscription?.Client?.FullName ?? "Unknown Client";
-                    await _adminNotificationPublisher.NotifyNewPaymentAsync(
-                        payment.Amount,
-                        clientName,
-                        paymentId.ToString());
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, "Failed to publish admin notification for PayPal payment");
-                    // Don't fail the webhook response
-                }
-
-                return new WebhookResponse
-                {
-                    Success = true,
-                    Message = "Payment completed successfully",
-                    PaymentId = paymentId
-                };
             }
             catch (Exception ex)
             {
@@ -368,132 +330,32 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         }
 
         /// <summary>
-        /// Process Stripe webhook events
-        /// Handles: payment_intent.succeeded, payment_intent.payment_failed, payment_intent.canceled
+        /// Handle PAYMENT.CAPTURE.COMPLETED event
         /// </summary>
-        public async Task<WebhookResponse> ProcessStripeWebhookAsync(
-            string jsonPayload,
-            string signatureHeader)
+        private async Task<WebhookResponse> HandlePayPalCaptureCompletedAsync(PayPalWebhookPayload payload)
         {
             try
             {
-                // 1. Verify webhook signature
-                if (!_stripePaymentService.VerifyWebhookSignature(jsonPayload, signatureHeader))
+                // Extract subscription ID from reference
+                var referenceId = payload.Resource?.Purchase_Units?[0]?.Reference_Id;
+                if (!int.TryParse(referenceId, out int subscriptionId))
                 {
-                    _logger.LogWarning("Invalid Stripe webhook signature");
+                    _logger.LogWarning("Invalid PayPal reference ID: {ReferenceId}", referenceId);
                     return new WebhookResponse
                     {
                         Success = false,
-                        Message = "Invalid signature"
+                        Message = "Invalid reference ID"
                     };
                 }
 
-                // 2. Parse event
-                var @event = EventUtility.ParseEvent(jsonPayload);
-
-                if (@event == null)
-                {
-                    _logger.LogWarning("Failed to parse Stripe webhook event");
-                    return new WebhookResponse
-                    {
-                        Success = false,
-                        Message = "Invalid event format"
-                    };
-                }
-
-                _logger.LogInformation(
-                    "📥 Stripe webhook received | Event: {EventType} | ID: {EventId}",
-                    @event.Type,
-                    @event.Id);
-
-                // 3. Handle event types
-                if (@event.Type == "payment_intent.succeeded")
-                {
-                    return await HandlePaymentIntentSucceededAsync(@event);
-                }
-                else if (@event.Type == "payment_intent.payment_failed")
-                {
-                    return await HandlePaymentIntentFailedAsync(@event);
-                }
-                else if (@event.Type == "payment_intent.canceled")
-                {
-                    return await HandlePaymentIntentCanceledAsync(@event);
-                }
-                else
-                {
-                    _logger.LogInformation(
-                        "Ignored Stripe event type: {EventType}",
-                        @event.Type);
-                    return new WebhookResponse
-                    {
-                        Success = true,
-                        Message = "Event ignored"
-                    };
-                }
-            }
-            catch (StripeException ex)
-            {
-                _logger.LogError(ex, "Stripe error processing webhook: {StripeErrorCode}", ex.StripeError?.Code);
-                return new WebhookResponse
-                {
-                    Success = false,
-                    Message = "Stripe error"
-                };
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing Stripe webhook");
-                return new WebhookResponse
-                {
-                    Success = false,
-                    Message = "Internal error"
-                };
-            }
-        }
-
-        /// <summary>
-        /// Handle payment_intent.succeeded event
-        /// </summary>
-        private async Task<WebhookResponse> HandlePaymentIntentSucceededAsync(Event @event)
-        {
-            try
-            {
-                var paymentIntent = @event.Data.Object as PaymentIntent;
-
-                if (paymentIntent == null)
-                {
-                    _logger.LogWarning("Failed to extract PaymentIntent from event");
-                    return new WebhookResponse
-                    {
-                        Success = false,
-                        Message = "Invalid payment intent"
-                    };
-                }
-
-                // Extract subscription ID from metadata
-                if (!paymentIntent.Metadata.TryGetValue("SubscriptionId", out var subscriptionIdStr) ||
-                    !int.TryParse(subscriptionIdStr, out int subscriptionId))
-                {
-                    _logger.LogWarning(
-                        "Invalid or missing SubscriptionId in metadata for payment intent {PaymentIntentId}",
-                        paymentIntent.Id);
-                    return new WebhookResponse
-                    {
-                        Success = false,
-                        Message = "Invalid subscription reference"
-                    };
-                }
-
-                // Get subscription with client info
+                // Get subscription
                 var subscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetByIdAsync(subscriptionId);
 
                 if (subscription == null)
                 {
-                    _logger.LogWarning(
-                        "Subscription not found for payment intent {PaymentIntentId}",
-                        paymentIntent.Id);
+                    _logger.LogWarning("Subscription not found: {SubscriptionId}", subscriptionId);
                     return new WebhookResponse
                     {
                         Success = false,
@@ -507,7 +369,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                     .Repository<Payment>()
                     .GetWithSpecsAsync(paymentSpec);
 
-
+                // Check if already processed (idempotency)
                 if (payment != null && payment.Status == PaymentStatus.Completed)
                 {
                     _logger.LogInformation(
@@ -523,12 +385,14 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 
                 // Update subscription status
                 subscription.Status = SubscriptionStatus.Active;
-                subscription.StripePaymentIntentId = paymentIntent.Id;
+                subscription.PayPalCaptureId = payload.Resource?.Id;
 
+                // Update payment if exists
                 if (payment != null)
                 {
                     payment.Status = PaymentStatus.Completed;
                     payment.PaidAt = DateTime.UtcNow;
+                    payment.PayPalCaptureId = payload.Resource?.Id;
                     _unitOfWork.Repository<Payment>().Update(payment);
                 }
 
@@ -536,28 +400,27 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogInformation(
-                    "✅ Stripe payment succeeded | Subscription: {SubscriptionId} | PaymentIntent: {PaymentIntentId}",
+                    "✅ PayPal payment completed | Subscription: {SubscriptionId} | Capture: {CaptureId}",
                     subscriptionId,
-                    paymentIntent.Id);
+                    payload.Resource?.Id);
 
                 // Send confirmation emails
                 try
                 {
-                    await SendStripeSuccessNotificationsAsync(subscription, payment);
+                    await SendPayPalSuccessNotificationsAsync(subscription, payment);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to send email notifications for Stripe payment");
-                    // Don't fail the webhook response - payment already processed
+                    _logger.LogWarning(ex, "Failed to send email notifications for PayPal payment");
                 }
 
-                // ✅ Notify admins of new payment
+                // Notify admins of new payment
                 try
                 {
                     var clientName = subscription?.Client?.FullName ?? "Unknown Client";
                     var paymentAmount = payment?.Amount ?? subscription?.AmountPaid ?? 0;
                     var paymentId = payment?.Id.ToString() ?? subscriptionId.ToString();
-                    
+
                     await _adminNotificationPublisher.NotifyNewPaymentAsync(
                         paymentAmount,
                         clientName,
@@ -565,8 +428,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to publish admin notification for Stripe payment");
-                    // Don't fail the webhook response
+                    _logger.LogWarning(ex, "Failed to publish admin notification for PayPal payment");
                 }
 
                 return new WebhookResponse
@@ -578,7 +440,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling payment_intent.succeeded event");
+                _logger.LogError(ex, "Error handling PAYMENT.CAPTURE.COMPLETED event");
                 return new WebhookResponse
                 {
                     Success = false,
@@ -588,35 +450,21 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         }
 
         /// <summary>
-        /// Handle payment_intent.payment_failed event
+        /// Handle PAYMENT.CAPTURE.DENIED event
         /// </summary>
-        private async Task<WebhookResponse> HandlePaymentIntentFailedAsync(Event @event)
+        private async Task<WebhookResponse> HandlePayPalCaptureDeniedAsync(PayPalWebhookPayload payload)
         {
             try
             {
-                var paymentIntent = @event.Data.Object as PaymentIntent;
-
-                if (paymentIntent == null)
+                // Extract subscription ID from reference
+                var referenceId = payload.Resource?.Purchase_Units?[0]?.Reference_Id;
+                if (!int.TryParse(referenceId, out int subscriptionId))
                 {
-                    _logger.LogWarning("Failed to extract PaymentIntent from event");
+                    _logger.LogWarning("Invalid PayPal reference ID: {ReferenceId}", referenceId);
                     return new WebhookResponse
                     {
                         Success = false,
-                        Message = "Invalid payment intent"
-                    };
-                }
-
-                // Extract subscription ID from metadata
-                if (!paymentIntent.Metadata.TryGetValue("SubscriptionId", out var subscriptionIdStr) ||
-                    !int.TryParse(subscriptionIdStr, out int subscriptionId))
-                {
-                    _logger.LogWarning(
-                        "Invalid or missing SubscriptionId in metadata for payment intent {PaymentIntentId}",
-                        paymentIntent.Id);
-                    return new WebhookResponse
-                    {
-                        Success = false,
-                        Message = "Invalid subscription reference"
+                        Message = "Invalid reference ID"
                     };
                 }
 
@@ -627,9 +475,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 
                 if (subscription == null)
                 {
-                    _logger.LogWarning(
-                        "Subscription not found for payment intent {PaymentIntentId}",
-                        paymentIntent.Id);
+                    _logger.LogWarning("Subscription not found: {SubscriptionId}", subscriptionId);
                     return new WebhookResponse
                     {
                         Success = false,
@@ -648,7 +494,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 if (payment != null)
                 {
                     payment.Status = PaymentStatus.Failed;
-                    payment.FailureReason = paymentIntent.LastPaymentError?.Message ?? "Stripe payment failed";
+                    payment.FailureReason = "PayPal capture denied";
                     payment.FailedAt = DateTime.UtcNow;
                     _unitOfWork.Repository<Payment>().Update(payment);
                 }
@@ -656,54 +502,48 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                 await _unitOfWork.CompleteAsync();
 
                 _logger.LogWarning(
-                    "❌ Stripe payment failed | Subscription: {SubscriptionId} | PaymentIntent: {PaymentIntentId} | Error: {ErrorMessage}",
+                    "❌ PayPal payment denied | Subscription: {SubscriptionId} | Capture: {CaptureId}",
                     subscriptionId,
-                    paymentIntent.Id,
-                    paymentIntent.LastPaymentError?.Message);
+                    payload.Resource?.Id);
 
                 // Send failure email
                 try
                 {
-                    await SendStripeFailureNotificationAsync(
-                        subscription,
-                        paymentIntent.LastPaymentError?.Message ?? "Payment failed");
+                    await SendPayPalFailureNotificationAsync(subscription, "Payment was denied by PayPal");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to send failure email for Stripe payment");
-                    // Don't fail the webhook response - failure already processed
+                    _logger.LogWarning(ex, "Failed to send failure email for PayPal payment");
                 }
 
-                // ✅ Notify admins of payment failure
+                // Notify admins of payment failure
                 try
                 {
                     var clientName = subscription?.Client?.FullName ?? "Unknown Client";
                     var paymentAmount = payment?.Amount ?? subscription?.AmountPaid ?? 0;
-                    var failureReason = paymentIntent.LastPaymentError?.Message ?? "Stripe payment failed";
                     var paymentId = payment?.Id.ToString() ?? subscriptionId.ToString();
-                    
+
                     await _adminNotificationPublisher.NotifyPaymentFailureAsync(
                         paymentAmount,
                         clientName,
-                        failureReason,
+                        "PayPal capture denied",
                         paymentId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to publish admin failure notification for Stripe payment");
-                    // Don't fail the webhook response
+                    _logger.LogWarning(ex, "Failed to publish admin failure notification for PayPal payment");
                 }
 
                 return new WebhookResponse
                 {
                     Success = true,
-                    Message = "Payment failure processed",
+                    Message = "Payment denial processed",
                     PaymentId = payment?.Id ?? 0
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling payment_intent.payment_failed event");
+                _logger.LogError(ex, "Error handling PAYMENT.CAPTURE.DENIED event");
                 return new WebhookResponse
                 {
                     Success = false,
@@ -713,35 +553,21 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         }
 
         /// <summary>
-        /// Handle payment_intent.canceled event
+        /// Handle PAYMENT.CAPTURE.REFUNDED event
         /// </summary>
-        private async Task<WebhookResponse> HandlePaymentIntentCanceledAsync(Event @event)
+        private async Task<WebhookResponse> HandlePayPalCaptureRefundedAsync(PayPalWebhookPayload payload)
         {
             try
             {
-                var paymentIntent = @event.Data.Object as PaymentIntent;
-
-                if (paymentIntent == null)
+                // Extract subscription ID from reference
+                var referenceId = payload.Resource?.Purchase_Units?[0]?.Reference_Id;
+                if (!int.TryParse(referenceId, out int subscriptionId))
                 {
-                    _logger.LogWarning("Failed to extract PaymentIntent from event");
+                    _logger.LogWarning("Invalid PayPal reference ID: {ReferenceId}", referenceId);
                     return new WebhookResponse
                     {
                         Success = false,
-                        Message = "Invalid payment intent"
-                    };
-                }
-
-                // Extract subscription ID from metadata
-                if (!paymentIntent.Metadata.TryGetValue("SubscriptionId", out var subscriptionIdStr) ||
-                    !int.TryParse(subscriptionIdStr, out int subscriptionId))
-                {
-                    _logger.LogWarning(
-                        "Invalid or missing SubscriptionId in metadata for payment intent {PaymentIntentId}",
-                        paymentIntent.Id);
-                    return new WebhookResponse
-                    {
-                        Success = false,
-                        Message = "Invalid subscription reference"
+                        Message = "Invalid reference ID"
                     };
                 }
 
@@ -752,9 +578,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 
                 if (subscription == null)
                 {
-                    _logger.LogWarning(
-                        "Subscription not found for payment intent {PaymentIntentId}",
-                        paymentIntent.Id);
+                    _logger.LogWarning("Subscription not found: {SubscriptionId}", subscriptionId);
                     return new WebhookResponse
                     {
                         Success = false,
@@ -772,59 +596,60 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
 
                 if (payment != null)
                 {
-                    payment.Status = PaymentStatus.Failed;
-                    payment.FailureReason = "Payment intent was canceled";
-                    payment.FailedAt = DateTime.UtcNow;
+                    payment.Status = PaymentStatus.Refunded;
+                    payment.RefundedAt = DateTime.UtcNow;
                     _unitOfWork.Repository<Payment>().Update(payment);
                 }
 
+                // Update subscription status to inactive
+                subscription.Status = SubscriptionStatus.Canceled;
+                _unitOfWork.Repository<Subscription>().Update(subscription);
+
                 await _unitOfWork.CompleteAsync();
 
-                _logger.LogWarning(
-                    "❌ Stripe payment canceled | Subscription: {SubscriptionId} | PaymentIntent: {PaymentIntentId}",
+                _logger.LogInformation(
+                    "💰 PayPal payment refunded | Subscription: {SubscriptionId} | Capture: {CaptureId}",
                     subscriptionId,
-                    paymentIntent.Id);
+                    payload.Resource?.Id);
 
-                // Send cancellation email
+                // Send refund notification
                 try
                 {
-                    await SendStripeFailureNotificationAsync(subscription, "Payment was canceled");
+                    await SendPayPalFailureNotificationAsync(subscription, "Your payment has been refunded");
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to send cancellation email for Stripe payment");
-                    // Don't fail the webhook response - cancellation already processed
+                    _logger.LogWarning(ex, "Failed to send refund email for PayPal payment");
                 }
 
-                // ✅ Notify admins of payment cancellation
+                // Notify admins of refund
                 try
                 {
                     var clientName = subscription?.Client?.FullName ?? "Unknown Client";
                     var paymentAmount = payment?.Amount ?? subscription?.AmountPaid ?? 0;
                     var paymentId = payment?.Id.ToString() ?? subscriptionId.ToString();
-                    
+
                     await _adminNotificationPublisher.NotifyPaymentFailureAsync(
                         paymentAmount,
                         clientName,
-                        "Payment intent was canceled",
+                        "Payment refunded",
                         paymentId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to publish admin cancellation notification for Stripe payment");
-                    // Don't fail the webhook response
+                    _logger.LogWarning(ex, "Failed to publish admin refund notification for PayPal payment");
                 }
 
                 return new WebhookResponse
                 {
                     Success = true,
-                    Message = "Payment cancellation processed",
+                    Message = "Payment refund processed",
                     PaymentId = payment?.Id ?? 0
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error handling payment_intent.canceled event");
+                _logger.LogError(ex, "Error handling PAYMENT.CAPTURE.REFUNDED event");
                 return new WebhookResponse
                 {
                     Success = false,
@@ -1091,6 +916,378 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             {
                 _logger.LogError(ex, "Error sending Paymob failure notification");
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Send failure notification for PayPal payment
+        /// </summary>
+        private async Task SendPayPalFailureNotificationAsync(Subscription subscription, string failureReason)
+        {
+            try
+            {
+                // Get complete subscription with client and package info
+                var spec = new ClientSubscriptionByIdSpecs(subscription.Id, subscription.ClientId);
+                var subscriptions = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetAllWithSpecsAsync(spec);
+
+                var fullSubscription = subscriptions.FirstOrDefault();
+                if (fullSubscription?.Client?.Email == null || fullSubscription.Package == null)
+                    return;
+
+                var client = fullSubscription.Client;
+                var package = fullSubscription.Package;
+
+                await _emailService.SendPaymentFailureEmailAsync(
+                    client.Email,
+                    client.UserName ?? "Client",
+                    package.Name,
+                    failureReason);
+
+                _logger.LogInformation("Sent PayPal failure notification for subscription {SubscriptionId}", subscription.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending PayPal failure notification");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Process Stripe webhook events
+        /// Handles: checkout.session.completed, checkout.session.expired
+        /// </summary>
+        public async Task<WebhookResponse> ProcessStripeWebhookAsync(
+            string jsonPayload,
+            string signatureHeader)
+        {
+            try
+            {
+                // 1. Verify webhook signature
+                if (!_stripePaymentService.VerifyWebhookSignature(jsonPayload, signatureHeader))
+                {
+                    _logger.LogWarning("Invalid Stripe webhook signature");
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Invalid signature"
+                    };
+                }
+
+                // 2. Parse event
+                var @event = EventUtility.ParseEvent(jsonPayload);
+
+                if (@event == null)
+                {
+                    _logger.LogWarning("Failed to parse Stripe webhook event");
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Invalid event format"
+                    };
+                }
+
+                _logger.LogInformation(
+                    "📥 Stripe webhook received | Event: {EventType} | ID: {EventId}",
+                    @event.Type,
+                    @event.Id);
+
+                // 3. Handle event types
+                if (@event.Type == "checkout.session.completed")
+                {
+                    return await HandleCheckoutSessionCompletedAsync(@event);
+                }
+                else if (@event.Type == "checkout.session.expired")
+                {
+                    return await HandleCheckoutSessionExpiredAsync(@event);
+                }
+                else
+                {
+                    _logger.LogInformation(
+                        "Ignored Stripe event type: {EventType}",
+                        @event.Type);
+                    return new WebhookResponse
+                    {
+                        Success = true,
+                        Message = "Event ignored"
+                    };
+                }
+            }
+            catch (StripeException ex)
+            {
+                _logger.LogError(ex, "Stripe error processing webhook: {StripeErrorCode}", ex.StripeError?.Code);
+                return new WebhookResponse
+                {
+                    Success = false,
+                    Message = "Stripe error"
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error processing Stripe webhook");
+                return new WebhookResponse
+                {
+                    Success = false,
+                    Message = "Internal error"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Handle checkout.session.completed event
+        /// </summary>
+        private async Task<WebhookResponse> HandleCheckoutSessionCompletedAsync(Event @event)
+        {
+            try
+            {
+                var session = @event.Data.Object as Stripe.Checkout.Session;
+
+                if (session == null)
+                {
+                    _logger.LogWarning("Failed to extract Session from event");
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Invalid session"
+                    };
+                }
+
+                // Extract subscription ID from metadata
+                if (!session.Metadata.TryGetValue("SubscriptionId", out var subscriptionIdStr) ||
+                    !int.TryParse(subscriptionIdStr, out int subscriptionId))
+                {
+                    _logger.LogWarning(
+                        "Invalid or missing SubscriptionId in metadata for session {SessionId}",
+                        session.Id);
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Invalid subscription reference"
+                    };
+                }
+
+                // Get subscription with client info
+                var subscription = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetByIdAsync(subscriptionId);
+
+                if (subscription == null)
+                {
+                    _logger.LogWarning(
+                        "Subscription not found for session {SessionId}",
+                        session.Id);
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Subscription not found"
+                    };
+                }
+
+                // Get associated payment using spec
+                var paymentSpec = new PaymentBySubscriptionSpecs(subscriptionId);
+                var payment = await _unitOfWork
+                    .Repository<Payment>()
+                    .GetWithSpecsAsync(paymentSpec);
+
+                // Check if already processed (idempotency)
+                if (payment != null && payment.Status == PaymentStatus.Completed)
+                {
+                    _logger.LogInformation(
+                        "Payment for subscription {SubscriptionId} already processed",
+                        subscriptionId);
+                    return new WebhookResponse
+                    {
+                        Success = true,
+                        Message = "Payment already processed",
+                        PaymentId = payment.Id
+                    };
+                }
+
+                // Update subscription status
+                subscription.Status = SubscriptionStatus.Active;
+                subscription.StripePaymentIntentId = session.PaymentIntentId; // Store the PaymentIntent ID
+
+                if (payment != null)
+                {
+                    payment.Status = PaymentStatus.Completed;
+                    payment.PaidAt = DateTime.UtcNow;
+                    _unitOfWork.Repository<Payment>().Update(payment);
+                }
+
+                _unitOfWork.Repository<Subscription>().Update(subscription);
+                await _unitOfWork.CompleteAsync();
+
+                _logger.LogInformation(
+                    "✅ Stripe payment completed | Subscription: {SubscriptionId} | Session: {SessionId}",
+                    subscriptionId,
+                    session.Id);
+
+                // Send confirmation emails
+                try
+                {
+                    await SendStripeSuccessNotificationsAsync(subscription, payment);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send email notifications for Stripe payment");
+                    // Don't fail the webhook response - payment already processed
+                }
+
+                // Notify admins of new payment
+                try
+                {
+                    var clientName = subscription?.Client?.FullName ?? "Unknown Client";
+                    var paymentAmount = payment?.Amount ?? subscription?.AmountPaid ?? 0;
+                    var paymentId = payment?.Id.ToString() ?? subscriptionId.ToString();
+                    
+                    await _adminNotificationPublisher.NotifyNewPaymentAsync(
+                        paymentAmount,
+                        clientName,
+                        paymentId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to publish admin notification for Stripe payment");
+                    // Don't fail the webhook response
+                }
+
+                return new WebhookResponse
+                {
+                    Success = true,
+                    Message = "Payment completed successfully",
+                    PaymentId = payment?.Id ?? 0
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling checkout.session.completed event");
+                return new WebhookResponse
+                {
+                    Success = false,
+                    Message = "Internal error"
+                };
+            }
+        }
+
+        /// <summary>
+        /// Handle checkout.session.expired event
+        /// </summary>
+        private async Task<WebhookResponse> HandleCheckoutSessionExpiredAsync(Event @event)
+        {
+            try
+            {
+                var session = @event.Data.Object as Stripe.Checkout.Session;
+
+                if (session == null)
+                {
+                    _logger.LogWarning("Failed to extract Session from event");
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Invalid session"
+                    };
+                }
+
+                // Extract subscription ID from metadata
+                if (!session.Metadata.TryGetValue("SubscriptionId", out var subscriptionIdStr) ||
+                    !int.TryParse(subscriptionIdStr, out int subscriptionId))
+                {
+                    _logger.LogWarning(
+                        "Invalid or missing SubscriptionId in metadata for session {SessionId}",
+                        session.Id);
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Invalid subscription reference"
+                    };
+                }
+
+                // Get subscription
+                var subscription = await _unitOfWork
+                    .Repository<Subscription>()
+                    .GetByIdAsync(subscriptionId);
+
+                if (subscription == null)
+                {
+                    _logger.LogWarning(
+                        "Subscription not found for session {SessionId}",
+                        session.Id);
+                    return new WebhookResponse
+                    {
+                        Success = false,
+                        Message = "Subscription not found"
+                    };
+                }
+
+                // Get associated payment
+                var paymentSpec = new PaymentBySubscriptionSpecs(subscriptionId);
+                var payments = await _unitOfWork
+                    .Repository<Payment>()
+                    .GetAllWithSpecsAsync(paymentSpec);
+
+                var payment = payments.FirstOrDefault();
+
+                if (payment != null)
+                {
+                    payment.Status = PaymentStatus.Failed;
+                    payment.FailureReason = "Checkout session expired";
+                    payment.FailedAt = DateTime.UtcNow;
+                    _unitOfWork.Repository<Payment>().Update(payment);
+                }
+
+                await _unitOfWork.CompleteAsync();
+
+                _logger.LogWarning(
+                    "❌ Stripe checkout session expired | Subscription: {SubscriptionId} | Session: {SessionId}",
+                    subscriptionId,
+                    session.Id);
+
+                // Send failure email
+                try
+                {
+                    await SendStripeFailureNotificationAsync(subscription, "Your checkout session expired. Please try again.");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to send expiration email for Stripe checkout");
+                    // Don't fail the webhook response
+                }
+
+                // Notify admins of payment failure
+                try
+                {
+                    var clientName = subscription?.Client?.FullName ?? "Unknown Client";
+                    var paymentAmount = payment?.Amount ?? subscription?.AmountPaid ?? 0;
+                    var paymentId = payment?.Id.ToString() ?? subscriptionId.ToString();
+
+                    await _adminNotificationPublisher.NotifyPaymentFailureAsync(
+                        paymentAmount,
+                        clientName,
+                        "Checkout session expired",
+                        paymentId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to publish admin notification for Stripe checkout expiration");
+                    // Don't fail the webhook response
+                }
+
+                return new WebhookResponse
+                {
+                    Success = true,
+                    Message = "Checkout session expiration processed",
+                    PaymentId = payment?.Id ?? 0
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error handling checkout.session.expired event");
+                return new WebhookResponse
+                {
+                    Success = false,
+                    Message = "Internal error"
+                };
             }
         }
     }

@@ -28,5 +28,17 @@ namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
         /// </summary>
         Task<(bool Success, string? RefundId, string? ErrorMessage)>
             RefundCaptureAsync(string captureId, decimal amount, string currency);
+
+        /// <summary>
+        /// Verifies PayPal webhook signature authenticity
+        /// </summary>
+        Task<bool> VerifyWebhookSignatureAsync(
+            string transmissionId,
+            string transmissionTime,
+            string certUrl,
+            string authAlgo,
+            string transmissionSig,
+            string webhookId,
+            string webhookEvent);
     }
 }

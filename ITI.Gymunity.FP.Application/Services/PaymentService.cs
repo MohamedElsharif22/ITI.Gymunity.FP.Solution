@@ -12,30 +12,24 @@ using Microsoft.Extensions.Logging;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
-    public class PaymentService
+    public class PaymentService(
+        IUnitOfWork unitOfWork,
+        IMapper mapper,
+        IPayPalService paypalService,
+        IStripePaymentService stripePaymentService,
+        ILogger<PaymentService> logger,
+        IConfiguration configuration)
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly IMapper _mapper;
-        private readonly IPayPalService _paypalService;
-        private readonly IStripePaymentService _stripePaymentService;
-        private readonly ILogger<PaymentService> _logger;
-        private readonly IConfiguration _configuration;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly IMapper _mapper = mapper;
+        private readonly IPayPalService _paypalService = paypalService;
+        private readonly IStripePaymentService _stripePaymentService = stripePaymentService;
+        private readonly ILogger<PaymentService> _logger = logger;
+        private readonly IConfiguration _configuration = configuration;
 
-        public PaymentService(
-            IUnitOfWork unitOfWork,
-            IMapper mapper,
-            IPayPalService paypalService,
-            IStripePaymentService stripePaymentService,
-            ILogger<PaymentService> logger,
-            IConfiguration configuration)
-        {
-            _unitOfWork = unitOfWork;
-            _mapper = mapper;
-            _paypalService = paypalService;
-            _stripePaymentService = stripePaymentService;
-            _logger = logger;
-            _configuration = configuration;
-        }
+        // Get frontend base URL from configuration
+        private readonly string _frontendBaseUrl = configuration["FrontendOrigins:Hosted"]
+                    ?? configuration["FrontendOrigins:Local"] ?? "https://localhost:4200";
 
         // ===============================
         // Initiate Payment
@@ -106,10 +100,10 @@ namespace ITI.Gymunity.FP.Application.Services
                 {
                     var returnUrl =
                         request.ReturnUrl ??
-                        $"{_configuration["BaseApiUrl"]}/api/payment/paypal/return";
+                        $"{_frontendBaseUrl}/payment/return?subscriptionId={subscription.Id}";
 
                     var cancelUrl =
-                        $"{_configuration["BaseApiUrl"]}/api/payment/paypal/cancel";
+                        $"{_frontendBaseUrl}/payment/cancel?subscriptionId={subscription.Id}";
 
                     // ✅ Pass subscription to PayPal service (new architecture)
                     var result = await _paypalService.CreateOrderAsync(
@@ -137,21 +131,26 @@ namespace ITI.Gymunity.FP.Application.Services
                 {
                     var returnUrl =
                         request.ReturnUrl ??
-                        $"{_configuration["BaseApiUrl"]}/api/payment/stripe/return";
+                        $"{_frontendBaseUrl}/payment/return?subscriptionId={subscription.Id}";
 
-                    // ✅ Pass subscription to Stripe service (new architecture)
-                    var result = await _stripePaymentService.CreatePaymentIntentAsync(
+                    var cancelUrl =
+                        $"{_frontendBaseUrl}/payment/cancel?subscriptionId={subscription.Id}";
+
+                    // ✅ Create Stripe Checkout Session (aligned with PayPal approach)
+                    var result = await _stripePaymentService.CreateCheckoutSessionAsync(
                         subscription,
-                        returnUrl);
+                        returnUrl,
+                        cancelUrl);
 
                     if (!result.Success)
                         return ServiceResult<PaymentResponse>
                             .Failure(result.ErrorMessage ?? "Stripe error");
 
-                    // ✅ Store Stripe intent on subscription instead of payment
+                    // ✅ Store Stripe Session ID on subscription
                     subscription.StripePaymentIntentId = result.SessionId;
-                    subscription.StripeClientSecret = result.ClientSecret;
-                    paymentUrl = result.ClientSecret;
+                    
+                    // ✅ Store checkout URL for frontend redirect
+                    paymentUrl = result.CheckoutUrl;
 
                     _unitOfWork.Repository<Subscription>().Update(subscription);
                 }

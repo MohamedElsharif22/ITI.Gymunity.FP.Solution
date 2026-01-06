@@ -27,10 +27,10 @@ namespace ITI.Gymunity.FP.Domain.Models
         public string? PayPalSubscriptionId { get; set; }
         public string? PayPalOrderId { get; set; }        // ✅ NEW: Order ID
         public string? PayPalApprovalUrl { get; set; }    // ✅ NEW: Approval URL
+        public string? PayPalCaptureId { get; set; }      // ✅ NEW: Capture ID from webhook
 
         // Stripe
         public string? StripePaymentIntentId { get; set; }
-        public string? StripeClientSecret { get; set; }
 
         public string Currency { get; set; } = "USD";
         public decimal AmountPaid { get; set; }

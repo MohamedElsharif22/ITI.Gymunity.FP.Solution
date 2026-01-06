@@ -9,13 +9,11 @@ namespace ITI.Gymunity.FP.Application.Specefications.Subscriptions
     /// Check if client already has active/unpaid subscription for specific package
     /// (Used to prevent duplicate subscriptions)
     /// </summary>
-    public class ActiveClientSubscriptionForPackageSpecs : BaseSpecification<Subscription>
+    public class ClientSubscriptionForPackageSpecs : BaseSpecification<Subscription>
     {
-        public ActiveClientSubscriptionForPackageSpecs(string clientId, int packageId)
+        public ClientSubscriptionForPackageSpecs(string clientId, int packageId)
             : base(s => s.ClientId == clientId
-                     && s.PackageId == packageId
-                     && (s.Status == SubscriptionStatus.Active
-                         || s.Status == SubscriptionStatus.Unpaid))
+                     && s.PackageId == packageId)
         {
             AddInclude(query => query.Include(s => s.Package));
         }

@@ -13,5 +13,6 @@ namespace ITI.Gymunity.FP.Application.Configuration
         public string ClientSecret { get; set; } = null!;
         public string ReturnUrl { get; set; } = null!;
         public string CancelUrl { get; set; } = null!;
+        public string WebhookId { get; set; } = null!;  // For webhook signature verification
     }
 }

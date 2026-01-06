@@ -89,7 +89,20 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                 payload.Resource?.Id,
                 payload.Resource?.Status);
 
-            var result = await _webhookService.ProcessPayPalWebhookAsync(payload);
+            // Extract signature headers for verification
+            var transmissionId = Request.Headers["Paypal-Transmission-Id"].ToString();
+            var transmissionTime = Request.Headers["Paypal-Transmission-Time"].ToString();
+            var certUrl = Request.Headers["Paypal-Cert-Url"].ToString();
+            var authAlgo = Request.Headers["Paypal-Auth-Algo"].ToString();
+            var transmissionSig = Request.Headers["Paypal-Transmission-Sig"].ToString();
+
+            var result = await _webhookService.ProcessPayPalWebhookAsync(
+                payload,
+                transmissionId,
+                transmissionTime,
+                certUrl,
+                authAlgo,
+                transmissionSig);
 
             if (!result.Success)
             {

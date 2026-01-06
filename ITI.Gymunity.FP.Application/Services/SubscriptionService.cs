@@ -41,7 +41,7 @@ namespace ITI.Gymunity.FP.Application.Services
             string clientId,
             int packageId)
         {
-            var spec = new ActiveClientSubscriptionForPackageSpecs(clientId, packageId);
+            var spec = new ClientSubscriptionForPackageSpecs(clientId, packageId);
             var subscription = await _unitOfWork
                 .Repository<Subscription>()
                 .GetWithSpecsAsync(spec);
@@ -71,14 +71,14 @@ namespace ITI.Gymunity.FP.Application.Services
 
                 // 2️⃣ Prevent duplicate subscription
                 var existingSpec =
-                    new ActiveClientSubscriptionForPackageSpecs(
+                    new ClientSubscriptionForPackageSpecs(
                         clientId, request.PackageId);
 
-                var existingSubscription = await _unitOfWork
+                var subscription = await _unitOfWork
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(existingSpec);
 
-                if (existingSubscription != null && existingSubscription.Status == SubscriptionStatus.Active)
+                if (subscription != null && subscription.Status == SubscriptionStatus.Active)
                 {
                     return ServiceResult<SubscriptionResponse>.Failure(
                         "You already subscribed to this package");
@@ -93,21 +93,36 @@ namespace ITI.Gymunity.FP.Application.Services
                     ? DateTime.UtcNow.AddYears(1)
                     : DateTime.UtcNow.AddMonths(1);
 
-                // 4️⃣ Create Subscription (UNPAID)
-                var subscription = new Subscription
-                {
-                    ClientId = clientId,
-                    PackageId = request.PackageId,
-                    Status = SubscriptionStatus.Unpaid,
-                    StartDate = DateTime.UtcNow,
-                    CurrentPeriodEnd = periodEnd,
-                    AmountPaid = amount,
-                    Currency = "USD",
-                    PlatformFeePercentage = 15m,
-                    IsAnnual = request.IsAnnual
-                };
 
-                _unitOfWork.Repository<Subscription>().Add(subscription);
+                // 4️⃣ Create Subscription (UNPAID)
+                if (subscription != null)
+                {
+                    // Update existing unpaid subscription
+                    subscription.Status = SubscriptionStatus.Unpaid;
+                    subscription.StartDate = DateTime.UtcNow;
+                    subscription.CurrentPeriodEnd = periodEnd;
+                    subscription.AmountPaid = amount;
+                    subscription.IsAnnual = request.IsAnnual;
+                    _unitOfWork.Repository<Subscription>().Update(subscription);
+                }
+                else
+                {
+                    subscription = new Subscription
+                    {
+                        ClientId = clientId,
+                        PackageId = request.PackageId,
+                        Status = SubscriptionStatus.Unpaid,
+                        StartDate = DateTime.UtcNow,
+                        CurrentPeriodEnd = periodEnd,
+                        AmountPaid = amount,
+                        Currency = "USD",
+                        PlatformFeePercentage = 15m,
+                        IsAnnual = request.IsAnnual
+                    };
+                    _unitOfWork.Repository<Subscription>().Add(subscription);
+                }
+
+
                 await _unitOfWork.CompleteAsync();
 
                 // 5️⃣ Reload subscription WITH includes (IMPORTANT)
@@ -122,19 +137,22 @@ namespace ITI.Gymunity.FP.Application.Services
                         "Failed to load created subscription");
                 }
 
-                // 6️⃣ Create Stripe Payment Intent ✅
+                // 6️⃣ Create Stripe Checkout Session ✅
                 if (request.PaymentMethod == PaymentMethod.Stripe)
                 {
                     var returnUrl = request.ReturnUrl ??
                         $"{_configuration["BaseApiUrl"]}/api/payment/stripe/return";
 
+                    var cancelUrl =
+                        $"{_configuration["BaseApiUrl"]}/api/payment/stripe/cancel";
+
                     var stripeResult = await _stripePaymentService
-                        .CreatePaymentIntentAsync(createdSubscription, returnUrl);
+                        .CreateCheckoutSessionAsync(createdSubscription, returnUrl, cancelUrl);
 
                     if (!stripeResult.Success)
                     {
                         _logger.LogWarning(
-                            "Failed to create Stripe intent for subscription {SubscriptionId}: {Error}",
+                            "Failed to create Stripe checkout session for subscription {SubscriptionId}: {Error}",
                             createdSubscription.Id,
                             stripeResult.ErrorMessage);
 
@@ -142,15 +160,14 @@ namespace ITI.Gymunity.FP.Application.Services
                     }
                     else
                     {
-                        // ✅ Store intent on subscription
+                        // ✅ Store session ID on subscription
                         createdSubscription.StripePaymentIntentId = stripeResult.SessionId;
-                        createdSubscription.StripeClientSecret = stripeResult.ClientSecret;
 
                         _unitOfWork.Repository<Subscription>().Update(createdSubscription);
                         await _unitOfWork.CompleteAsync();
 
                         _logger.LogInformation(
-                            "Stripe payment intent created for subscription {SubscriptionId}: {IntentId}",
+                            "Stripe checkout session created for subscription {SubscriptionId}: {SessionId}",
                             createdSubscription.Id,
                             stripeResult.SessionId);
                     }

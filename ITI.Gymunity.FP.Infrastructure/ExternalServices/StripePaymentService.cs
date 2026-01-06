@@ -4,6 +4,7 @@ using ITI.Gymunity.FP.Domain.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Stripe;
+using Stripe.Checkout;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,19 +31,43 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
         }
 
         /// <summary>
-        /// Creates a Stripe payment intent for a subscription payment
-        /// Now uses Subscription context instead of Payment
+        /// Creates a Stripe Checkout Session for subscription payment
+        /// Returns a URL to Stripe's hosted checkout page (similar to PayPal approval URL)
         /// </summary>
-        public async Task<(bool Success, string? ClientSecret, string? SessionId, string? ErrorMessage)>
-            CreatePaymentIntentAsync(DomainSubscription subscription, string returnUrl)
+        public async Task<(bool Success, string? CheckoutUrl, string? SessionId, string? ErrorMessage)>
+            CreateCheckoutSessionAsync(DomainSubscription subscription, string returnUrl, string cancelUrl)
         {
             try
             {
-                var options = new PaymentIntentCreateOptions
+                var options = new SessionCreateOptions
                 {
-                    Amount = (long)(subscription.AmountPaid * 100), // Convert to cents
-                    Currency = subscription.Currency.ToLower(),
-                    Description = $"Subscription Payment - Package: {subscription.PackageId}",
+                    PaymentMethodTypes = new List<string> { "card" },
+                    Mode = "payment",
+                    SuccessUrl = returnUrl,
+                    CancelUrl = cancelUrl,
+                    LineItems = new List<SessionLineItemOptions>
+                    {
+                        new SessionLineItemOptions
+                        {
+                            PriceData = new SessionLineItemPriceDataOptions
+                            {
+                                UnitAmount = (long)(subscription.AmountPaid * 100), // Convert to cents
+                                Currency = subscription.Currency.ToLower(),
+                                ProductData = new SessionLineItemPriceDataProductDataOptions
+                                {
+                                    Name = subscription.Package?.Name ?? "Training Package",
+                                    Description = $"Subscription Payment - Package: {subscription.PackageId}",
+                                    Metadata = new Dictionary<string, string>
+                                    {
+                                        { "SubscriptionId", subscription.Id.ToString() },
+                                        { "ClientId", subscription.ClientId },
+                                        { "PackageId", subscription.PackageId.ToString() }
+                                    }
+                                }
+                            },
+                            Quantity = 1
+                        }
+                    },
                     Metadata = new Dictionary<string, string>
                     {
                         { "SubscriptionId", subscription.Id.ToString() },
@@ -51,20 +76,20 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                     }
                 };
 
-                var service = new PaymentIntentService();
-                var paymentIntent = await service.CreateAsync(options);
+                var service = new SessionService();
+                var session = await service.CreateAsync(options);
 
                 _logger.LogInformation(
-                    "Stripe payment intent created: {PaymentIntentId} for subscription {SubscriptionId}",
-                    paymentIntent.Id,
+                    "Stripe Checkout Session created: {SessionId} for subscription {SubscriptionId}",
+                    session.Id,
                     subscription.Id);
 
-                return (true, paymentIntent.ClientSecret, paymentIntent.Id, null);
+                return (true, session.Url, session.Id, null);
             }
             catch (StripeException ex)
             {
                 _logger.LogError(ex, 
-                    "Stripe error creating payment intent for subscription {SubscriptionId}: {StripeErrorCode}",
+                    "Stripe error creating checkout session for subscription {SubscriptionId}: {StripeErrorCode}",
                     subscription.Id,
                     ex.StripeError?.Code);
 
@@ -72,85 +97,41 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating Stripe payment intent for subscription {SubscriptionId}", subscription.Id);
+                _logger.LogError(ex, "Error creating Stripe checkout session for subscription {SubscriptionId}", subscription.Id);
                 return (false, null, null, ex.Message);
             }
         }
 
         /// <summary>
-        /// Confirms a Stripe payment intent
+        /// Retrieves a Checkout Session by ID
         /// </summary>
-        public async Task<(bool Success, string? PaymentIntentId, string? ErrorMessage)>
-            ConfirmPaymentIntentAsync(string clientSecret)
+        public async Task<(bool Success, string? Status, string? PaymentIntentId, string? ErrorMessage)>
+            GetCheckoutSessionAsync(string sessionId)
         {
             try
             {
-                // Extract payment intent ID from client secret
-                var separator = "_secret_";
-                var paymentIntentId = clientSecret.Split(new string[] { separator }, StringSplitOptions.None)[0];
-
-                var service = new PaymentIntentService();
-                var paymentIntent = await service.GetAsync(paymentIntentId);
-
-                // Check if payment intent is already succeeded
-                if (paymentIntent.Status == "succeeded")
-                {
-                    _logger.LogInformation(
-                        "Stripe payment intent {PaymentIntentId} confirmed successfully",
-                        paymentIntentId);
-
-                    return (true, paymentIntentId, null);
-                }
-
-                return (false, null, $"Payment intent status is {paymentIntent.Status}");
-            }
-            catch (StripeException ex)
-            {
-                _logger.LogError(ex,
-                    "Stripe error confirming payment intent: {StripeErrorCode}",
-                    ex.StripeError?.Code);
-
-                return (false, null, ex.StripeError?.Message ?? ex.Message);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error confirming Stripe payment intent");
-                return (false, null, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// Retrieves Stripe payment intent details
-        /// </summary>
-        public async Task<(bool Success, string? Status, decimal? Amount, string? ErrorMessage)>
-            GetPaymentIntentAsync(string paymentIntentId)
-        {
-            try
-            {
-                var service = new PaymentIntentService();
-                var paymentIntent = await service.GetAsync(paymentIntentId);
-
-                var amountInDollars = paymentIntent.Amount / 100m;
+                var service = new SessionService();
+                var session = await service.GetAsync(sessionId);
 
                 _logger.LogInformation(
-                    "Retrieved Stripe payment intent {PaymentIntentId} with status {Status}",
-                    paymentIntentId,
-                    paymentIntent.Status);
+                    "Retrieved Stripe Checkout Session {SessionId} with status {Status}",
+                    sessionId,
+                    session.PaymentStatus);
 
-                return (true, paymentIntent.Status, amountInDollars, null);
+                return (true, session.PaymentStatus, session.PaymentIntentId, null);
             }
             catch (StripeException ex)
             {
                 _logger.LogError(ex,
-                    "Stripe error retrieving payment intent {PaymentIntentId}: {StripeErrorCode}",
-                    paymentIntentId,
+                    "Stripe error retrieving checkout session {SessionId}: {StripeErrorCode}",
+                    sessionId,
                     ex.StripeError?.Code);
 
                 return (false, null, null, ex.StripeError?.Message ?? ex.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving Stripe payment intent {PaymentIntentId}", paymentIntentId);
+                _logger.LogError(ex, "Error retrieving Stripe checkout session {SessionId}", sessionId);
                 return (false, null, null, ex.Message);
             }
         }

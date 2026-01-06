@@ -10,33 +10,27 @@ namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
     public interface IStripePaymentService
     {
         /// <summary>
-        /// Creates a Stripe payment intent for a subscription payment
-        /// Uses Subscription context instead of Payment to align with new architecture
+        /// Creates a Stripe Checkout Session for subscription payment
+        /// Returns a URL to Stripe's hosted checkout page (similar to PayPal's approval URL)
         /// </summary>
-        Task<(bool Success, string? ClientSecret, string? SessionId, string? ErrorMessage)>
-            CreatePaymentIntentAsync(ITI.Gymunity.FP.Domain.Models.Subscription subscription, string returnUrl);
+        Task<(bool Success, string? CheckoutUrl, string? SessionId, string? ErrorMessage)>
+            CreateCheckoutSessionAsync(ITI.Gymunity.FP.Domain.Models.Subscription subscription, string returnUrl, string cancelUrl);
 
         /// <summary>
-        /// Confirms a Stripe payment intent
+        /// Retrieves a Checkout Session by ID
         /// </summary>
-        Task<(bool Success, string? PaymentIntentId, string? ErrorMessage)>
-            ConfirmPaymentIntentAsync(string clientSecret);
+        Task<(bool Success, string? Status, string? PaymentIntentId, string? ErrorMessage)>
+            GetCheckoutSessionAsync(string sessionId);
 
         /// <summary>
-        /// Retrieves Stripe payment intent details from a subscription
+        /// Verifies webhook signature from Stripe
         /// </summary>
-        Task<(bool Success, string? Status, decimal? Amount, string? ErrorMessage)>
-            GetPaymentIntentAsync(string paymentIntentId);
+        bool VerifyWebhookSignature(string payload, string signature);
 
         /// <summary>
         /// Refunds a Stripe payment
         /// </summary>
         Task<(bool Success, string? RefundId, string? ErrorMessage)>
             RefundPaymentAsync(string paymentIntentId, decimal? amount = null);
-
-        /// <summary>
-        /// Verifies webhook signature from Stripe
-        /// </summary>
-        bool VerifyWebhookSignature(string payload, string signature);
     }
 }
