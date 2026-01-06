@@ -9,7 +9,7 @@ namespace ITI.Gymunity.FP.Application.DTOs.User.Webhook
     public class PayPalWebhookPayload
     {
         public string Id { get; set; } = null!;  // Webhook event ID
-        public string Event_Type { get; set; } = null!;  // "PAYMENT.CAPTURE.COMPLETED"
+        public string Event_Type { get; set; } = null!;  // "PAYMENT.CAPTURE.COMPLETED", "", 
         public string Create_Time { get; set; } = null!;
         public string Resource_Type { get; set; } = null!;
         public PayPalResource Resource { get; set; } = null!;
