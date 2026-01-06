@@ -47,9 +47,29 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
             return new Pagination<TrainerCardDto>(1, 10, totalCount, trainerCards);
         }
 
+        /// <summary>
+        /// Get detailed profile of a specific trainer by userId
+        /// </summary>
+        /// <param name="trainerId">The trainer's user ID</param>
+        /// <returns>TrainerProfileDetailResponse if found, null otherwise</returns>
+        public async Task<TrainerProfileDetailResponse> GetTrainerProfileAsync(string trainerId)
+        {
+            var spec = new TrainerSearchSpecification();
+            var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(spec);
 
+            var trainer = trainers.FirstOrDefault(t => t.UserId == trainerId);
+
+            if (trainer == null)
+                return null;
+
+            var profile = _mapper.Map<TrainerProfileDetailResponse>(trainer);
+            return profile;
+        }
     }
 }
+
+
+
 
 
 

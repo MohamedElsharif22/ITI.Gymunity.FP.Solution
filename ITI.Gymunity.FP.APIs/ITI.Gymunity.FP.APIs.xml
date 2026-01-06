@@ -114,11 +114,6 @@
             POST: api/client/subscriptions/{id}/activate
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.TrainerDiscoveryController.SearchTrainers">
-            <summary>
-            Search and browse all trainers with filters
-            </summary>
-        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Trainer.TrainerProfileController.GetMyProfile">
             <summary>
             Retrieves the profile details of the currently authenticated trainer.
@@ -305,6 +300,18 @@
             <summary>
             Mark all notifications as read
             </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.TrainerDiscoveryController.SearchTrainers">
+            <summary>
+            Search and browse all trainers with filters
+            </summary>
+        </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.TrainerDiscoveryController.GetTrainerProfile(System.String)">
+            <summary>
+            Get detailed profile of a specific trainer by userId
+            </summary>
+            <param name="trainerId">The trainer's user ID</param>
+            <returns>TrainerProfileDetailResponse with trainer details</returns>
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Controllers.WebhooksController.PaymobWebhook(ITI.Gymunity.FP.Application.DTOs.User.Webhook.PaymobWebhookPayload)">
             Paymob webhook endpoint
