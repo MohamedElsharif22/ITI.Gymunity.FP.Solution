@@ -142,10 +142,14 @@
             Sends admin notification for subscription activation
             </summary>
         </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.TrainerDiscoveryController.SearchTrainers">
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.TrainersController.GetAllTrainers">
             <summary>
-            Search and browse all trainers with filters
+            Retrieves a list of trainers associated with the current user.
             </summary>
+            <remarks>This method is intended for clients to obtain all trainers linked to their active
+            subscription. The response will be empty if the user has no associated trainers.</remarks>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a list of <see cref="T:ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerBriefResponse"/> objects
+            representing the user's trainers. Returns a 404 Not Found response if no trainers are found.</returns>
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Trainer.TrainerProfileController.GetMyProfile">
             <summary>

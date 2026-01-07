@@ -432,6 +432,15 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.Handle, opt => opt.MapFrom(tp => tp.Handle))
                 .ForMember(dest => dest.TotalClients, opt => opt.MapFrom(tp => tp.TotalClients));
 
+            // Trainer brief response for client (my trainers)
+            CreateMap<TrainerProfile, TrainerBriefResponse>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(tp => tp.UserId))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(tp => tp.User.UserName))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(tp => tp.User.FullName))
+                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom(tp => tp.User.ProfilePhotoUrl))
+                .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(tp => tp.Id))
+                .ForMember(dest => dest.Handle, opt => opt.MapFrom(tp => tp.Handle));
+
             CreateMap<TrainerReview, AdminReviewActionResponse>()
                 .ForMember(dest => dest.Message, opt => opt.Ignore());
 
