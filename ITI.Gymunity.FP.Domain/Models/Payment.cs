@@ -28,6 +28,9 @@ namespace ITI.Gymunity.FP.Domain.Models
         public string? PayPalPayerId { get; set; }
         public string? PayPalCaptureId { get; set; }
 
+        // Stripe Integration
+        public string? StripeSessionId { get; set; }
+
         // Metadata
         public string? PaymentMethodType { get; set; } // card, wallet, etc
         public string? FailureReason { get; set; }

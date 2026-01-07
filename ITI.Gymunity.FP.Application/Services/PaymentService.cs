@@ -48,111 +48,120 @@ namespace ITI.Gymunity.FP.Application.Services
                     .Repository<Subscription>()
                     .GetWithSpecsAsync(subSpec);
 
+
                 if (subscription == null)
                     return ServiceResult<PaymentResponse>
                         .Failure("Subscription not found");
 
-                if (subscription.Status == SubscriptionStatus.Active)
+                // ✅ ENHANCED: Only allow Unpaid or PastDue subscriptions
+                if (subscription.Status != SubscriptionStatus.Unpaid && 
+                    subscription.Status != SubscriptionStatus.PastDue)
+                {
                     return ServiceResult<PaymentResponse>
-                        .Failure("Subscription already active");
-
-                if (subscription.Status == SubscriptionStatus.Canceled)
-                    return ServiceResult<PaymentResponse>
-                        .Failure("Subscription is canceled");
+                        .Failure($"Cannot initiate payment for subscription with status: {subscription.Status}. Only 'Unpaid' or 'PastDue' subscriptions can be paid.");
+                }
 
                 // 2️⃣ Check existing pending payment
                 var existingPayments = await _unitOfWork
                     .Repository<Payment>()
                     .GetAllWithSpecsAsync(
-                        new PaymentBySubscriptionSpecs(subscription.Id,clientId));
+                        new PaymentBySubscriptionSpecs(subscription.Id, clientId));
 
-                var pendingPayment = existingPayments.FirstOrDefault(p =>
-                    p.Status == PaymentStatus.Pending ||
-                    p.Status == PaymentStatus.Processing);
+                // ✅ FIXED: Check for BOTH Pending AND Processing payments
+                var pendingPayment = existingPayments.FirstOrDefault(p => 
+                    p.Status == PaymentStatus.Pending || p.Status == PaymentStatus.Processing);
 
                 if (pendingPayment != null)
                 {
-                    var pendingResponse = _mapper.Map<PaymentResponse>(pendingPayment);
-                    return ServiceResult<PaymentResponse>.Success(pendingResponse);
+                    // ✅ ENHANCED: Reload with relations for complete response
+                    var existingPaymentWithRelations = await _unitOfWork
+                        .Repository<Payment>()
+                        .GetWithSpecsAsync(new PaymentByIdSpecs(pendingPayment.Id, clientId));
+
+                    if (existingPaymentWithRelations != null)
+                    {
+                        var pendingResponse = _mapper.Map<PaymentResponse>(existingPaymentWithRelations);
+                        
+                        // Set appropriate payment URL
+                        if (!string.IsNullOrEmpty(subscription.PayPalApprovalUrl))
+                            pendingResponse.PaymentUrl = subscription.PayPalApprovalUrl;
+                        
+                        _logger.LogInformation(
+                            "Returning existing pending payment {PaymentId} for subscription {SubscriptionId}",
+                            pendingPayment.Id,
+                            subscription.Id);
+                        
+                        return ServiceResult<PaymentResponse>.Success(pendingResponse);
+                    }
                 }
 
-                // 3️⃣ Create payment record
-                var payment = new Payment
-                {
-                    SubscriptionId = subscription.Id,
-                    ClientId = clientId,
-                    Amount = subscription.AmountPaid,
-                    Currency = subscription.Currency ?? "USD",  // ✅ Use subscription currency instead of hardcoded USD
-                    Method = request.PaymentMethod,
-                    Status = PaymentStatus.Pending,
-                    CreatedAt = DateTime.UtcNow
-                };
-
-                payment.CalculateFees(subscription.PlatformFeePercentage);
-
-                _unitOfWork.Repository<Payment>().Add(payment);
-                await _unitOfWork.CompleteAsync();
-
-                // 4️⃣ Initiate gateway
+                // 3️⃣ Initiate gateway BEFORE creating payment record
                 string? paymentUrl = null;
+                string? gatewayOrderId = null;
+                string? stripeSessionId = null;
 
                 if (request.PaymentMethod == PaymentMethod.PayPal)
                 {
-                    var returnUrl =
-                        request.ReturnUrl ??
+                    var returnUrl = request.ReturnUrl ??
                         $"{_frontendBaseUrl}/payment/return?subscriptionId={subscription.Id}";
 
-                    var cancelUrl =
+                    var cancelUrl = 
                         $"{_frontendBaseUrl}/payment/cancel?subscriptionId={subscription.Id}";
 
-                    // ✅ Pass subscription to PayPal service (new architecture)
+                    // ✅ Call PayPal FIRST
                     var result = await _paypalService.CreateOrderAsync(
                         subscription,
                         returnUrl,
                         cancelUrl);
 
                     if (!result.Success)
-                        return ServiceResult<PaymentResponse>
-                            .Failure(result.ErrorMessage ?? "PayPal error");
+                    {
+                        _logger.LogWarning(
+                            "PayPal order creation failed for subscription {SubscriptionId}: {ErrorMessage}",
+                            subscription.Id,
+                            result.ErrorMessage);
 
-                    // ✅ Store PayPal order on BOTH subscription AND payment
-                    subscription.PayPalOrderId = result.OrderId;
-                    subscription.PayPalApprovalUrl = result.ApprovalUrl;
-                    
-                    // ✅ NEW: Also set PayPal order ID on payment record
-                    payment.PayPalOrderId = result.OrderId;
-                    
+                        return ServiceResult<PaymentResponse>
+                            .Failure($"Failed to process payment: {result.ErrorMessage ?? "Payment gateway error"}");
+                    }
+
+                    gatewayOrderId = result.OrderId;
                     paymentUrl = result.ApprovalUrl;
 
-                    _unitOfWork.Repository<Subscription>().Update(subscription);
-                    _unitOfWork.Repository<Payment>().Update(payment);
+                    // Store on subscription
+                    subscription.PayPalOrderId = result.OrderId;
+                    subscription.PayPalApprovalUrl = result.ApprovalUrl;
                 }
                 else if (request.PaymentMethod == PaymentMethod.Stripe)
                 {
-                    var returnUrl =
-                        request.ReturnUrl ??
+                    var returnUrl = request.ReturnUrl ??
                         $"{_frontendBaseUrl}/payment/return?subscriptionId={subscription.Id}";
 
                     var cancelUrl =
                         $"{_frontendBaseUrl}/payment/cancel?subscriptionId={subscription.Id}";
 
-                    // ✅ Create Stripe Checkout Session (aligned with PayPal approach)
+                    // ✅ Call Stripe FIRST
                     var result = await _stripePaymentService.CreateCheckoutSessionAsync(
                         subscription,
                         returnUrl,
                         cancelUrl);
 
                     if (!result.Success)
-                        return ServiceResult<PaymentResponse>
-                            .Failure(result.ErrorMessage ?? "Stripe error");
+                    {
+                        _logger.LogWarning(
+                            "Stripe checkout session creation failed for subscription {SubscriptionId}: {ErrorMessage}",
+                            subscription.Id,
+                            result.ErrorMessage);
 
-                    // ✅ Store Stripe Session ID on subscription
-                    subscription.StripePaymentIntentId = result.SessionId;
-                    
-                    // ✅ Store checkout URL for frontend redirect
+                        return ServiceResult<PaymentResponse>
+                            .Failure($"Failed to process payment: {result.ErrorMessage ?? "Payment gateway error"}");
+                    }
+
+                    stripeSessionId = result.SessionId;
                     paymentUrl = result.CheckoutUrl;
 
-                    _unitOfWork.Repository<Subscription>().Update(subscription);
+                    // Store on subscription
+                    subscription.StripePaymentIntentId = result.SessionId;
                 }
                 else
                 {
@@ -160,17 +169,58 @@ namespace ITI.Gymunity.FP.Application.Services
                         .Failure("Payment method not supported");
                 }
 
+                // 4️⃣ NOW create payment record (AFTER gateway succeeds)
+                var payment = new Payment
+                {
+                    SubscriptionId = subscription.Id,
+                    ClientId = clientId,
+                    Amount = subscription.AmountPaid,
+                    Currency = subscription.Currency ?? "USD",
+                    Method = request.PaymentMethod,
+                    Status = PaymentStatus.Pending,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                payment.CalculateFees(subscription.PlatformFeePercentage);
+
+                // ✅ Store gateway IDs on payment record
+                if (request.PaymentMethod == PaymentMethod.PayPal)
+                {
+                    payment.PayPalOrderId = gatewayOrderId;
+                }
+                else if (request.PaymentMethod == PaymentMethod.Stripe)
+                {
+                    payment.StripeSessionId = stripeSessionId;
+                }
+
+                _unitOfWork.Repository<Payment>().Add(payment);
+                _unitOfWork.Repository<Subscription>().Update(subscription);
                 await _unitOfWork.CompleteAsync();
 
-                // 5️⃣ Response
-                var response = _mapper.Map<PaymentResponse>(payment);
+                // 5️⃣ Reload payment with all relations for complete response
+                var completePayment = await _unitOfWork
+                    .Repository<Payment>()
+                    .GetWithSpecsAsync(new PaymentByIdSpecs(payment.Id, clientId));
+
+                if (completePayment == null)
+                {
+                    _logger.LogError("Failed to retrieve created payment {PaymentId}", payment.Id);
+                    return ServiceResult<PaymentResponse>.Failure("Failed to retrieve created payment");
+                }
+
+                var response = _mapper.Map<PaymentResponse>(completePayment);
                 response.PaymentUrl = paymentUrl;
+
+                _logger.LogInformation(
+                    "Payment {PaymentId} initiated successfully for subscription {SubscriptionId}",
+                    payment.Id,
+                    subscription.Id);
 
                 return ServiceResult<PaymentResponse>.Success(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Payment initiation failed");
+                _logger.LogError(ex, "Payment initiation failed for client {ClientId}", clientId);
                 return ServiceResult<PaymentResponse>
                     .Failure("Failed to initiate payment");
             }
@@ -185,7 +235,11 @@ namespace ITI.Gymunity.FP.Application.Services
                 .Repository<Payment>()
                 .GetByIdAsync(paymentId);
 
-            if (payment == null) return;
+            if (payment == null) 
+            {
+                _logger.LogWarning("Payment {PaymentId} not found for confirmation", paymentId);
+                return;
+            }
 
             payment.Status = PaymentStatus.Completed;
             payment.PaidAt = DateTime.UtcNow;
@@ -208,9 +262,17 @@ namespace ITI.Gymunity.FP.Application.Services
                 {
                     subscription.StripePaymentIntentId = captureId;
                 }
+
+                _unitOfWork.Repository<Subscription>().Update(subscription);
             }
 
+            _unitOfWork.Repository<Payment>().Update(payment);
             await _unitOfWork.CompleteAsync();
+
+            _logger.LogInformation(
+                "Payment {PaymentId} confirmed with capture ID {CaptureId}",
+                paymentId,
+                captureId);
         }
 
         // ===============================
@@ -222,13 +284,23 @@ namespace ITI.Gymunity.FP.Application.Services
                 .Repository<Payment>()
                 .GetByIdAsync(paymentId);
 
-            if (payment == null) return;
+            if (payment == null)
+            {
+                _logger.LogWarning("Payment {PaymentId} not found for failure", paymentId);
+                return;
+            }
 
             payment.Status = PaymentStatus.Failed;
             payment.FailureReason = reason;
             payment.FailedAt = DateTime.UtcNow;
 
+            _unitOfWork.Repository<Payment>().Update(payment);
             await _unitOfWork.CompleteAsync();
+
+            _logger.LogWarning(
+                "Payment {PaymentId} failed with reason: {Reason}",
+                paymentId,
+                reason);
         }
 
         // ===============================
@@ -261,13 +333,10 @@ namespace ITI.Gymunity.FP.Application.Services
         {
             var payment = await _unitOfWork
                 .Repository<Payment>()
-                .GetByIdAsync(paymentId);
+                .GetWithSpecsAsync(new PaymentByIdSpecs(paymentId, clientId));
 
             if (payment == null)
                 return ServiceResult<PaymentResponse>.Failure("Payment not found");
-
-            if (payment.ClientId != clientId)
-                return ServiceResult<PaymentResponse>.Failure("Unauthorized access");
 
             var response = _mapper.Map<PaymentResponse>(payment);
             return ServiceResult<PaymentResponse>.Success(response);
