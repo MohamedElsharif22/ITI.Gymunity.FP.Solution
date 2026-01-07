@@ -4,6 +4,7 @@ using ITI.Gymunity.FP.Infrastructure._Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260106231416_Update payment")]
+    partial class Updatepayment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -84,7 +87,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.HasIndex("ClientProfileId", "LoggedAt");
 
-                    b.ToTable("BodyStatLogs", (string)null);
+                    b.ToTable("BodyStatLogs");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Client.ClientProfile", b =>
@@ -144,7 +147,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("ClientProfiles", (string)null);
+                    b.ToTable("ClientProfiles");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Client.WorkoutLog", b =>
@@ -370,7 +373,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.HasIndex("ThreadId", "IsRead");
 
-                    b.ToTable("Messages", (string)null);
+                    b.ToTable("Messages");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Messaging.MessageThread", b =>
@@ -430,7 +433,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("ClientId", "TrainerId")
                         .IsUnique();
 
-                    b.ToTable("MessageThreads", (string)null);
+                    b.ToTable("MessageThreads");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.Notification", b =>
@@ -597,7 +600,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.HasIndex("SubscriptionId");
 
-                    b.ToTable("Payments", (string)null);
+                    b.ToTable("Payments");
                 });
 
             modelBuilder.Entity("ITI.Gymunity.FP.Domain.Models.ProgramAggregate.Exercise", b =>
@@ -669,7 +672,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
 
                     b.HasIndex("IsCustom", "TrainerId");
 
-                    b.ToTable("Exercises", (string)null);
+                    b.ToTable("Exercises");
 
                     b.HasData(
                         new
@@ -3420,7 +3423,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("PackageId", "ProgramId")
                         .IsUnique();
 
-                    b.ToTable("PackagePrograms", (string)null);
+                    b.ToTable("PackagePrograms");
 
                     b.HasData(
                         new
@@ -3580,7 +3583,7 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Migrations
                     b.HasIndex("ClientId", "TrainerId")
                         .IsUnique();
 
-                    b.ToTable("TrainerReviews", null, t =>
+                    b.ToTable("TrainerReviews", t =>
                         {
                             t.HasCheckConstraint("CK_TrainerReviews_Rating", "[Rating] BETWEEN 1 AND 5");
                         });

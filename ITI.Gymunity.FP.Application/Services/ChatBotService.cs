@@ -49,8 +49,18 @@ namespace ITI.Gymunity.FP.Application.Services
         {
             try
             {
-                var packageRepo = _unitOfWork.Repository<Package, IPackageRepository>();
-                var packages = await packageRepo.GetAllActiveWithProgramsAsync(); // Use only one call
+                // Get all packages data FIRST, before any async operations that could fail
+                IReadOnlyList<Package> packages = new List<Package>();
+                try
+                {
+                    var packageRepo = _unitOfWork.Repository<Package, IPackageRepository>();
+                    packages = await packageRepo.GetAllActiveWithProgramsAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to load packages in AskAboutPackagesAsync");
+                    // Continue with empty list
+                }
 
                 var packagesContext = FormatPackagesForAI(packages);
 
@@ -64,103 +74,118 @@ namespace ITI.Gymunity.FP.Application.Services
 يرجى الإجابة بالعربية بشكل واضح ومفيد. إذا كان السؤال عن الأسعار، اذكر الأسعار بالتفصيل. إذا كان السؤال عن المدربين، اذكر أسماء المدربين. إذا كان السؤال عن الباكدجات السنوية، اذكر الباكدجات التي لها سعر سنوي.";
 
                 var model = "tngtech/deepseek-r1t2-chimera:free";
-                return await AskAsync(prompt, modelName: model, requireJsonOnly: false);
+                return await CallAIAsync(prompt, modelName: model, requireJsonOnly: false, packages: packages);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error preparing AskAboutPackages prompt");
+                _logger.LogError(ex, "Error in AskAboutPackagesAsync");
                 return "عذراً، حدث خطأ أثناء معالجة السؤال.";
             }
         }
 
         public async Task<string> AskAsync(string prompt, string? modelName = null, bool requireJsonOnly = false)
         {
+            // Load all database data FIRST before any external API calls
+            IReadOnlyList<Package> packages = new List<Package>();
             try
             {
                 var packageRepo = _unitOfWork.Repository<Package, IPackageRepository>();
-                var packages = await packageRepo.GetAllActiveWithProgramsAsync(); // One call only
-
-                string? systemPrefix = null;
-                if (requireJsonOnly)
-                {
-                    systemPrefix = "You are an API that MUST return only valid JSON and nothing else. No explanations, no markdown, no extra text. Return {} if you cannot comply.";
-                }
-
-                var messages = systemPrefix != null
-                    ? new object[] { new { role = "system", content = systemPrefix }, new { role = "user", content = prompt } }
-                    : new object[] { new { role = "user", content = prompt } };
-
-                var httpClient = _httpClientFactory.CreateClient();
-                httpClient.Timeout = TimeSpan.FromMinutes(5);
-                httpClient.BaseAddress = new Uri("https://openrouter.ai/api/v1/");
-                httpClient.DefaultRequestHeaders.Remove("Authorization");
-                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
-
-                var effectiveModel = modelName ?? "tngtech/deepseek-r1t2-chimera:free";
-
-                var payload = new
-                {
-                    model = effectiveModel,
-                    messages = messages,
-                    stream = false
-                };
-
-                var requestJson = JsonSerializer.Serialize(payload);
-                using var request = new HttpRequestMessage(HttpMethod.Post, "chat/completions")
-                {
-                    Content = new StringContent(requestJson, Encoding.UTF8, "application/json")
-                };
-
-                using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
-
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogError("OpenRouter API error: {Status} - {Content}", response.StatusCode, content);
-                    return GenerateFallbackResponse(prompt, packages);
-                }
-
-                try
-                {
-                    using var doc = JsonDocument.Parse(content);
-                    var root = doc.RootElement;
-
-                    if (root.TryGetProperty("choices", out var choices) && choices.ValueKind == JsonValueKind.Array && choices.GetArrayLength() > 0)
-                    {
-                        var first = choices[0];
-                        if (first.TryGetProperty("message", out var message) && message.TryGetProperty("content", out var msgContent))
-                        {
-                            var text = msgContent.GetString();
-                            if (!string.IsNullOrWhiteSpace(text)) return text.Trim();
-                        }
-                        if (first.TryGetProperty("text", out var textProp))
-                        {
-                            var text = textProp.GetString();
-                            if (!string.IsNullOrWhiteSpace(text)) return text.Trim();
-                        }
-                    }
-
-                    if (root.TryGetProperty("message", out var messageObj) && messageObj.TryGetProperty("content", out var contentProp))
-                    {
-                        var text = contentProp.GetString();
-                        if (!string.IsNullOrWhiteSpace(text)) return text.Trim();
-                    }
-                }
-                catch (JsonException)
-                {
-                    _logger.LogWarning("Could not parse OpenRouter response as JSON, returning raw content");
-                }
-
-                return content;
+                packages = await packageRepo.GetAllActiveWithProgramsAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error calling OpenRouter API");
-                var packageRepo = _unitOfWork.Repository<Package, IPackageRepository>();
-                var packages = await packageRepo.GetAllActiveWithProgramsAsync();
-                return GenerateFallbackResponse(prompt, packages);
+                _logger.LogWarning(ex, "Failed to load packages in AskAsync");
+                // Continue with empty list, don't try to access DbContext again
             }
+
+            try
+            {
+                return await CallAIAsync(prompt, modelName, requireJsonOnly, packages: packages);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling OpenRouter API in AskAsync");
+                return "عذراً، حدث خطأ أثناء معالجة السؤال.";
+            }
+        }
+
+        private async Task<string> CallAIAsync(string prompt, string? modelName = null, bool requireJsonOnly = false, IReadOnlyList<Package>? packages = null)
+        {
+            string? systemPrefix = null;
+            if (requireJsonOnly)
+            {
+                systemPrefix = "You are an API that MUST return only valid JSON and nothing else. No explanations, no markdown, no extra text. Return {} if you cannot comply.";
+            }
+
+            var messages = systemPrefix != null
+                ? new object[] { new { role = "system", content = systemPrefix }, new { role = "user", content = prompt } }
+                : new object[] { new { role = "user", content = prompt } };
+
+            var httpClient = _httpClientFactory.CreateClient();
+            httpClient.Timeout = TimeSpan.FromMinutes(5);
+            httpClient.BaseAddress = new Uri("https://openrouter.ai/api/v1/");
+            httpClient.DefaultRequestHeaders.Remove("Authorization");
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_apiKey}");
+
+            var effectiveModel = modelName ?? "tngtech/deepseek-r1t2-chimera:free";
+
+            var payload = new
+            {
+                model = effectiveModel,
+                messages = messages,
+                stream = false
+            };
+
+            var requestJson = JsonSerializer.Serialize(payload);
+            using var request = new HttpRequestMessage(HttpMethod.Post, "chat/completions")
+            {
+                Content = new StringContent(requestJson, Encoding.UTF8, "application/json")
+            };
+
+            using var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseContentRead);
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("OpenRouter API error: {Status} - {Content}", response.StatusCode, content);
+                return packages != null && packages.Count > 0 
+                    ? GenerateFallbackResponse(prompt, packages) 
+                    : "عذراً، حدث خطأ في معالجة طلبك.";
+            }
+
+            try
+            {
+                using var doc = JsonDocument.Parse(content);
+                var root = doc.RootElement;
+
+                if (root.TryGetProperty("choices", out var choices) && choices.ValueKind == JsonValueKind.Array && choices.GetArrayLength() > 0)
+                {
+                    var first = choices[0];
+                    if (first.TryGetProperty("message", out var message) && message.TryGetProperty("content", out var msgContent))
+                    {
+                        var text = msgContent.GetString();
+                        if (!string.IsNullOrWhiteSpace(text)) return text.Trim();
+                    }
+                    if (first.TryGetProperty("text", out var textProp))
+                    {
+                        var text = textProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(text)) return text.Trim();
+                    }
+                }
+
+                if (root.TryGetProperty("message", out var messageObj) && messageObj.TryGetProperty("content", out var contentProp))
+                {
+                    var text = contentProp.GetString();
+                    if (!string.IsNullOrWhiteSpace(text)) return text.Trim();
+                }
+            }
+            catch (JsonException)
+            {
+                _logger.LogWarning("Could not parse OpenRouter response as JSON, returning raw content");
+            }
+
+            return content;
         }
 
         private string FormatPackagesForAI(IReadOnlyList<Package> packages)
