@@ -29,12 +29,25 @@ namespace ITI.Gymunity.FP.Application.Services.ClientServices
 
         public async Task<IEnumerable<TrainerBriefResponse>> GetClientTrainers(string userId)
         {
-            var spec = new TrainersByClientUserIdSpecification(userId);
-            var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(spec);
-            return _mapper.Map<IEnumerable<TrainerBriefResponse>>(trainers);
+            // Get all active subscriptions for the client
+            var spec = new ITI.Gymunity.FP.Application.Specefications.Subscriptions.ClientSubscriptionsSpecs(
+                userId, 
+                ITI.Gymunity.FP.Domain.Models.Enums.SubscriptionStatus.Active);
+            
+            var subscriptions = await _unitOfWork.Repository<Subscription>().GetAllWithSpecsAsync(spec);
+
+            // Extract unique trainers from subscriptions
+            var trainerProfiles = subscriptions
+                .Where(s => s.Package?.Trainer != null)
+                .Select(s => s.Package!.Trainer)
+                .DistinctBy(t => t.Id)
+                .ToList();
+
+            // Map to TrainerBriefResponse using AutoMapper
+            var result = _mapper.Map<List<TrainerBriefResponse>>(trainerProfiles);
+
+            return result;
         }
-
-
     }
 }
 

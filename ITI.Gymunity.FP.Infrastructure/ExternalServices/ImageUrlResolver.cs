@@ -12,8 +12,10 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
     {
         private readonly IConfiguration _configuration = configuration;
 
-        public string ResolveImageUrl(string url)
+        public string? ResolveImageUrl(string url)
         {
+            if (string.IsNullOrEmpty(url)) return null;
+
             var baseUrl = _configuration["BaseApiUrl"];
             if (Uri.IsWellFormedUriString(url, UriKind.Absolute))
             {

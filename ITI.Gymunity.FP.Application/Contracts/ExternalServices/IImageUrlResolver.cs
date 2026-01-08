@@ -8,6 +8,6 @@ namespace ITI.Gymunity.FP.Application.Contracts.ExternalServices
 {
     public interface IImageUrlResolver
     {
-        string ResolveImageUrl(string url);
+        string? ResolveImageUrl(string url);
     }
 }

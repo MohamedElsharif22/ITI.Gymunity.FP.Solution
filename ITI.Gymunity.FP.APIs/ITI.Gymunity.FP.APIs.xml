@@ -66,6 +66,15 @@
             <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing the program day details if found; otherwise, an
             appropriate error response such as 401 Unauthorized or 400 Bad Request.</returns>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.ClientTrainersController.GetAllTrainers">
+            <summary>
+            Retrieves a list of trainers associated with the current user.
+            </summary>
+            <remarks>This method is intended for clients to obtain all trainers linked to their active
+            subscription. The response will be empty if the user has no associated trainers.</remarks>
+            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a list of <see cref="T:ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerBriefResponse"/> objects
+            representing the user's trainers. Returns a 404 Not Found response if no trainers are found.</returns>
+        </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.PaymentsController.InitiatePayment(ITI.Gymunity.FP.Application.DTOs.User.Payment.InitiatePaymentRequest)">
             <summary>
             Initiate payment for a subscription
@@ -141,15 +150,6 @@
             <summary>
             Sends admin notification for subscription activation
             </summary>
-        </member>
-        <member name="M:ITI.Gymunity.FP.APIs.Areas.Client.TrainersController.GetAllTrainers">
-            <summary>
-            Retrieves a list of trainers associated with the current user.
-            </summary>
-            <remarks>This method is intended for clients to obtain all trainers linked to their active
-            subscription. The response will be empty if the user has no associated trainers.</remarks>
-            <returns>An <see cref="T:Microsoft.AspNetCore.Mvc.ActionResult`1"/> containing a list of <see cref="T:ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerBriefResponse"/> objects
-            representing the user's trainers. Returns a 404 Not Found response if no trainers are found.</returns>
         </member>
         <member name="M:ITI.Gymunity.FP.APIs.Areas.Trainer.TrainerProfileController.GetMyProfile">
             <summary>

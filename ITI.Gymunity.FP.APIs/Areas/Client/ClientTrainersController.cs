@@ -9,7 +9,7 @@ using System.Security.Claims;
 namespace ITI.Gymunity.FP.APIs.Areas.Client
 {
     
-    public class TrainersController(ClientTrainersService trainerService) : ClientBaseController
+    public class ClientTrainersController(ClientTrainersService trainerService) : ClientBaseController
     {
         private readonly ClientTrainersService _trainerService = trainerService;
 

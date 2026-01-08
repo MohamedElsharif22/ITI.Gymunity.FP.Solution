@@ -432,12 +432,13 @@ namespace ITI.Gymunity.FP.Application.Mapping
                 .ForMember(dest => dest.Handle, opt => opt.MapFrom(tp => tp.Handle))
                 .ForMember(dest => dest.TotalClients, opt => opt.MapFrom(tp => tp.TotalClients));
 
-            // Trainer brief response for client (my trainers)
+            // TrainerProfile to TrainerBriefResponse
+            // Used by: ClientTrainersService.GetClientTrainers()
             CreateMap<TrainerProfile, TrainerBriefResponse>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(tp => tp.UserId))
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(tp => tp.User.UserName))
-                .ForMember(dest => dest.FullName, opt => opt.MapFrom(tp => tp.User.FullName))
-                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom(tp => tp.User.ProfilePhotoUrl))
+                .ForMember(dest => dest.UserName, opt => opt.MapFrom(tp => tp.User != null ? tp.User.UserName : string.Empty))
+                .ForMember(dest => dest.FullName, opt => opt.MapFrom(tp => tp.User != null ? tp.User.FullName : string.Empty))
+                .ForMember(dest => dest.ProfilePhotoUrl, opt => opt.MapFrom<GenericImageUrlResolver<TrainerProfile,TrainerBriefResponse>, string?>(tp => tp.User.ProfilePhotoUrl ))
                 .ForMember(dest => dest.TrainerProfileId, opt => opt.MapFrom(tp => tp.Id))
                 .ForMember(dest => dest.Handle, opt => opt.MapFrom(tp => tp.Handle));
 
