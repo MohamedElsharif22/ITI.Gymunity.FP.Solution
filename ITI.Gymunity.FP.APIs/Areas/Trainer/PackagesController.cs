@@ -5,6 +5,11 @@ using ITI.Gymunity.FP.APIs.Responses;
 using ITI.Gymunity.FP.Domain;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using ITI.Gymunity.FP.Application.Specefications.ClientSpecification;
+using ITI.Gymunity.FP.Application.Specefications.Admin;
+using ITI.Gymunity.FP.Domain.Models.Trainer;
+using ITI.Gymunity.FP.Domain.Models;
+using ITI.Gymunity.FP.Domain.Models.Enums;
 
 namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 {
@@ -56,6 +61,28 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
 
             var list = await _service.GetAllForTrainerAsync(trainerId);
             return Ok(list);
+        }
+
+        // ============================
+        // GET: api/trainer/Packages/with-subscriptions
+        // Guest: Get trainer's packages with their subscriptions and client info
+        // Business logic moved to IPackageService.GetPackagesWithSubscriptionsForTrainerAsync
+        // ============================
+        [HttpGet("with-subscriptions")]
+        public async Task<IActionResult> GetAllWithSubscriptions()
+        {
+            var currentUserId = GetTrainerId();
+            if (string.IsNullOrWhiteSpace(currentUserId))
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var trainerRepo = _unitOfWork.Repository<TrainerProfile, ITI.Gymunity.FP.Domain.RepositoiesContracts.ITrainerProfileRepository>();
+            var allProfiles = await trainerRepo.GetAllAsync();
+            var profile = allProfiles.FirstOrDefault(p => p.UserId == currentUserId && !p.IsDeleted);
+            if (profile == null)
+                return NotFound(new { message = "Trainer profile not found for current user." });
+
+            var data = await _service.GetPackagesWithSubscriptionsForTrainerAsync(profile.Id);
+            return Ok(data);
         }
 
         // ============================
@@ -162,6 +189,31 @@ namespace ITI.Gymunity.FP.APIs.Areas.Trainer
                 return NotFound();
 
             return NoContent();
+        }
+
+        // ============================
+        // GET: api/trainer/Packages/with-profit
+        // Trainer: Get packages for current trainer with profit per package and total profit
+        // Business logic moved to IPackageService.GetPackagesWithProfitForTrainerAsync
+        // ============================
+        [HttpGet("with-profit")]
+        public async Task<IActionResult> GetMyPackagesWithProfit()
+        {
+            // Get current trainer user id from base controller
+            var currentUserId = GetTrainerId();
+            if (string.IsNullOrWhiteSpace(currentUserId))
+                return Unauthorized(new { message = "Unauthorized" });
+
+            var trainerRepo = _unitOfWork.Repository<TrainerProfile, ITI.Gymunity.FP.Domain.RepositoiesContracts.ITrainerProfileRepository>();
+            var allProfiles = await trainerRepo.GetAllAsync();
+            var profile = allProfiles.FirstOrDefault(p => p.UserId == currentUserId && !p.IsDeleted);
+            if (profile == null)
+                return NotFound(new { message = "Trainer profile not found for current user." });
+
+            var data = await _service.GetPackagesWithProfitForTrainerAsync(profile.Id);
+            var total = data.Sum(p => p.Profit);
+
+            return Ok(new { TrainerProfileId = profile.Id, TrainerUserId = currentUserId, Packages = data, TotalProfit = total });
         }
     }
 }

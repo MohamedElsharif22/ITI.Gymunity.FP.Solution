@@ -107,11 +107,6 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
 
             //amr end
 
-            
-
-
-
-
             return services;
         }
     }

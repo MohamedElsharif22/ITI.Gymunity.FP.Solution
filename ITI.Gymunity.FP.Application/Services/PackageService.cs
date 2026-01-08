@@ -19,6 +19,10 @@ namespace ITI.Gymunity.FP.Application.Services
         Task<bool> DeleteAsync(int id);
         Task<bool> ToggleActiveAsync(int id);
         Task<IReadOnlyList<PackageResponse>> GetAllAsync();
+
+        // Added: trainer-related business logic moved into PackageService
+        Task<IEnumerable<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithSubscriptionsResponse>> GetPackagesWithSubscriptionsForTrainerAsync(int trainerProfileId);
+        Task<IEnumerable<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithProfitResponse>> GetPackagesWithProfitForTrainerAsync(int trainerProfileId);
     }
 
     public class PackageService : IPackageService
@@ -304,6 +308,76 @@ namespace ITI.Gymunity.FP.Application.Services
             }
 
             return mapped;
+        }
+
+        public async Task<IEnumerable<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithSubscriptionsResponse>> GetPackagesWithSubscriptionsForTrainerAsync(int trainerProfileId)
+        {
+            var pkgRepo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
+            var packages = (await pkgRepo.GetByTrainerIdAsync(trainerProfileId)).ToList();
+
+            var subscriptionRepo = _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Subscription>();
+            var result = new List<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithSubscriptionsResponse>();
+
+            foreach (var pkg in packages)
+            {
+                var spec = new ITI.Gymunity.FP.Application.Specefications.ClientSpecification.SubscriptionsWithClientAndProgramSpecs(s => s.PackageId == pkg.Id && !s.IsDeleted);
+                var subs = (await subscriptionRepo.GetAllWithSpecsAsync(spec)).ToList();
+
+                var subsDto = _mapper.Map<List<ITI.Gymunity.FP.Application.DTOs.User.Subscribe.SubscriptionResponse>>(subs);
+                var pkgDto = await GetByIdAsync(pkg.Id) ?? new PackageResponse
+                {
+                    Id = pkg.Id,
+                    Name = pkg.Name,
+                    Description = pkg.Description,
+                    PriceMonthly = pkg.PriceMonthly,
+                    PriceYearly = pkg.PriceYearly,
+                    IsActive = pkg.IsActive,
+                    ThumbnailUrl = pkg.ThumbnailUrl,
+                    CreatedAt = pkg.CreatedAt
+                };
+
+                result.Add(new ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithSubscriptionsResponse
+                {
+                    Package = pkgDto,
+                    Subscriptions = subsDto
+                });
+            }
+
+            return result;
+        }
+
+        public async Task<IEnumerable<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithProfitResponse>> GetPackagesWithProfitForTrainerAsync(int trainerProfileId)
+        {
+            var pkgRepo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
+            var packages = (await pkgRepo.GetByTrainerIdAsync(trainerProfileId)).ToList();
+
+            var result = new List<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithProfitResponse>();
+
+            foreach (var pkg in packages)
+            {
+                var profit = pkg.Subscriptions?
+                    .SelectMany(s => s.Payments ?? new List<ITI.Gymunity.FP.Domain.Models.Payment>())
+                    .Where(p => p.Status == ITI.Gymunity.FP.Domain.Models.Enums.PaymentStatus.Completed && !p.IsDeleted)
+                    .Sum(p => p.TrainerPayout) ?? 0m;
+
+                result.Add(new ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithProfitResponse
+                {
+                    PackageId = pkg.Id,
+                    Name = pkg.Name,
+                    Description = pkg.Description,
+                    PriceMonthly = pkg.PriceMonthly,
+                    PriceYearly = pkg.PriceYearly,
+                    Currency = pkg.Currency,
+                    TrainerProfileId = pkg.Trainer?.Id,
+                    TrainerUserId = pkg.Trainer?.UserId,
+                    TrainerName = pkg.Trainer?.User?.FullName ?? pkg.Trainer?.Handle,
+                    IsActive = pkg.IsActive,
+                    CreatedAt = pkg.CreatedAt,
+                    Profit = profit
+                });
+            }
+
+            return result;
         }
     }
 }
