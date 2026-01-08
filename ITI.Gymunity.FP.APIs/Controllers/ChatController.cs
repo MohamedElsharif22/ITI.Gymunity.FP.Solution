@@ -153,6 +153,11 @@ namespace ITI.Gymunity.FP.APIs.Controllers
                 var thread = await _chatService.CreateChatThreadAsync(userId, request.OtherUserId);
                 return Ok(new ApiResponse<CreateChatThreadResponse>(thread));
             }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning($"Attempted to create duplicate chat thread: {ex.Message}");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
             catch (ArgumentException ex)
             {
                 _logger.LogError($"Invalid argument creating chat thread: {ex.Message}");
@@ -161,6 +166,31 @@ namespace ITI.Gymunity.FP.APIs.Controllers
             catch (Exception ex)
             {
                 _logger.LogError($"Error creating chat thread: {ex.Message}");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Delete a chat thread
+        /// </summary>
+        [HttpDelete("threads/{threadId}")]
+        public async Task<ActionResult> DeleteThread(int threadId)
+        {
+            try
+            {
+                var userId = GetUserId();
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                var result = await _chatService.DeleteThreadAsync(threadId);
+                if (!result)
+                    return NotFound(new { success = false, message = "Thread not found" });
+
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error deleting chat thread: {ex.Message}");
                 return BadRequest(new { success = false, message = ex.Message });
             }
         }

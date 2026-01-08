@@ -31,6 +31,7 @@ namespace ITI.Gymunity.FP.Domain.Models
 
         // Stripe
         public string? StripePaymentIntentId { get; set; }
+        public string? StripeCheckoutUrl { get; set; }    // ✅ NEW: Checkout URL
 
         public string Currency { get; set; } = "USD";
         public decimal AmountPaid { get; set; }

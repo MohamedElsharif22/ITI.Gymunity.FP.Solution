@@ -337,6 +337,11 @@
             Create a new chat thread between the current user and another user
             </summary>
         </member>
+        <member name="M:ITI.Gymunity.FP.APIs.Controllers.ChatController.DeleteThread(System.Int32)">
+            <summary>
+            Delete a chat thread
+            </summary>
+        </member>
         <member name="T:ITI.Gymunity.FP.APIs.Controllers.NotificationsController">
             <summary>
             API controller that manages user notifications, including retrieving, counting, and updating notification status

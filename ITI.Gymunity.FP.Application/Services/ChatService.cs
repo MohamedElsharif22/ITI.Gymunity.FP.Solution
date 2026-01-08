@@ -31,20 +31,14 @@ namespace ITI.Gymunity.FP.Application.Services
             if (trainer == null)
                 throw new ArgumentException("Trainer user not found");
 
-            // Check if thread already exists
+            // Check if thread already exists (both directions)
             var threads = await _unitOfWork.Repository<MessageThread>().GetAllAsync();
             var existingThread = threads.FirstOrDefault(t => 
-                (t.ClientId == clientId && t.TrainerId == trainerId));
+                (t.ClientId == clientId && t.TrainerId == trainerId) ||
+                (t.ClientId == trainerId && t.TrainerId == clientId));
 
             if (existingThread != null)
-                return new CreateChatThreadResponse
-                {
-                    Id = existingThread.Id,
-                    ClientId = existingThread.ClientId,
-                    TrainerId = existingThread.TrainerId,
-                    CreatedAt = existingThread.CreatedAt.DateTime,
-                    LastMessageAt = existingThread.LastMessageAt
-                };
+                throw new InvalidOperationException("A chat thread already exists between these users");
 
             // Create new thread
             var newThread = new MessageThread
@@ -209,6 +203,35 @@ namespace ITI.Gymunity.FP.Application.Services
             }
 
             await _unitOfWork.CompleteAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteThreadAsync(int threadId)
+        {
+            var thread = await _unitOfWork.Repository<MessageThread>().GetByIdAsync(threadId);
+            if (thread == null)
+                return false;
+
+            var allMessages = await _unitOfWork.Repository<Message>().GetAllAsync();
+            var messages = allMessages.Where(m => m.ThreadId == threadId).ToList();
+
+            foreach (var message in messages)
+            {
+                _unitOfWork.Repository<Message>().Delete(message);
+            }
+
+            _unitOfWork.Repository<MessageThread>().Delete(thread);
+
+            try
+            {
+                await _unitOfWork.CompleteAsync();
+            }
+            catch
+            {
+                _logger.LogError("Failed to delete message thread {ThreadId}", threadId);
+                throw;
+            }
+
             return true;
         }
     }

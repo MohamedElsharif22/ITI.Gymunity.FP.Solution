@@ -10,5 +10,6 @@ namespace ITI.Gymunity.FP.Application.Contracts.Services
         Task<bool> MarkMessageAsReadAsync(long messageId);
         Task<bool> MarkThreadAsReadAsync(int threadId, string userId);
         Task<CreateChatThreadResponse> CreateChatThreadAsync(string clientId, string trainerId);
+        Task<bool> DeleteThreadAsync(int threadId);
     }
 }

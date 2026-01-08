@@ -82,9 +82,17 @@ namespace ITI.Gymunity.FP.Application.Services
                     {
                         var pendingResponse = _mapper.Map<PaymentResponse>(existingPaymentWithRelations);
                         
-                        // Set appropriate payment URL
-                        if (!string.IsNullOrEmpty(subscription.PayPalApprovalUrl))
-                            pendingResponse.PaymentUrl = subscription.PayPalApprovalUrl;
+                        // ✅ ENHANCED: Set appropriate payment URL based on payment method
+                        if (existingPaymentWithRelations.Method == PaymentMethod.PayPal)
+                        {
+                            if (!string.IsNullOrEmpty(subscription.PayPalApprovalUrl))
+                                pendingResponse.PaymentUrl = subscription.PayPalApprovalUrl;
+                        }
+                        else if (existingPaymentWithRelations.Method == PaymentMethod.Stripe)
+                        {
+                            if (!string.IsNullOrEmpty(subscription.StripeCheckoutUrl))
+                                pendingResponse.PaymentUrl = subscription.StripeCheckoutUrl;  // ✅ Use the actual URL, not ID
+                        }
                         
                         _logger.LogInformation(
                             "Returning existing pending payment {PaymentId} for subscription {SubscriptionId}",
@@ -162,6 +170,7 @@ namespace ITI.Gymunity.FP.Application.Services
 
                     // Store on subscription
                     subscription.StripePaymentIntentId = result.SessionId;
+                    subscription.StripeCheckoutUrl = result.CheckoutUrl;  // ✅ Store the actual URL
                 }
                 else
                 {
