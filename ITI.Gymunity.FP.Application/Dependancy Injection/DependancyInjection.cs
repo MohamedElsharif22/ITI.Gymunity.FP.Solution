@@ -27,6 +27,7 @@ namespace ITI.Gymunity.FP.Application.DependencyInjection
                 options.ClientSecret = paypalSection["ClientSecret"] ?? options.ClientSecret;
                 options.ReturnUrl = paypalSection["ReturnUrl"] ?? options.ReturnUrl;
                 options.CancelUrl = paypalSection["CancelUrl"] ?? options.CancelUrl;
+                options.WebhookId = paypalSection["WebhookId"] ?? options.WebhookId;  // ✅ Add WebhookId
             });
 
             var stripeSection = configuration.GetSection("Stripe");

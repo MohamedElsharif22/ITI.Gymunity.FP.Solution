@@ -78,7 +78,7 @@ namespace ITI.Gymunity.FP.Application.Services
                         .Repository<Payment>()
                         .GetWithSpecsAsync(new PaymentByIdSpecs(pendingPayment.Id, clientId));
 
-                    if (existingPaymentWithRelations != null)
+                    if (existingPaymentWithRelations != null && existingPaymentWithRelations.Method == request.PaymentMethod)
                     {
                         var pendingResponse = _mapper.Map<PaymentResponse>(existingPaymentWithRelations);
                         

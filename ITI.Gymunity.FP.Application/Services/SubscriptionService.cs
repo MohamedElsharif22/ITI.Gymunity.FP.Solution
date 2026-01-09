@@ -115,7 +115,7 @@ namespace ITI.Gymunity.FP.Application.Services
                         StartDate = DateTime.UtcNow,
                         CurrentPeriodEnd = periodEnd,
                         AmountPaid = amount,
-                        Currency = "USD",
+                        Currency = package.Currency ?? "USD",
                         PlatformFeePercentage = 15m,
                         IsAnnual = request.IsAnnual
                     };
