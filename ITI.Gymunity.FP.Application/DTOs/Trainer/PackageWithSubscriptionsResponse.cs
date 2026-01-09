@@ -6,6 +6,9 @@ namespace ITI.Gymunity.FP.Application.DTOs.Trainer
  public class PackageWithSubscriptionsResponse
  {
  public PackageResponse Package { get; set; } = null!;
- public List<SubscriptionResponse> Subscriptions { get; set; } = new List<SubscriptionResponse>();
+
+  // public List<SubscriptionResponse> Subscriptions { get; set; } = new List<SubscriptionResponse>();
+
+   public List<TrainerSubscriptionItem> Subscriptions { get; set; } = new List<TrainerSubscriptionItem>();
  }
 }

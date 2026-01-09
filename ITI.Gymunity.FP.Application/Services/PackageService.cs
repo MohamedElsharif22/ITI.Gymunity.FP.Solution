@@ -6,6 +6,8 @@ using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.ProgramAggregate;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using Microsoft.EntityFrameworkCore;
+using ITI.Gymunity.FP.Domain.Models.Enums; // added for PaymentStatus
+using System.Linq; // ensure LINQ extension methods available
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -323,7 +325,21 @@ namespace ITI.Gymunity.FP.Application.Services
                 var spec = new ITI.Gymunity.FP.Application.Specefications.ClientSpecification.SubscriptionsWithClientAndProgramSpecs(s => s.PackageId == pkg.Id && !s.IsDeleted);
                 var subs = (await subscriptionRepo.GetAllWithSpecsAsync(spec)).ToList();
 
-                var subsDto = _mapper.Map<List<ITI.Gymunity.FP.Application.DTOs.User.Subscribe.SubscriptionResponse>>(subs);
+                var subsDto = subs.Select(s => new ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerSubscriptionItem
+                {
+                    Id = s.Id,
+                    PackageId = s.PackageId,
+                    PackageName = s.Package?.Name,
+                    ClientId = s.ClientId,
+                    ClientName = s.Client?.FullName,
+                    ClientEmail = s.Client?.Email,
+                    Status = s.Status.ToString(),
+                    StartDate = s.StartDate,
+                    CurrentPeriodEnd = s.CurrentPeriodEnd,
+                    AmountPaid = s.AmountPaid,
+                    Currency = s.Currency,
+                    SubscriptionType = s.IsAnnual ? "Annual" : "Monthly"
+                }).ToList();
                 var pkgDto = await GetByIdAsync(pkg.Id) ?? new PackageResponse
                 {
                     Id = pkg.Id,
@@ -348,17 +364,52 @@ namespace ITI.Gymunity.FP.Application.Services
 
         public async Task<IEnumerable<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithProfitResponse>> GetPackagesWithProfitForTrainerAsync(int trainerProfileId)
         {
-            var pkgRepo = _unitOfWork.Repository<Package, ITI.Gymunity.FP.Domain.RepositoiesContracts.IPackageRepository>();
-            var packages = (await pkgRepo.GetByTrainerIdAsync(trainerProfileId)).ToList();
+            // Use spec that includes subscriptions and their completed payments
+            var pkgRepo = _unitOfWork.Repository<Package>();
+            var packages = (await pkgRepo.GetAllWithSpecsAsync(new ITI.Gymunity.FP.Application.Specefications.Admin.TrainerPackagesWithEarningsSpecs(trainerProfileId))).ToList();
 
             var result = new List<ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithProfitResponse>();
 
             foreach (var pkg in packages)
             {
-                var profit = pkg.Subscriptions?
+                decimal profit =0m;
+
+                if (pkg.Subscriptions != null && pkg.Subscriptions.Any())
+                {
+                    foreach (var sub in pkg.Subscriptions)
+                    {
+                        // try to use payments if available
+                        var completedPayments = sub.Payments?.Where(p => p.Status == PaymentStatus.Completed && !p.IsDeleted).ToList();
+                        if (completedPayments != null && completedPayments.Count >0)
+                        {
+                            profit += completedPayments.Sum(p => p.TrainerPayout);
+                        }
+                        else
+                        {
+                            // fallback: calculate trainer payout from subscription amount and platform fee percentage
+                            var feePercent = sub.PlatformFeePercentage >0 ? sub.PlatformFeePercentage :15m;
+                            var trainerPayout = sub.AmountPaid - (sub.AmountPaid * (feePercent /100m));
+                            profit += trainerPayout;
+                        }
+                    }
+                }
+
+                // compute subscription metrics
+                var totalSubs = pkg.Subscriptions?.Count() ??0;
+                var activeSubs = pkg.Subscriptions?.Count(s => s.Status == ITI.Gymunity.FP.Domain.Models.Enums.SubscriptionStatus.Active) ??0;
+                var totalRevenue = pkg.Subscriptions?
                     .SelectMany(s => s.Payments ?? new List<ITI.Gymunity.FP.Domain.Models.Payment>())
                     .Where(p => p.Status == ITI.Gymunity.FP.Domain.Models.Enums.PaymentStatus.Completed && !p.IsDeleted)
-                    .Sum(p => p.TrainerPayout) ?? 0m;
+                    .Sum(p => p.Amount) ??0m;
+
+                // fallback revenue when Payments missing: sum AmountPaid from subscriptions
+                if (totalRevenue ==0m)
+                {
+                    totalRevenue = pkg.Subscriptions?.Sum(s => s.AmountPaid) ??0m;
+                }
+
+                // platform fee assumed percentage from subscription (if varying take avg or compute per-sub)
+                var platformFee = pkg.Subscriptions?.Sum(s => (s.PlatformFeePercentage/100m) * s.AmountPaid) ??0m;
 
                 result.Add(new ITI.Gymunity.FP.Application.DTOs.Trainer.PackageWithProfitResponse
                 {
@@ -373,7 +424,11 @@ namespace ITI.Gymunity.FP.Application.Services
                     TrainerName = pkg.Trainer?.User?.FullName ?? pkg.Trainer?.Handle,
                     IsActive = pkg.IsActive,
                     CreatedAt = pkg.CreatedAt,
-                    Profit = profit
+                    Profit = profit,
+                    TotalSubscriptions = totalSubs,
+                    ActiveSubscriptions = activeSubs,
+                    TotalRevenue = totalRevenue,
+                    PlatformFee = platformFee
                 });
             }
 
