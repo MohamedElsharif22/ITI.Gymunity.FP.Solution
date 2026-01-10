@@ -35,10 +35,10 @@ namespace ITI.Gymunity.FP.Infrastructure._Data.Configurations
             builder.Property(mt => mt.UpdatedAt);
 
             // Indexes
-            builder.HasIndex(mt => mt.ClientId);
-            builder.HasIndex(mt => mt.TrainerId);
-            builder.HasIndex(mt => new { mt.ClientId, mt.TrainerId })
-                .IsUnique();
+            //builder.HasIndex(mt => mt.ClientId);
+            //builder.HasIndex(mt => mt.TrainerId);
+            //builder.HasIndex(mt => new { mt.ClientId, mt.TrainerId })
+            //    .IsUnique();
             builder.HasIndex(mt => mt.LastMessageAt);
             builder.HasIndex(mt => mt.IsPriority);
 

@@ -7,18 +7,21 @@ using Microsoft.AspNetCore.Identity;
 using AutoMapper;
 using Microsoft.Extensions.Logging;
 using ITI.Gymunity.FP.Application.Specefications.Chat;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
     public class ChatService(IUnitOfWork unitOfWork, 
             UserManager<AppUser> userManager, 
             IMapper mapper,
-            ILogger<ChatService> logger) : IChatService
+            ILogger<ChatService> logger,
+            IImageUrlResolver imageUrlResolver) : IChatService
     {
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly UserManager<AppUser> _userManager = userManager;
         private readonly IMapper _mapper = mapper;
         private readonly ILogger<ChatService> _logger = logger;
+        private readonly IImageUrlResolver _imageUrlResolver = imageUrlResolver;
 
         public async Task<CreateChatThreadResponse> CreateChatThreadAsync(string clientId, string trainerId)
         {
@@ -128,7 +131,7 @@ namespace ITI.Gymunity.FP.Application.Services
                     ThreadId = message.ThreadId,
                     SenderId = message.SenderId,
                     SenderName = sender?.FullName ?? "Unknown",
-                    SenderProfilePhoto = sender?.ProfilePhotoUrl ?? "",
+                    SenderProfilePhoto = _imageUrlResolver.ResolveImageUrl(sender?.ProfilePhotoUrl ?? "")!,
                     Content = message.Content,
                     MediaUrl = message.MediaUrl,
                     Type = message.Type,
@@ -168,7 +171,7 @@ namespace ITI.Gymunity.FP.Application.Services
                     thread.IsPriority,
                     OtherUserId = otherUserId,
                     OtherUserName = otherUser?.FullName,
-                    OtherUserProfilePhoto = otherUser?.ProfilePhotoUrl,
+                    OtherUserProfilePhoto = _imageUrlResolver.ResolveImageUrl(otherUser?.ProfilePhotoUrl!),
                     UnreadCount = unreadCount
                 });
             }

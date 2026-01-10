@@ -10,13 +10,23 @@
     <!-- Page Header -->
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">Trainer Details</h1>
-            <p class="text-gray-600 mt-1">@@<span class="font-semibold">@Model.Handle</span></p>
+            <div class="flex items-center gap-3">
+                <div class="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg">
+                    <i class="fas fa-dumbbell text-white text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900">Trainer Details</h1>
+                    <p class="text-gray-600 mt-1 flex items-center gap-2">
+                        <i class="fas fa-at text-gray-400"></i>
+                        <span class="font-semibold">@Model.Handle</span>
+                    </p>
+                </div>
+            </div>
         </div>
         
         <div class="flex items-center gap-2">
-            <a href="@Url.Action("Index", "Trainers")" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
-                <i class="fas fa-arrow-left mr-2"></i>Back
+            <a href="@Url.Action("Index", "Trainers")" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium flex items-center gap-2">
+                <i class="fas fa-arrow-left mr-1"></i>Back to Trainers
             </a>
         </div>
     </div>
@@ -25,7 +35,10 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Basic Info Card -->
         <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 class="text-lg font-semibold text-gray-900 mb-4">Basic Information</h3>
+            <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                <i class="fas fa-address-card text-blue-600"></i>
+                <span>Basic Information</span>
+            </h3>
             <div class="space-y-4">
                 <div>
                     <p class="text-sm text-gray-500">Username</p>
@@ -33,40 +46,45 @@
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">Email</p>
-                    <p class="font-medium text-gray-900">
-                        <a href="mailto:@Model.Email" class="text-blue-600 hover:text-blue-700">@Model.Email</a>
+                    <p class="font-medium text-gray-900 break-all">
+                        <a href="mailto:@Model.Email" class="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1">
+                            @Model.Email
+                            <i class="fas fa-external-link-alt text-xs"></i>
+                        </a>
                     </p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">Handle</p>
-                    <p class="font-medium text-gray-900">@@<span class="font-semibold">@Model.Handle</span></p>
+                    <p class="font-medium text-gray-900 flex items-center gap-2">
+                        <span class="inline-block px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm">@@<span class="font-semibold">@Model.Handle</span></span>
+                    </p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">User ID</p>
-                    <p class="font-medium text-gray-900 text-sm break-all">@Model.UserId</p>
+                    <p class="font-medium text-gray-900 text-sm break-all font-mono">@Model.UserId</p>
                 </div>
                 <div>
                     <p class="text-sm text-gray-500">Status</p>
-                    <div class="mt-1">
+                    <div class="mt-2">
                         @if (Model.IsSuspended)
                         {
-                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-medium">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-red-50 text-red-700 rounded-full text-sm font-medium border border-red-200">
                                 <i class="fas fa-ban"></i>
-                                Suspended
+                                <span>Suspended</span>
                             </span>
                         }
                         else if (Model.IsVerified)
                         {
-                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium border border-green-200">
                                 <i class="fas fa-check-circle"></i>
-                                Verified
+                                <span>Verified</span>
                             </span>
                         }
                         else
                         {
-                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm font-medium">
+                            <span class="inline-flex items-center gap-2 px-3 py-1 bg-yellow-50 text-yellow-700 rounded-full text-sm font-medium border border-yellow-200">
                                 <i class="fas fa-clock"></i>
-                                Pending Verification
+                                <span>Pending Verification</span>
                             </span>
                         }
                     </div>
@@ -74,23 +92,25 @@
 
                 @if (Model.IsSuspended && Model.SuspendedAt.HasValue)
                 {
-                    <div>
-                        <p class="text-sm text-gray-500">Suspended Date</p>
-                        <p class="font-medium text-gray-900 mt-1">@Model.SuspendedAt.Value.ToString("MMMM dd, yyyy HH:mm")</p>
+                    <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                        <p class="font-semibold mb-1">
+                            <i class="fas fa-exclamation-circle mr-2"></i>Suspended Date
+                        </p>
+                        <p>@Model.SuspendedAt.Value.ToString("MMMM dd, yyyy HH:mm")</p>
                     </div>
                 }
 
                 <!-- Created At -->
-                <div>
+                <div class="pt-3 border-t border-gray-200">
                     <p class="text-sm text-gray-500">Account Created</p>
-                    <p class="font-medium text-gray-900 mt-2">@Model.CreatedAt.ToString("MMMM dd, yyyy HH:mm")</p>
+                    <p class="font-medium text-gray-900 mt-1">@Model.CreatedAt.ToString("MMMM dd, yyyy HH:mm")</p>
                 </div>
 
                 <!-- Available Balance -->
-                <div>
-                    <p class="text-sm text-gray-500">Available Balance</p>
-                    <p class="text-2xl font-bold text-green-600">@Model.AvailableBalance.ToString("C")</p>
-                    <p class="text-sm text-gray-400">Funds available to pay out to trainer</p>
+                <div class="p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p class="text-sm text-green-700 font-medium">Available Balance</p>
+                    <p class="text-2xl font-bold text-green-600 mt-1">@Model.AvailableBalance.ToString("C")</p>
+                    <p class="text-xs text-green-600 mt-1">Funds available to pay out to trainer</p>
                 </div>
             </div>
         </div>
@@ -99,15 +119,21 @@
         <div class="flex flex-col gap-6">
             <!-- Statistics Card -->
             <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Statistics</h3>
-                <div class="space-y-4">
-                    <div>
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                    <i class="fas fa-chart-line text-purple-600"></i>
+                    <span>Statistics</span>
+                </h3>
+                <div class="space-y-5">
+                    <div class="pb-4 border-b border-gray-100">
                         <p class="text-sm text-gray-500">Total Clients</p>
-                        <p class="text-2xl font-bold text-blue-600">@Model.TotalClients</p>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <p class="text-3xl font-bold text-blue-600">@Model.TotalClients</p>
+                            <span class="text-xs text-gray-500">active clients</span>
+                        </div>
                     </div>
-                    <div>
+                    <div class="pb-4 border-b border-gray-100">
                         <p class="text-sm text-gray-500">Average Rating</p>
-                        <div class="flex items-center gap-2 mt-1">
+                        <div class="flex items-center gap-3 mt-2">
                             <div class="flex items-center gap-1">
                                 @for (int i = 0; i < 5; i++)
                                 {
@@ -125,12 +151,16 @@
                                     }
                                 }
                             </div>
-                            <span class="font-medium text-gray-900">@Model.RatingAverage.ToString("F1")</span>
+                            <span class="font-bold text-gray-900">@Model.RatingAverage.ToString("F1")</span>
+                            <span class="text-xs text-gray-500">out of 5</span>
                         </div>
                     </div>
                     <div>
                         <p class="text-sm text-gray-500">Years of Experience</p>
-                        <p class="text-2xl font-bold text-blue-600">@Model.YearsExperience</p>
+                        <div class="flex items-baseline gap-2 mt-1">
+                            <p class="text-3xl font-bold text-purple-600">@Model.YearsExperience</p>
+                            <span class="text-xs text-gray-500">years</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,206 +199,364 @@
                         </button>
                     }
                     
-                    <button type="button" class="w-full px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 rounded-lg transition font-medium flex items-center justify-center gap-2" id="email-trainer-btn">
+                    <!-- Send Email Button - Enhanced with gradient and icon -->
+                    <button type="button" class="w-full px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg transition font-medium flex items-center justify-center gap-2 shadow-sm" id="email-trainer-btn">
                         <i class="fas fa-envelope"></i>
                         <span>Send Email</span>
+                        <i class="fas fa-arrow-right text-xs ml-auto opacity-75"></i>
                     </button>
+
+                    <!-- Support Actions Group -->
+                    <div class="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100">
+                        <button type="button" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition text-sm font-medium flex items-center justify-center gap-1" title="View payment history">
+                            <i class="fas fa-credit-card"></i>
+                            <span class="hidden sm:inline">Payments</span>
+                        </button>
+                        <button type="button" class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition text-sm font-medium flex items-center justify-center gap-1" title="View activity log">
+                            <i class="fas fa-history"></i>
+                            <span class="hidden sm:inline">Activity</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Financial Summary - Horizontal Layout -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-6">Financial Summary</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Total Earnings -->
-            <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
-                <div class="text-green-600 mb-2">
-                    <i class="fas fa-money-bill-wave text-3xl"></i>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-coins"></i>
+                <span>Financial Summary</span>
+            </h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Total Earnings -->
+                <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-green-50 to-green-100 border border-green-200 hover:shadow-md transition">
+                    <div class="text-green-600 mb-3">
+                        <i class="fas fa-money-bill-wave text-3xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 font-semibold">Total Earnings</p>
+                    <p class="text-3xl font-bold text-green-600 mt-2">@Model.TotalEarnings.ToString("C")</p>
+                    <p class="text-xs text-gray-500 mt-2">@Model.Currency</p>
                 </div>
-                <p class="text-sm text-gray-600 font-medium">Total Earnings</p>
-                <p class="text-3xl font-bold text-green-600 mt-2">@Model.TotalEarnings.ToString("C")</p>
-                <p class="text-xs text-gray-500 mt-1">@Model.Currency</p>
-            </div>
 
-            <!-- Platform Fees Gained -->
-            <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
-                <div class="text-blue-600 mb-2">
-                    <i class="fas fa-chart-pie text-3xl"></i>
+                <!-- Platform Fees Gained -->
+                <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 hover:shadow-md transition">
+                    <div class="text-blue-600 mb-3">
+                        <i class="fas fa-chart-pie text-3xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 font-semibold">Platform Commission</p>
+                    <p class="text-3xl font-bold text-blue-600 mt-2">@Model.PlatformFeesGained.ToString("C")</p>
+                    <p class="text-xs text-gray-500 mt-2">Earned as Commission</p>
                 </div>
-                <p class="text-sm text-gray-600 font-medium">Platform Fees Gained</p>
-                <p class="text-3xl font-bold text-blue-600 mt-2">@Model.PlatformFeesGained.ToString("C")</p>
-                <p class="text-xs text-gray-500 mt-1">Commission Earned</p>
-            </div>
 
-            <!-- Completed Payments -->
-            <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200">
-                <div class="text-purple-600 mb-2">
-                    <i class="fas fa-check-circle text-3xl"></i>
+                <!-- Completed Payments -->
+                <div class="flex flex-col items-center text-center p-4 rounded-lg bg-gradient-to-br from-purple-50 to-purple-100 border border-purple-200 hover:shadow-md transition">
+                    <div class="text-purple-600 mb-3">
+                        <i class="fas fa-check-circle text-3xl"></i>
+                    </div>
+                    <p class="text-sm text-gray-600 font-semibold">Transactions</p>
+                    <p class="text-3xl font-bold text-purple-600 mt-2">@Model.CompletedPaymentsCount</p>
+                    <p class="text-xs text-gray-500 mt-2">Completed Payments</p>
                 </div>
-                <p class="text-sm text-gray-600 font-medium">Completed Payments</p>
-                <p class="text-3xl font-bold text-purple-600 mt-2">@Model.CompletedPaymentsCount</p>
-                <p class="text-xs text-gray-500 mt-1">Successful Transactions</p>
             </div>
         </div>
     </div>
 
     <!-- Professional Info Card -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Professional Information</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <p class="text-sm text-gray-500">Bio</p>
-                <p class="font-medium text-gray-900 mt-2">@(string.IsNullOrEmpty(Model.Bio) ? "No bio provided" : Model.Bio)</p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Video Intro URL</p>
-                @if (!string.IsNullOrEmpty(Model.VideoIntroUrl))
-                {
-                    <a href="@Model.VideoIntroUrl" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:text-blue-700 mt-2 inline-flex items-center gap-1">
-                        @Model.VideoIntroUrl
-                        <i class="fas fa-external-link-alt text-xs"></i>
-                    </a>
-                }
-                else
-                {
-                    <p class="font-medium text-gray-400 mt-2">Not provided</p>
-                }
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Verified Date</p>
-                <p class="font-medium text-gray-900 mt-2">
-                    @if (Model.VerifiedAt.HasValue)
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-amber-600 to-amber-700 px-6 py-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-briefcase"></i>
+                <span>Professional Information</span>
+            </h3>
+        </div>
+        <div class="p-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold mb-2">Bio</p>
+                    @if (string.IsNullOrEmpty(Model.Bio))
                     {
-                        @Model.VerifiedAt.Value.ToString("MMMM dd, yyyy HH:mm")
+                        <p class="text-gray-400 italic">No bio provided</p>
                     }
                     else
                     {
-                        <span class="text-gray-400">Not verified yet</span>
+                        <p class="text-gray-900">@Model.Bio</p>
                     }
-                </p>
-            </div>
-            <div>
-                <p class="text-sm text-gray-500">Account Created</p>
-                <p class="font-medium text-gray-900 mt-2">@Model.CreatedAt.ToString("MMMM dd, yyyy HH:mm")</p>
-            </div>
-            @if (!string.IsNullOrEmpty(Model.BrandingColors))
-            {
-                <div>
-                    <p class="text-sm text-gray-500">Branding Colors</p>
-                    <p class="font-medium text-gray-900 mt-2">@Model.BrandingColors</p>
                 </div>
-            }
-            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
-            {
                 <div>
-                    <p class="text-sm text-gray-500">Cover Image</p>
-                    <a href="@Model.CoverImageUrl" target="_blank" rel="noopener noreferrer" class="font-medium text-blue-600 hover:text-blue-700 mt-2 inline-flex items-center gap-1">
-                        View Image
-                        <i class="fas fa-external-link-alt text-xs"></i>
-                    </a>
+                    <p class="text-sm text-gray-500 font-semibold mb-2">Video Intro</p>
+                    @if (!string.IsNullOrEmpty(Model.VideoIntroUrl))
+                    {
+                        <a href="@Model.VideoIntroUrl" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 inline-flex items-center gap-2 font-medium">
+                            <i class="fas fa-video"></i>
+                            <span>Watch Video</span>
+                            <i class="fas fa-external-link-alt text-xs"></i>
+                        </a>
+                    }
+                    else
+                    {
+                        <p class="text-gray-400 italic">Not provided</p>
+                    }
                 </div>
-            }
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold mb-2">Verification Date</p>
+                    <p class="text-gray-900">
+                        @if (Model.VerifiedAt.HasValue)
+                        {
+                            <span class="inline-flex items-center gap-1 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm">
+                                <i class="fas fa-calendar-check"></i>
+                                @Model.VerifiedAt.Value.ToString("MMMM dd, yyyy HH:mm")
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-gray-400 italic">Not verified yet</span>
+                        }
+                    </p>
+                </div>
+                <div>
+                    <p class="text-sm text-gray-500 font-semibold mb-2">Member Since</p>
+                    <p class="text-gray-900">@Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.BrandingColors))
+                {
+                    <div>
+                        <p class="text-sm text-gray-500 font-semibold mb-2">Branding Colors</p>
+                        <div class="flex items-center gap-2">
+                            <div class="w-8 h-8 rounded border border-gray-300" style="background-color: @Model.BrandingColors;"></div>
+                            <p class="font-medium text-gray-900">@Model.BrandingColors</p>
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                {
+                    <div>
+                        <p class="text-sm text-gray-500 font-semibold mb-2">Cover Image</p>
+                        <a href="@Model.CoverImageUrl" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 inline-flex items-center gap-2 font-medium">
+                            <i class="fas fa-image"></i>
+                            <span>View Image</span>
+                            <i class="fas fa-external-link-alt text-xs"></i>
+                        </a>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 
     <!-- Packages Section -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Training Packages</h3>
-        <div class="text-gray-600">
-            <p>Trainer packages information would be displayed here.</p>
-            <p class="text-sm text-gray-500 mt-2">This would include packages created by this trainer and their pricing information.</p>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-pink-600 to-pink-700 px-6 py-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-box"></i>
+                <span>Training Packages</span>
+                <span class="ml-auto bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">@Model.Packages.Count</span>
+            </h3>
+        </div>
+        <div class="p-6">
+            @if (Model.Packages.Any())
+            {
+                <div class="space-y-4">
+                    @foreach (var package in Model.Packages)
+                    {
+                        <div class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <!-- Package Header -->
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div>
+                                            <p class="font-semibold text-gray-900 text-lg">@package.Name</p>
+                                            <p class="text-sm text-gray-500 mt-1">Created @package.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                                        </div>
+                                        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium
+                                            @(package.IsActive ? "bg-green-50 text-green-700" : "bg-gray-50 text-gray-700")">
+                                            <i class="fas @(package.IsActive ? "fa-check-circle" : "fa-circle")"></i>
+                                            @(package.IsActive ? "Active" : "Inactive")
+                                        </span>
+                                    </div>
+
+                                    <!-- Description -->
+                                    <div class="mb-3">
+                                        @if (string.IsNullOrEmpty(package.Description))
+                                        {
+                                            <p class="text-gray-400 italic text-sm">No description provided</p>
+                                        }
+                                        else
+                                        {
+                                            <p class="text-gray-700 text-sm">@package.Description</p>
+                                        }
+                                    </div>
+
+                                    <!-- Pricing Information -->
+                                    <div class="grid grid-cols-3 gap-4 p-3 bg-gray-50 rounded-lg mb-3">
+                                        <div>
+                                            <p class="text-xs text-gray-600 font-semibold">Monthly Price</p>
+                                            <p class="text-lg font-bold text-blue-600 mt-1">@package.PriceMonthly.ToString("C")</p>
+                                        </div>
+                                        @if (package.PriceYearly.HasValue)
+                                        {
+                                            <div>
+                                                <p class="text-xs text-gray-600 font-semibold">Yearly Price</p>
+                                                <p class="text-lg font-bold text-green-600 mt-1">@package.PriceYearly.Value.ToString("C")</p>
+                                            </div>
+                                        }
+                                        <div>
+                                            <p class="text-xs text-gray-600 font-semibold">Currency</p>
+                                            <p class="text-lg font-bold text-gray-900 mt-1">@package.Currency</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Additional Info -->
+                                    <div class="flex items-center gap-4 text-sm text-gray-600 pt-2 border-t border-gray-100 flex-wrap">
+                                        @if (!string.IsNullOrEmpty(package.PromoCode))
+                                        {
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">
+                                                <i class="fas fa-tag"></i>
+                                                Promo: @package.PromoCode
+                                            </span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(package.ThumbnailUrl))
+                                        {
+                                            <a href="@package.ThumbnailUrl" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-700 inline-flex items-center gap-1 font-medium">
+                                                <i class="fas fa-image text-sm"></i>
+                                                <span>View Thumbnail</span>
+                                                <i class="fas fa-external-link-alt text-xs"></i>
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-12">
+                    <i class="fas fa-box-open text-5xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-600 font-medium">No packages created yet</p>
+                    <p class="text-sm text-gray-500 mt-1">This trainer hasn't created any training packages</p>
+                </div>
+            }
         </div>
     </div>
 
     <!-- Reviews Section -->
-    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 class="text-lg font-semibold text-gray-900 mb-4">Client Reviews (@Model.TotalReviewsCount)</h3>
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 px-6 py-4">
+            <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                <i class="fas fa-star"></i>
+                <span>Client Reviews</span>
+                <span class="ml-auto bg-white/20 px-3 py-1 rounded-full text-sm font-semibold">@Model.TotalReviewsCount</span>
+            </h3>
+        </div>
         
-        @if (Model.Reviews.Any())
-        {
-            <div class="space-y-4">
-                @foreach (var review in Model.Reviews)
-                {
-                    <div class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition">
-                        <div class="flex items-start justify-between gap-4">
-                            <div class="flex-1">
-                                <!-- Review Header -->
-                                <div class="flex items-center gap-3 mb-3">
-                                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                                        @review.ClientName.FirstOrDefault()
+        <div class="p-6">
+            @if (Model.Reviews.Any())
+            {
+                <div class="space-y-4">
+                    @foreach (var review in Model.Reviews)
+                    {
+                        <div class="p-4 border border-gray-200 rounded-lg hover:shadow-md transition">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex-1">
+                                    <!-- Review Header -->
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                                            @review.ClientName.FirstOrDefault()
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-gray-900">@review.ClientName</p>
+                                            <p class="text-sm text-gray-500">@review.CreatedAt.ToString("MMMM dd, yyyy")</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p class="font-semibold text-gray-900">@review.ClientName</p>
-                                        <p class="text-sm text-gray-500">@review.CreatedAt.ToString("MMMM dd, yyyy")</p>
-                                    </div>
-                                </div>
 
-                                <!-- Rating -->
-                                <div class="flex items-center gap-2 mb-3">
-                                    <div class="flex items-center gap-1">
-                                        @for (int i = 0; i < 5; i++)
-                                        {
-                                            @if (i < review.Rating)
+                                    <!-- Rating -->
+                                    <div class="flex items-center gap-3 mb-3">
+                                        <div class="flex items-center gap-1">
+                                            @for (int i = 0; i < 5; i++)
                                             {
-                                                <i class="fas fa-star text-yellow-400"></i>
+                                                @if (i < review.Rating)
+                                                {
+                                                    <i class="fas fa-star text-yellow-400"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-star text-gray-300"></i>
+                                                }
+                                            }
+                                        </div>
+                                        <span class="text-sm font-semibold text-gray-900">@review.Rating.ToString("F1")</span>
+                                    </div>
+
+                                    <!-- Comment -->
+                                    <div class="bg-gray-50 rounded-lg p-4 mb-3 border border-gray-100">
+                                        <p class="text-gray-700 text-sm">
+                                            @if (string.IsNullOrEmpty(review.Comment))
+                                            {
+                                                <span class="text-gray-500 italic">No comment provided</span>
                                             }
                                             else
                                             {
-                                                <i class="fas fa-star text-gray-300"></i>
+                                                @review.Comment
                                             }
-                                        }
+                                        </p>
                                     </div>
-                                    <span class="text-sm font-medium text-gray-900">@review.Rating.ToString("F1") rating</span>
-                                </div>
 
-                                <!-- Comment -->
-                                <div class="bg-gray-50 rounded-lg p-4 mb-3">
-                                    <p class="text-gray-700 text-sm">@(string.IsNullOrEmpty(review.Comment) ? "No comment provided" : review.Comment)</p>
-                                </div>
-
-                                <!-- Meta Info -->
-                                <div class="flex items-center gap-4 text-xs text-gray-500 pt-2 border-t border-gray-100">
-                                    <span>
-                                        @if (review.IsEdited && review.EditedAt.HasValue)
+                                    <!-- Meta Info -->
+                                    <div class="flex items-center gap-4 text-xs text-gray-500 pt-2 border-t border-gray-100 flex-wrap">
+                                        <span>
+                                            @if (review.IsEdited && review.EditedAt.HasValue)
+                                            {
+                                                <span><i class="fas fa-edit mr-1"></i>Edited @review.EditedAt.Value.ToString("MMMM dd, yyyy")</span>
+                                            }
+                                            else
+                                            {
+                                                <span><i class="fas fa-check-circle mr-1 text-gray-400"></i>Original review</span>
+                                            }
+                                        </span>
+                                        @if (review.IsApproved)
                                         {
-                                            <span><i class="fas fa-edit mr-1"></i>Edited @review.EditedAt.Value.ToString("MMMM dd, yyyy")</span>
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                                <i class="fas fa-check-circle"></i>
+                                                Approved
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span>Original review</span>
+                                            <span class="inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+                                                <i class="fas fa-clock"></i>
+                                                Pending
+                                            </span>
                                         }
-                                    </span>
-                                    @if (review.IsApproved)
-                                    {
-                                        <span class="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                                            <i class="fas fa-check-circle"></i>
-                                            Approved
-                                        </span>
-                                    }
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    }
+                </div>
+
+                @if (Model.Reviews.Count > 10)
+                {
+                    <div class="mt-4 pt-4 border-t border-gray-200 text-center">
+                        <p class="text-sm text-gray-600">
+                            <i class="fas fa-info-circle mr-2"></i>
+                            Showing first 10 reviews of @Model.TotalReviewsCount total
+                        </p>
                     </div>
                 }
-            </div>
-
-            @if (Model.Reviews.Count > 10)
+            }
+            else
             {
-                <div class="mt-4 text-center">
-                    <p class="text-sm text-gray-600">Showing first 10 reviews of @Model.TotalReviewsCount total</p>
+                <div class="text-center py-12">
+                    <i class="fas fa-inbox text-5xl text-gray-300 mb-3"></i>
+                    <p class="text-gray-600 font-medium">No approved reviews yet</p>
+                    <p class="text-sm text-gray-500 mt-1">Reviews will appear here once clients submit and admins approve them</p>
                 </div>
             }
-        }
-        else
-        {
-            <div class="text-center py-8">
-                <i class="fas fa-inbox text-3xl text-gray-300 mb-2"></i>
-                <p class="text-gray-600">No approved reviews found for this trainer</p>
-                <p class="text-sm text-gray-500 mt-1">Reviews are displayed once they are approved by admin</p>
-            </div>
-        }
+        </div>
     </div>
 </div>
 
@@ -413,40 +601,140 @@
         <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
 
         <!-- Modal content -->
-        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:w-full sm:max-w-lg">
-            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-lg leading-6 font-medium text-gray-900">
-                        Send Email to Trainer
-                    </h3>
-                    <button type="button" id="closeEmailModal" class="text-gray-400 hover:text-gray-600">
-                        <i class="fas fa-times text-xl"></i>
+        <div class="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:w-full sm:max-w-2xl">
+            <!-- Modal Header -->
+            <div class="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 sm:p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-lg leading-6 font-bold text-white flex items-center gap-2">
+                            <i class="fas fa-envelope"></i>
+                            <span>Send Email to Trainer</span>
+                        </h3>
+                        <p class="text-blue-100 text-sm mt-1">Communicate directly with @Model.Handle</p>
+                    </div>
+                    <button type="button" id="closeEmailModal" class="text-blue-100 hover:text-white transition">
+                        <i class="fas fa-times text-2xl"></i>
                     </button>
                 </div>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="bg-white px-6 pt-5 pb-4 sm:p-6 space-y-4">
+                <!-- Recipient Information Card -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-start gap-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-circle-info text-blue-600 text-xl"></i>
+                        </div>
+                        <div class="flex-grow">
+                            <h4 class="font-semibold text-blue-900 text-sm">Recipient Information</h4>
+                            <div class="grid grid-cols-2 gap-3 mt-3">
+                                <div>
+                                    <p class="text-xs text-blue-700 font-medium">Name</p>
+                                    <p class="text-sm text-blue-900 font-semibold">@Model.Handle</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-700 font-medium">Email</p>
+                                    <p class="text-sm text-blue-900 font-semibold break-all">@Model.Email</p>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-700 font-medium">Status</p>
+                                    <span class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium mt-1">
+                                        @if (Model.IsVerified)
+                                        {
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Verified</span>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-clock"></i>
+                                            <span>Pending</span>
+                                        }
+                                    </span>
+                                </div>
+                                <div>
+                                    <p class="text-xs text-blue-700 font-medium">Member Since</p>
+                                    <p class="text-sm text-blue-900">@Model.CreatedAt.ToString("MMM dd, yyyy")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Email Form -->
                 <form id="emailForm" class="space-y-4">
+                    <!-- Hidden trainer email field -->
+                    <input type="hidden" id="trainerEmail" value="@Model.Email">
+                    
+                    <!-- Quick Templates Section -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Trainer Email
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Quick Templates
                         </label>
-                        <input type="text" id="trainerEmail" class="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50" readonly>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <button type="button" class="template-btn px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 transition" data-template="welcome">
+                                <i class="fas fa-hand-peace mr-1"></i>Welcome
+                            </button>
+                            <button type="button" class="template-btn px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 transition" data-template="verification">
+                                <i class="fas fa-check-circle mr-1"></i>Verification
+                            </button>
+                            <button type="button" class="template-btn px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 transition" data-template="announcement">
+                                <i class="fas fa-bullhorn mr-1"></i>Announcement
+                            </button>
+                            <button type="button" class="template-btn px-3 py-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded-lg text-xs font-medium text-gray-700 transition" data-template="support">
+                                <i class="fas fa-headset mr-1"></i>Support
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- Subject Field -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Subject *
+                        <label class="block text-sm font-semibold text-gray-700 mb-2">
+                            Subject <span class="text-red-500">*</span>
                         </label>
-                        <input type="text" id="emailSubject" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required placeholder="Email subject">
+                        <input type="text" id="emailSubject" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition" required placeholder="Email subject" minlength="5" maxlength="100">
+                        <p class="text-xs text-gray-500 mt-1">Keep it clear and concise</p>
                     </div>
+
+                    <!-- Message Field -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">
-                            Message *
-                        </label>
-                        <textarea id="emailMessage" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" rows="4" required placeholder="Email message"></textarea>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-semibold text-gray-700">
+                                Message <span class="text-red-500">*</span>
+                            </label>
+                            <span class="text-xs text-gray-500">
+                                <span id="charCount">0</span>/1000 characters
+                            </span>
+                        </div>
+                        <textarea id="emailMessage" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none" rows="6" required placeholder="Type your message here..." minlength="10" maxlength="1000"></textarea>
+                        <p class="text-xs text-gray-500 mt-1">Minimum 10 characters required</p>
+                    </div>
+
+                    <!-- Additional Options -->
+                    <div class="bg-gray-50 rounded-lg p-4 space-y-3">
+                        <div class="flex items-center">
+                            <input type="checkbox" id="sendCopy" class="w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer">
+                            <label for="sendCopy" class="ml-2 text-sm text-gray-700 cursor-pointer">
+                                <span class="font-medium">Send copy to admin email</span>
+                                <p class="text-xs text-gray-500 mt-0.5">Keep a record of this communication</p>
+                            </label>
+                        </div>
+                        <div class="flex items-center">
+                            <input type="checkbox" id="trackEmail" class="w-4 h-4 text-blue-600 border-gray-300 rounded cursor-pointer" checked>
+                            <label for="trackEmail" class="ml-2 text-sm text-gray-700 cursor-pointer">
+                                <span class="font-medium">Add to email history</span>
+                                <p class="text-xs text-gray-500 mt-0.5">This email will be logged for audit purposes</p>
+                            </label>
+                        </div>
                     </div>
                 </form>
             </div>
-            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse gap-2">
-                <button type="button" id="sendEmailBtn" class="w-full inline-flex justify-center rounded-md shadow-sm px-4 py-2 bg-blue-600 font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:w-auto">
-                    Send Email
+
+            <!-- Modal Footer -->
+            <div class="bg-gray-50 px-6 py-4 sm:px-6 sm:py-4 sm:flex sm:flex-row-reverse gap-2 border-t border-gray-200">
+                <button type="button" id="sendEmailBtn" class="w-full inline-flex justify-center items-center rounded-lg shadow-sm px-4 py-2 bg-blue-600 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition sm:w-auto" disabled>
+                    <i class="fas fa-paper-plane mr-2"></i>
+                    <span>Send Email</span>
                 </button>
                 <button type="button" id="cancelEmailBtn" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 sm:mt-0 sm:w-auto">
                     Cancel
@@ -613,61 +901,171 @@
         document.getElementById('closeEmailModal').addEventListener('click', closeEmailModal);
         document.getElementById('cancelEmailBtn').addEventListener('click', closeEmailModal);
 
-        // Email form submission
-        document.getElementById('sendEmailBtn').addEventListener('click', async function() {
-            const subject = document.getElementById('emailSubject').value.trim();
-            const message = document.getElementById('emailMessage').value.trim();
+        // Email Modal Enhancements
+        const emailTemplates = {
+            welcome: {
+                subject: "Welcome to Gymunity - Your Trainer Profile is Ready",
+                body: "Dear @Model.Handle,\n\nWelcome to Gymunity! We're excited to have you join our community as a professional trainer.\n\nYour profile has been successfully created and is ready for use. You can now start connecting with clients who are looking for your expertise.\n\nIf you have any questions or need assistance, please don't hesitate to reach out to our support team.\n\nBest regards,\nGymunity Admin Team"
+            },
+            verification: {
+                subject: "Profile Verification Completed",
+                body: "Dear @Model.Handle,\n\nCongratulations! Your trainer profile has been verified and approved.\n\nYou now have full access to all platform features and can begin accepting client subscriptions.\n\nThank you for joining the Gymunity community.\n\nBest regards,\nGymunity Admin Team"
+            },
+            announcement: {
+                subject: "Important Announcement from Gymunity",
+                body: "Dear @Model.Handle,\n\nWe have an important update for you regarding our platform.\n\n[Add your announcement details here]\n\nFor more information, please visit your dashboard or contact our support team.\n\nBest regards,\nGymunity Admin Team"
+            },
+            support: {
+                subject: "We're Here to Help",
+                body: "Dear @Model.Handle,\n\nWe noticed there might be an issue with your account or profile.\n\nOur support team is here to assist you. Please reply to this email or contact us through your dashboard.\n\nWe're committed to resolving any concerns quickly.\n\nBest regards,\nGymunity Support Team"
+            }
+        };
 
-            if (!subject || !message) {
-                showErrorMessage('Please fill in all required fields');
+        // Character counter
+        document.getElementById('emailMessage')?.addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+
+        // Email validation
+        function validateEmail() {
+            const subject = document.getElementById('emailSubject')?.value.trim() || '';
+            const message = document.getElementById('emailMessage')?.value.trim() || '';
+            
+            if (!subject || subject.length < 5) {
+                showErrorMessage('Subject must be at least 5 characters long');
+                return false;
+            }
+            
+            if (!message || message.length < 10) {
+                showErrorMessage('Message must be at least 10 characters long');
+                return false;
+            }
+            
+            if (subject.length > 100) {
+                showErrorMessage('Subject cannot exceed 100 characters');
+                return false;
+            }
+            
+            if (message.length > 1000) {
+                showErrorMessage('Message cannot exceed 1000 characters');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Enable/disable send button based on input
+        function updateSendButtonState() {
+            const subject = document.getElementById('emailSubject')?.value.trim() || '';
+            const message = document.getElementById('emailMessage')?.value.trim() || '';
+            const sendBtn = document.getElementById('sendEmailBtn');
+            
+            sendBtn.disabled = !subject || !message || subject.length < 5 || message.length < 10;
+        }
+
+        document.getElementById('emailSubject')?.addEventListener('input', updateSendButtonState);
+        document.getElementById('emailMessage')?.addEventListener('input', updateSendButtonState);
+
+        // Template button handlers
+        document.querySelectorAll('.template-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const templateKey = btn.dataset.template;
+                const template = emailTemplates[templateKey];
+                
+                if (template) {
+                    document.getElementById('emailSubject').value = template.subject;
+                    document.getElementById('emailMessage').value = template.body;
+                    document.getElementById('charCount').textContent = template.body.length;
+                    updateSendButtonState();
+                    
+                    // Highlight the button
+                    document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('bg-blue-100', 'border-blue-300'));
+                    btn.classList.add('bg-blue-100', 'border-blue-300');
+                }
+            });
+        });
+
+        // Email form submission with enhanced error handling
+        document.getElementById('sendEmailBtn').addEventListener('click', async function() {
+            if (!validateEmail()) {
                 return;
             }
 
             this.disabled = true;
+            const originalHTML = this.innerHTML;
             this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Sending...';
 
             try {
-                const response = await fetch('/admin/email/send', {
+                const emailAddress = document.getElementById('trainerEmail')?.value || '@Model.Email';
+                const subject = document.getElementById('emailSubject').value.trim();
+                const body = document.getElementById('emailMessage').value.trim();
+
+                if (!emailAddress) {
+                    showErrorMessage('Email address is missing');
+                    this.disabled = false;
+                    this.innerHTML = originalHTML;
+                    return;
+                }
+
+                const response = await fetch('@Url.Action("SendEmail", "Trainers")', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
                     body: JSON.stringify({
-                        trainerId: trainerId,
+                        email: emailAddress,
+                        recipientName: trainerHandle,
                         subject: subject,
-                        message: message
+                        body: body
                     })
                 });
 
                 const data = await response.json();
 
                 if (response.ok && data.success) {
-                    showSuccessMessage('Email sent successfully');
+                    showSuccessMessage('Email sent successfully to @Model.Handle');
                     closeEmailModal();
+                    document.getElementById('emailForm').reset();
+                    document.getElementById('charCount').textContent = '0';
+                    document.querySelectorAll('.template-btn').forEach(b => b.classList.remove('bg-blue-100', 'border-blue-300'));
                 } else {
-                    showErrorMessage(data.message || 'Failed to send email');
+                    showErrorMessage(data.message || 'Failed to send email. Please try again.');
+                    console.error('Email send error:', data);
                 }
             } catch (error) {
-                showErrorMessage('An error occurred while sending the email');
+                console.error('Email send error:', error);
+                showErrorMessage('An error occurred while sending the email: ' + error.message);
             } finally {
                 this.disabled = false;
-                this.innerHTML = 'Send Email';
+                this.innerHTML = originalHTML;
+                updateSendButtonState();
             }
         });
 
         // Notification Functions
         function showSuccessMessage(message) {
             const alert = document.createElement('div');
-            alert.className = 'fixed top-4 right-4 px-6 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 shadow-lg z-50';
-            alert.innerHTML = `<i class="fas fa-check-circle mr-2"></i>${message}`;
+            alert.className = 'fixed top-4 right-4 px-6 py-3 bg-green-50 border border-green-200 rounded-lg text-green-700 shadow-lg z-50 flex items-center gap-2';
+            alert.innerHTML = `<i class="fas fa-check-circle"></i><span>${message}</span>`;
             document.body.appendChild(alert);
             setTimeout(() => alert.remove(), 5000);
         }
 
         function showErrorMessage(message) {
             const alert = document.createElement('div');
-            alert.className = 'fixed top-4 right-4 px-6 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 shadow-lg z-50';
-            alert.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i>${message}`;
+            alert.className = 'fixed top-4 right-4 px-6 py-3 bg-red-50 border border-red-200 rounded-lg text-red-700 shadow-lg z-50 flex items-center gap-2';
+            alert.innerHTML = `<i class="fas fa-exclamation-circle"></i><span>${message}</span>`;
             document.body.appendChild(alert);
             setTimeout(() => alert.remove(), 5000);
         }
+
+        // Close email modal on outside click
+        emailModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeEmailModal();
+            }
+        });
     </script>
 }

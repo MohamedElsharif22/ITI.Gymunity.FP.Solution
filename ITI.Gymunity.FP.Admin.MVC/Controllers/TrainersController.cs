@@ -5,8 +5,11 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers;
 using ITI.Gymunity.FP.Application.Services.Admin;
+using ITI.Gymunity.FP.Application.Services;
 using ITI.Gymunity.FP.Application.Specefications.Admin;
 using ITI.Gymunity.FP.Application.DTOs.Trainer;
+using ITI.Gymunity.FP.Application.DTOs.Email;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 using ITI.Gymunity.FP.Admin.MVC.Services;
 using System.Security.Claims;
 
@@ -25,17 +28,23 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         private readonly TrainerAdminService _trainerService;
         private readonly IAdminNotificationService _notificationService;
         private readonly AdminUserResolverService _adminUserResolver;
+        private readonly IEmailService _emailService;
+        private readonly IPackageService _packageService;
 
         public TrainersController(
             ILogger<TrainersController> logger,
             TrainerAdminService trainerService,
             IAdminNotificationService notificationService,
-            AdminUserResolverService adminUserResolver)
+            AdminUserResolverService adminUserResolver,
+            IEmailService emailService,
+            IPackageService packageService)
         {
             _logger = logger;
             _trainerService = trainerService;
             _notificationService = notificationService;
             _adminUserResolver = adminUserResolver;
+            _emailService = emailService;
+            _packageService = packageService;
         }
 
         /// <summary>
@@ -169,6 +178,23 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                     IsApproved = r.IsApproved
                 }).ToList();
 
+                // Load trainer packages
+                var packagesResponse = await _packageService.GetAllForTrainerAsync(trainer.Id);
+                var packageVMs = packagesResponse.Select(p => new TrainerPackageViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    PriceMonthly = p.PriceMonthly,
+                    PriceYearly = p.PriceYearly,
+                    Currency = "USD",
+                    IsActive = p.IsActive,
+                    ThumbnailUrl = p.ThumbnailUrl,
+                    CreatedAt = p.CreatedAt.DateTime,
+                    PromoCode = p.PromoCode,
+                    SubscriptionCount = 0 // Will be populated from subscription data if needed
+                }).ToList();
+
                 // Create ViewModel with all data
                 var vm = new TrainerDetailsViewModel
                 {
@@ -197,7 +223,8 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                     CompletedPaymentsCount = completedPaymentsCount,
                     Currency = "EGP",
                     Reviews = reviewVMs,
-                    TotalReviewsCount = reviewVMs.Count
+                    TotalReviewsCount = reviewVMs.Count,
+                    Packages = packageVMs
                 };
 
                 _logger.LogInformation("Trainer {TrainerId} details viewed by {User}", id, User.Identity?.Name);
@@ -466,6 +493,50 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         }
 
         /// <summary>
+        /// Send email to a trainer
+        /// </summary>
+        [HttpPost("trainers/send-email")]
+        public async Task<IActionResult> SendEmail([FromBody] SendTrainerEmailRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(new { success = false, message = "Invalid request: ModelState validation failed" });
+
+                if (string.IsNullOrWhiteSpace(request?.Email))
+                    return BadRequest(new { success = false, message = "Invalid request: Email is required" });
+
+                if (string.IsNullOrWhiteSpace(request.Subject))
+                    return BadRequest(new { success = false, message = "Invalid request: Subject is required" });
+
+                if (string.IsNullOrWhiteSpace(request.Body))
+                    return BadRequest(new { success = false, message = "Invalid request: Body is required" });
+
+                var emailRequest = new EmailRequest
+                {
+                    ToEmail = request.Email.Trim(),
+                    ToName = request.RecipientName ?? "Trainer",
+                    Subject = request.Subject.Trim(),
+                    Body = request.Body.Trim(),
+                    IsHtml = false
+                };
+                
+                await _emailService.SendEmailAsync(emailRequest);
+                
+                _logger.LogInformation("Email sent to trainer {Email} by {User}", 
+                    request.Email, User.Identity?.Name);
+                
+                ShowSuccessMessage("Email sent successfully");
+                return Ok(new { success = true, message = "Email sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending email to trainer");
+                return BadRequest(new { success = false, message = ex.Message });
+            }
+        }
+
+        /// <summary>
         /// Helper method to render partial view to string
         /// </summary>
         private async Task<string> RenderPartialViewToStringAsync(string viewName, object model)
@@ -495,5 +566,32 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 return writer.GetStringBuilder().ToString();
             }
         }
+    }
+
+    /// <summary>
+    /// Send email request for trainers
+    /// Lightweight DTO with only required fields for trainer communication
+    /// </summary>
+    public class SendTrainerEmailRequest
+    {
+        /// <summary>
+        /// Recipient email address (required)
+        /// </summary>
+        public string Email { get; set; } = null!;
+
+        /// <summary>
+        /// Recipient name for personalization (optional)
+        /// </summary>
+        public string? RecipientName { get; set; }
+
+        /// <summary>
+        /// Email subject line (required)
+        /// </summary>
+        public string Subject { get; set; } = null!;
+
+        /// <summary>
+        /// Email body content (required)
+        /// </summary>
+        public string Body { get; set; } = null!;
     }
 }

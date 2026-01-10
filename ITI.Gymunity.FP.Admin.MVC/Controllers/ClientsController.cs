@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using ITI.Gymunity.FP.Admin.MVC.ViewModels.Clients;
 using ITI.Gymunity.FP.Application.Services.Admin;
 using ITI.Gymunity.FP.Application.Specefications.Admin;
+using ITI.Gymunity.FP.Application.DTOs.Email;
+using ITI.Gymunity.FP.Application.Contracts.ExternalServices;
 
 namespace ITI.Gymunity.FP.Admin.MVC.Controllers
 {
@@ -16,13 +18,16 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
     {
         private readonly ILogger<ClientsController> _logger;
         private readonly ClientAdminService _clientService;
+        private readonly IEmailService _emailService;
 
         public ClientsController(
             ILogger<ClientsController> logger,
-            ClientAdminService clientService)
+            ClientAdminService clientService,
+            IEmailService emailService)
         {
             _logger = logger;
             _clientService = clientService;
+            _emailService = emailService;
         }
 
         /// <summary>
@@ -366,14 +371,24 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
+                if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request?.Email))
                     return BadRequest(new { success = false, message = "Invalid request" });
 
-                // TODO: Implement email service integration
-                // var emailService = HttpContext.RequestServices.GetService<IEmailService>();
-                // await emailService.SendEmailAsync(request.ClientId, request.Subject, request.Message);
-
-                _logger.LogInformation("Email sent to client {ClientId} by {User}", request.ClientId, User.Identity?.Name);
+                var emailRequest = new EmailRequest
+                {
+                    ToEmail = request.Email,
+                    ToName = request.RecipientName ?? "Client",
+                    Subject = request.Subject,
+                    Body = request.Body,
+                    IsHtml = false
+                };
+                
+                await _emailService.SendEmailAsync(emailRequest);
+                
+                _logger.LogInformation("Email sent to client {Email} by {User}", 
+                    request.Email, User.Identity?.Name);
+                
+                ShowSuccessMessage("Email sent successfully");
                 return Ok(new { success = true, message = "Email sent successfully" });
             }
             catch (Exception ex)
@@ -559,7 +574,10 @@ Generated: {DateTime.UtcNow}
     public class SendEmailRequest
     {
         public string ClientId { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string RecipientName { get; set; } = null!;
         public string Subject { get; set; } = null!;
+        public string Body { get; set; } = null!;
         public string Message { get; set; } = null!;
         public bool SendCopy { get; set; }
     }

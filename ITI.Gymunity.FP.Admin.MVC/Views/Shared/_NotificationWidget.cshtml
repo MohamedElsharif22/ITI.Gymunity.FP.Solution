@@ -13,7 +13,7 @@
             title="Notifications">
         <i class="fas fa-bell text-lg"></i>
         <span id="notificationBadge" 
-              class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold hidden">
+              class="absolute top-1 right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold hidden animate-pulse">
             0
         </span>
     </button>
@@ -23,16 +23,27 @@
          class="absolute right-0 top-12 w-96 bg-white rounded-lg shadow-2xl border border-gray-200 hidden z-50 flex flex-col max-h-96">
         
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100">
+        <div class="flex items-center justify-between p-4 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-blue-100 sticky top-0">
             <div>
                 <h3 class="font-semibold text-gray-900">Notifications</h3>
-                <p class="text-xs text-gray-600 mt-1">Real-time updates</p>
+                <p class="text-xs text-gray-600 mt-1">
+                    <span id="unreadCountText">0</span> unread
+                </p>
             </div>
-            <button type="button" 
-                    class="text-gray-400 hover:text-gray-600 transition" 
-                    onclick="closeNotificationPanel()">
-                <i class="fas fa-times text-lg"></i>
-            </button>
+            <div class="flex items-center gap-2">
+                <button type="button" 
+                        id="markAllReadBtn"
+                        class="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition hidden"
+                        onclick="markAllNotificationsAsRead()"
+                        title="Mark all as read">
+                    Mark all read
+                </button>
+                <button type="button" 
+                        class="text-gray-400 hover:text-gray-600 transition" 
+                        onclick="closeNotificationPanel()">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
         </div>
 
         <!-- Content Area with Scroll -->
@@ -45,7 +56,7 @@
         </div>
 
         <!-- Footer -->
-        <div class="p-3 border-t border-gray-200 bg-gray-50">
+        <div class="p-3 border-t border-gray-200 bg-gray-50 sticky bottom-0">
             <a href="/admin/notifications" 
                class="block w-full text-center text-sm text-blue-600 hover:text-blue-700 font-medium hover:bg-blue-50 py-2 rounded transition">
                 View all notifications
@@ -166,7 +177,9 @@
         };
 
         notifications.unshift(notification);
-        unreadCount++;
+        if (!notification.isRead) {
+            unreadCount++;
+        }
 
         // Play sound
         playNotificationSound();
@@ -201,6 +214,7 @@
     function onNotificationCountUpdated(count) {
         unreadCount = count;
         updateNotificationBadge();
+        refreshNotificationsList();
     }
 
     // Handle action required notifications
@@ -308,12 +322,23 @@
     // Update notification badge
     function updateNotificationBadge() {
         const badge = document.getElementById('notificationBadge');
-        if (badge) {
+        const unreadCountText = document.getElementById('unreadCountText');
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        
+        if (badge && unreadCountText) {
+            unreadCountText.textContent = unreadCount;
+            
             if (unreadCount > 0) {
                 badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
                 badge.classList.remove('hidden');
+                if (markAllReadBtn) {
+                    markAllReadBtn.classList.remove('hidden');
+                }
             } else {
                 badge.classList.add('hidden');
+                if (markAllReadBtn) {
+                    markAllReadBtn.classList.add('hidden');
+                }
             }
         }
     }
@@ -344,9 +369,11 @@
     // Create notification element
     function createNotificationElement(notification) {
         const div = document.createElement('div');
+        const isUnread = !notification.isRead;
+        
         div.className = `
-            p-4 hover:bg-blue-50 transition cursor-pointer 
-            ${!notification.isRead ? 'bg-blue-50 border-l-4 border-blue-500' : ''}
+            p-4 hover:bg-gray-50 transition cursor-pointer group
+            ${isUnread ? 'bg-blue-50 border-l-4 border-blue-500' : 'bg-white'}
         `;
         
         const timeString = formatTime(new Date(notification.createdAt));
@@ -356,29 +383,89 @@
 
         div.innerHTML = `
             <div class="flex items-start gap-3">
-                <div class="flex-shrink-0 w-8 h-8 rounded-lg ${bgColor} flex items-center justify-center">
+                <div class="flex-shrink-0 w-10 h-10 rounded-lg ${bgColor} flex items-center justify-center">
                     <i class="fas fa-${iconClass} ${iconColor}"></i>
                 </div>
                 <div class="flex-1 min-w-0">
-                    <p class="font-semibold text-sm text-gray-900">${escapeHtml(notification.title)}</p>
-                    <p class="text-xs text-gray-600 mt-1 truncate">${escapeHtml(notification.message)}</p>
+                    <div class="flex items-start justify-between gap-2">
+                        <div class="flex-1">
+                            <p class="font-semibold text-sm text-gray-900">${escapeHtml(notification.title)}</p>
+                            ${isUnread ? '<span class="inline-block ml-2 px-2 py-0.5 bg-blue-500 text-white text-xs rounded-full font-medium">New</span>' : ''}
+                        </div>
+                    </div>
+                    <p class="text-sm text-gray-600 mt-1">${escapeHtml(notification.message)}</p>
                     <p class="text-xs text-gray-400 mt-2">${timeString}</p>
                 </div>
-                <button type="button" 
-                        class="flex-shrink-0 p-1 text-gray-400 hover:text-gray-600 transition"
-                        onclick="event.stopPropagation(); removeNotification('${notification.id}')">
-                    <i class="fas fa-times text-sm"></i>
-                </button>
+                <div class="flex-shrink-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                    ${isUnread ? `<button type="button" 
+                            class="p-1 text-blue-500 hover:text-blue-600 transition"
+                            onclick="event.stopPropagation(); markNotificationAsRead(${notification.id})"
+                            title="Mark as read">
+                            <i class="fas fa-check text-sm"></i>
+                        </button>` : ''}
+                    <button type="button" 
+                            class="p-1 text-gray-400 hover:text-gray-600 transition"
+                            onclick="event.stopPropagation(); removeNotification('${notification.id}')"
+                            title="Remove">
+                        <i class="fas fa-times text-sm"></i>
+                    </button>
+                </div>
             </div>
         `;
 
         div.addEventListener('click', () => {
-            if (notification.relatedEntityId) {
+            if (notification.relatedEntityId && !isUnread) {
                 navigateToNotificationTarget(notification.type, notification.relatedEntityId);
             }
         });
 
         return div;
+    }
+
+    // Mark notification as read
+    function markNotificationAsRead(notificationId) {
+        const notification = notifications.find(n => n.id == notificationId);
+        if (notification && !notification.isRead) {
+            notification.isRead = true;
+            unreadCount = Math.max(0, unreadCount - 1);
+            updateNotificationBadge();
+            refreshNotificationsList();
+
+            // Call backend API to mark as read
+            fetch('/admin/notifications/mark-read', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ notificationId: notificationId })
+            })
+            .catch(err => console.error('Error marking notification as read:', err));
+        }
+    }
+
+    // Mark all notifications as read
+    function markAllNotificationsAsRead() {
+        // Mark all unread notifications as read
+        notifications.forEach(n => {
+            if (!n.isRead) {
+                n.isRead = true;
+            }
+        });
+        
+        unreadCount = 0;
+        updateNotificationBadge();
+        refreshNotificationsList();
+
+        // Call backend API to mark all as read
+        fetch('/admin/notifications/mark-all-read', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .catch(err => console.error('Error marking all notifications as read:', err));
     }
 
     // Remove notification
@@ -633,6 +720,19 @@
 
     .animate-bounce-in {
         animation: bounce-in 0.5s ease-out;
+    }
+
+    .animate-pulse {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @@keyframes pulse {
+        0%, 100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.5;
+        }
     }
 
     /* Ensure notification panel scrollbar is styled */

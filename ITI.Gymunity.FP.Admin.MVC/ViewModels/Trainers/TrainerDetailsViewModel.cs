@@ -38,6 +38,9 @@ namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers
         // Reviews collection
         public List<TrainerReviewViewModel> Reviews { get; set; } = new();
         public int TotalReviewsCount { get; set; } = 0;
+
+        // Packages collection
+        public List<TrainerPackageViewModel> Packages { get; set; } = new();
     }
 
     /// <summary>
@@ -54,5 +57,23 @@ namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Trainers
         public bool IsEdited { get; set; }
         public DateTime? EditedAt { get; set; }
         public bool IsApproved { get; set; }
+    }
+
+    /// <summary>
+    /// ViewModel for trainer packages displayed on details page
+    /// </summary>
+    public class TrainerPackageViewModel
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = null!;
+        public string Description { get; set; } = string.Empty;
+        public decimal PriceMonthly { get; set; }
+        public decimal? PriceYearly { get; set; }
+        public string Currency { get; set; } = "USD";
+        public bool IsActive { get; set; }
+        public string? ThumbnailUrl { get; set; }
+        public DateTimeOffset CreatedAt { get; set; }
+        public string? PromoCode { get; set; }
+        public int SubscriptionCount { get; set; } = 0;
     }
 }

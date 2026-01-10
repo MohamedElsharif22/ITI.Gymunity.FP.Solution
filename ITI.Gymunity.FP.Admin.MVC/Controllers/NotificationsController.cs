@@ -93,6 +93,43 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
             }
         }
 
+        [HttpPost("mark-read")]
+        public async Task<IActionResult> MarkNotificationRead([FromBody] MarkNotificationReadRequest request)
+        {
+            try
+            {
+                if (request?.NotificationId <= 0)
+                    return BadRequest(new { success = false, message = "Invalid notification ID" });
+
+                await _notificationService.MarkNotificationAsReadAsync(request.NotificationId);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error marking notification as read");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpPost("mark-all-read")]
+        public async Task<IActionResult> MarkAllRead()
+        {
+            try
+            {
+                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (string.IsNullOrEmpty(userId))
+                    return Unauthorized();
+
+                await _notificationService.MarkAllNotificationsAsReadAsync(userId);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error marking all notifications as read");
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
         [HttpGet("unread-count")]
         public async Task<IActionResult> GetUnreadCount()
         {

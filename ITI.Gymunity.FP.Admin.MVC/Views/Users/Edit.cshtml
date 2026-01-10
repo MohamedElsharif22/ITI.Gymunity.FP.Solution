@@ -254,7 +254,7 @@
                     <div class="pb-4 border-b border-gray-200">
                         <p class="text-sm font-semibold text-gray-700 mb-2">Current Role</p>
                         <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium @GetRoleBadgeClass(Model.User.Role.ToString())">
-                            @GetRoleIcon(Model.User.Role.ToString())
+                            @Html.Raw(GetRoleIcon(Model.User.Role.ToString()))
                             @Model.User.Role
                         </span>
                     </div>

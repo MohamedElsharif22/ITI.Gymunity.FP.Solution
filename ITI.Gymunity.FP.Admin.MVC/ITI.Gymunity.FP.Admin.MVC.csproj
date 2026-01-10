@@ -10,4 +10,8 @@
     <ProjectReference Include="..\ITI.Gymunity.FP.Infrastructure\ITI.Gymunity.FP.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Controllers\Api\" />
+  </ItemGroup>
+
 </Project>

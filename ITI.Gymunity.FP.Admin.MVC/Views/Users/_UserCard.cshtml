@@ -19,7 +19,7 @@
                 <h6 class="font-bold text-gray-900">@Model.FullName</h6>
             </div>
             <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium @GetRoleBadgeClass(Model.Role.ToString())">
-                @GetRoleIcon(Model.Role.ToString())
+                @Html.Raw(GetRoleIcon(Model.Role.ToString()))
                 @Model.Role
             </span>
         </div>
