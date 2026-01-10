@@ -70,13 +70,18 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 SetBreadcrumbs("Dashboard", "Reviews");
 
                 var pendingReviews = await _reviewService.GetAllPendingAsync();
+                
+                // Get count of all pending reviews (not just on this page)
+                var allPendingReviews = await _reviewService.GetAllPendingAsync();
+                var totalPendingCount = allPendingReviews.Count;
 
                 var model = new ReviewsListViewModel
                 {
                     Reviews = pendingReviews.ToList(),
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    TotalCount = pendingReviews.Count()
+                    TotalCount = pendingReviews.Count(),
+                    PendingCount = totalPendingCount
                 };
 
                 _logger.LogInformation("Reviews list accessed by user: {User}", User.Identity?.Name);

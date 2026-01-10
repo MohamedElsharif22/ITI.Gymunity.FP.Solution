@@ -13,6 +13,11 @@ namespace ITI.Gymunity.FP.Admin.MVC.ViewModels.Reviews
         public int TotalCount { get; set; } = 0;
 
         /// <summary>
+        /// Total count of pending reviews across all pages
+        /// </summary>
+        public int PendingCount { get; set; } = 0;
+
+        /// <summary>
         /// Total number of pages
         /// </summary>
         public int TotalPages => (TotalCount + PageSize - 1) / PageSize;
