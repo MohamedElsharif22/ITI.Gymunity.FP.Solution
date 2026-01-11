@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using ITI.Gymunity.FP.Application.DTOs.Trainer;
+
 namespace ITI.Gymunity.FP.Application.DTOs.Client
 {
     public class TrainerClientResponse
@@ -11,5 +14,11 @@ namespace ITI.Gymunity.FP.Application.DTOs.Client
         public decimal RatingAverage { get; set; }
         public int TotalClients { get; set; }
         public int YearsExperience { get; set; }
+
+        // New: reviews and summary
+        public List<TrainerReviewResponse> Reviews { get; set; } = new();
+        public int TotalReviewsCount { get; set; }
+        public int RatingSum { get; set; }
+        public decimal RatingAverageComputed { get; set; }
     }
 }
