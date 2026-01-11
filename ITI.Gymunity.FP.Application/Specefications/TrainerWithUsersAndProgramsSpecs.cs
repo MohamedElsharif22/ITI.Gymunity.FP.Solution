@@ -12,6 +12,8 @@ namespace ITI.Gymunity.FP.Application.Specefications
             AddInclude(t => t.User);
             //AddInclude(tp => tp.Programs);
             AddInclude(q => q.Include(tp => tp.Programs).ThenInclude(p => p.Weeks));
+            // include trainer reviews for detail endpoints
+            AddInclude(tp => tp.TrainerReviews);
         }
 
         public TrainerWithUsersAndProgramsSpecs(Expression<Func<TrainerProfile, bool>>? criteria) : base(criteria)
@@ -19,6 +21,8 @@ namespace ITI.Gymunity.FP.Application.Specefications
             AddInclude(t => t.User);
             //AddInclude(tp => tp.Programs);
             AddInclude(q => q.Include(tp => tp.Programs).ThenInclude(p => p.Weeks));
+            // include trainer reviews for detail endpoints
+            AddInclude(tp => tp.TrainerReviews);
         }
     }
 }

@@ -27,5 +27,15 @@
 
         // Available balance (computed)
         public decimal AvailableBalance { get; set; } = 0m;
+
+        // Reviews
+        public List<TrainerReviewResponse> Reviews { get; set; } = new List<TrainerReviewResponse>();
+        public int TotalReviewsCount { get; set; }
+
+        // Sum of ratings (for clarity): RatingAverage = RatingSum / TotalReviewsCount
+        public int RatingSum { get; set; }
+
+        // Computed average based on RatingSum / TotalReviewsCount (rounded to 2 decimals)
+        public decimal RatingAverageComputed => TotalReviewsCount > 0 ? System.Math.Round((decimal)RatingSum / TotalReviewsCount, 2) : 0m;
     }
 }
