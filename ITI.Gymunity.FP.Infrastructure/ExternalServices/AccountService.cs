@@ -92,6 +92,7 @@ namespace ITI.Gymunity.FP.Infrastructure.ExternalServices
                     ProfilePhotoUrl = googleUser.Picture,
                     Email = googleUser.Email,
                     UserName = googleUser.Email,
+                    Role = request.Role ?? UserRole.Client,
                     EmailConfirmed = true // Google email is already verified
                 };
 
