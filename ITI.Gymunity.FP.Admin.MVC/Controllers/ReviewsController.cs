@@ -44,8 +44,7 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                     Reviews = reviews.ToList(),
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    TotalCount = reviews.Count(),
-                    FilterType = "Pending"
+                    TotalCount = reviews.Count()
                 };
 
                 _logger.LogInformation("Pending reviews list accessed by user: {User}", User.Identity?.Name);
@@ -76,18 +75,13 @@ namespace ITI.Gymunity.FP.Admin.MVC.Controllers
                 var allPendingReviews = await _reviewService.GetAllPendingAsync();
                 var totalPendingCount = allPendingReviews.Count;
 
-                // Get count of unique trainers with pending reviews
-                var totalUniqueUsers = allPendingReviews.Select(r => r.TrainerId).Distinct().Count();
-
                 var model = new ReviewsListViewModel
                 {
                     Reviews = pendingReviews.ToList(),
                     PageNumber = pageNumber,
                     PageSize = pageSize,
                     TotalCount = pendingReviews.Count(),
-                    PendingCount = totalPendingCount,
-                    TotalUniqueUsers = totalUniqueUsers,
-                    FilterType = "Pending"
+                    PendingCount = totalPendingCount
                 };
 
                 _logger.LogInformation("Reviews list accessed by user: {User}", User.Identity?.Name);
