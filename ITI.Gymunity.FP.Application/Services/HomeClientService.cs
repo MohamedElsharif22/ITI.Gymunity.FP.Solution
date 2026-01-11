@@ -5,6 +5,7 @@ using ITI.Gymunity.FP.Application.Specefications;
 using ITI.Gymunity.FP.Domain;
 using ITI.Gymunity.FP.Domain.Models.Trainer;
 using DomainProgram = ITI.Gymunity.FP.Domain.Models.ProgramAggregate.Program;
+using ITI.Gymunity.FP.Domain.RepositoiesContracts;
 
 namespace ITI.Gymunity.FP.Application.Services
 {
@@ -26,8 +27,39 @@ namespace ITI.Gymunity.FP.Application.Services
             var programDtos = programs.Select(p => _mapper.Map<ProgramClientResponse>(p)).ToList();
 
             var trainerSpec = new TrainerWithUsersAndProgramsSpecs(tp => tp.Handle.Contains(term) || tp.User.FullName.Contains(term));
-            var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(trainerSpec);
-            var trainerDtos = trainers.Select(t => _mapper.Map<TrainerClientResponse>(t)).ToList();
+            var trainersList = (await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(trainerSpec)).ToList();
+            var trainerDtos = trainersList.Select(t => _mapper.Map<TrainerClientResponse>(t)).ToList();
+
+            // populate reviews and summary for each trainer dto
+            try
+            {
+                var reviewRepo = _unitOfWork.Repository<TrainerReview, IReviewClientRepository>();
+                for (int i =0; i < trainersList.Count; i++)
+                {
+                    var profile = trainersList[i];
+                    var dto = trainerDtos[i];
+
+                    var reviews = (await reviewRepo.GetByTrainerIdAsync(profile.Id))
+                        .Where(r => r.IsApproved && !r.IsDeleted)
+                        .ToList();
+
+                    dto.Reviews = reviews.Select(r => _mapper.Map<ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerReviewResponse>(r)).ToList();
+                    dto.TotalReviewsCount = dto.Reviews.Count;
+                    dto.RatingSum = dto.Reviews.Sum(r => r.Rating);
+                    dto.RatingAverageComputed = dto.TotalReviewsCount >0 ? Math.Round((decimal)dto.RatingSum / dto.TotalReviewsCount,2) :0;
+                }
+            }
+            catch
+            {
+                // ignore and continue with empty review data
+                foreach (var dto in trainerDtos)
+                {
+                    dto.Reviews = new List<ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerReviewResponse>();
+                    dto.TotalReviewsCount =0;
+                    dto.RatingSum =0;
+                    dto.RatingAverageComputed =0;
+                }
+            }
 
             return (programDtos, trainerDtos);
         }
@@ -53,8 +85,39 @@ namespace ITI.Gymunity.FP.Application.Services
         public async Task<IReadOnlyList<TrainerClientResponse>> GetAllTrainersAsync()
         {
             var spec = new TrainerWithUsersAndProgramsSpecs();
-            var trainers = await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(spec);
-            return trainers.Select(t => _mapper.Map<TrainerClientResponse>(t)).ToList();
+            var trainersList = (await _unitOfWork.Repository<TrainerProfile>().GetAllWithSpecsAsync(spec)).ToList();
+            var trainerDtos = trainersList.Select(t => _mapper.Map<TrainerClientResponse>(t)).ToList();
+
+            try
+            {
+                var reviewRepo = _unitOfWork.Repository<TrainerReview, IReviewClientRepository>();
+                for (int i =0; i < trainersList.Count; i++)
+                {
+                    var profile = trainersList[i];
+                    var dto = trainerDtos[i];
+
+                    var reviews = (await reviewRepo.GetByTrainerIdAsync(profile.Id))
+                        .Where(r => r.IsApproved && !r.IsDeleted)
+                        .ToList();
+
+                    dto.Reviews = reviews.Select(r => _mapper.Map<ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerReviewResponse>(r)).ToList();
+                    dto.TotalReviewsCount = dto.Reviews.Count;
+                    dto.RatingSum = dto.Reviews.Sum(r => r.Rating);
+                    dto.RatingAverageComputed = dto.TotalReviewsCount >0 ? Math.Round((decimal)dto.RatingSum / dto.TotalReviewsCount,2) :0;
+                }
+            }
+            catch
+            {
+                foreach (var dto in trainerDtos)
+                {
+                    dto.Reviews = new List<ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerReviewResponse>();
+                    dto.TotalReviewsCount =0;
+                    dto.RatingSum =0;
+                    dto.RatingAverageComputed =0;
+                }
+            }
+
+            return trainerDtos;
         }
 
         public async Task<TrainerClientResponse?> GetTrainerByIdAsync(int id)
@@ -62,7 +125,32 @@ namespace ITI.Gymunity.FP.Application.Services
             var spec = new TrainerWithUsersAndProgramsSpecs(tp => tp.Id == id);
             var trainer = await _unitOfWork.Repository<TrainerProfile>().GetWithSpecsAsync(spec);
             if (trainer == null) return null;
-            return _mapper.Map<TrainerClientResponse>(trainer);
+
+            var dto = _mapper.Map<TrainerClientResponse>(trainer);
+
+            // fetch approved, non-deleted reviews for this trainer and populate summary
+            try
+            {
+                var reviewRepo = _unitOfWork.Repository<TrainerReview, IReviewClientRepository>();
+                var reviews = (await reviewRepo.GetByTrainerIdAsync(id))
+                    .Where(r => r.IsApproved && !r.IsDeleted)
+                    .ToList();
+
+                dto.Reviews = reviews.Select(r => _mapper.Map<ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerReviewResponse>(r)).ToList();
+                dto.TotalReviewsCount = dto.Reviews.Count;
+                dto.RatingSum = dto.Reviews.Sum(r => r.Rating);
+                dto.RatingAverageComputed = dto.TotalReviewsCount >0 ? Math.Round((decimal)dto.RatingSum / dto.TotalReviewsCount,2) :0;
+            }
+            catch
+            {
+                // If review repository not available or fails, leave reviews empty and continue
+                dto.Reviews = new List<ITI.Gymunity.FP.Application.DTOs.Trainer.TrainerReviewResponse>();
+                dto.TotalReviewsCount = 0;
+                dto.RatingSum = 0;
+                dto.RatingAverageComputed = 0;
+            }
+
+            return dto;
         }
 
         // packages
@@ -72,7 +160,7 @@ namespace ITI.Gymunity.FP.Application.Services
             var list = (await repo.GetAllActiveWithProgramsAsync()).ToList();
             var mapped = list.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
 
-            for (int i = 0; i < mapped.Count; i++)
+            for (int i =0; i < mapped.Count; i++)
             {
                 var pkg = mapped[i];
                 var original = list[i];
@@ -127,7 +215,7 @@ namespace ITI.Gymunity.FP.Application.Services
             var list = (await repo.GetByTrainerIdAsync(trainerProfileId)).ToList();
             var mapped = list.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
 
-            for (int i = 0; i < mapped.Count; i++)
+            for (int i =0; i < mapped.Count; i++)
             {
                 var pkg = mapped[i];
                 var original = list[i];
@@ -171,7 +259,7 @@ namespace ITI.Gymunity.FP.Application.Services
             var list = (await repo.GetAllActiveWithProgramsAsync()).Where(p => p.TrainerId == trainerUserId).ToList();
             var mapped = list.Select(p => _mapper.Map<PackageClientResponse>(p)).ToList();
 
-            for (int i = 0; i < mapped.Count; i++)
+            for (int i =0; i < mapped.Count; i++)
             {
                 var pkg = mapped[i];
                 var original = list[i];
