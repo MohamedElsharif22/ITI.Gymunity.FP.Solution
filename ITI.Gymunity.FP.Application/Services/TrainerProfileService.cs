@@ -92,7 +92,44 @@ namespace ITI.Gymunity.FP.Application.Services
             var profile = await _unitOfWork.Repository<TrainerProfile, ITrainerProfileRepository>()
                                           .GetWithSpecsAsync(profileSpecs);
 
-            return profile != null ? _mapper.Map<TrainerProfileDetailResponse>(profile) : null;
+            if (profile == null) return null;
+
+            var dto = _mapper.Map<TrainerProfileDetailResponse>(profile);
+
+            // compute reviews list
+            var reviews = profile.TrainerReviews?.Where(r => !r.IsDeleted).ToList() ?? new List<ITI.Gymunity.FP.Domain.Models.Trainer.TrainerReview>();
+            dto.TotalReviewsCount = reviews.Count;
+            dto.Reviews = reviews.Select(r => _mapper.Map<TrainerReviewResponse>(r)).ToList();
+
+            // compute rating sum and average
+            var ratingSum = reviews.Sum(r => r.Rating);
+            dto.RatingSum = ratingSum;
+            if (reviews.Count >0)
+            {
+                dto.RatingAverage = Math.Round((decimal)ratingSum / reviews.Count,2);
+            }
+            else
+            {
+                dto.RatingAverage =0m;
+            }
+
+            // compute available balance from completed payments for trainer's packages
+            var packageIds = profile.Packages?.Select(p => p.Id).ToList() ?? new List<int>();
+            decimal availableBalance =0m;
+            if (packageIds.Count >0)
+            {
+                var subsWithPayments = await _unitOfWork.Repository<ITI.Gymunity.FP.Domain.Models.Subscription>().GetAllWithSpecsAsync(new ITI.Gymunity.FP.Application.Specefications.Admin.ActiveSubscriptionsWithPaymentsSpecs());
+                var filtered = subsWithPayments.Where(s => packageIds.Contains(s.PackageId)).ToList();
+
+                var completedPayments = filtered.SelectMany(s => s.Payments ?? new List<ITI.Gymunity.FP.Domain.Models.Payment>())
+                .Where(p => p.Status == ITI.Gymunity.FP.Domain.Models.Enums.PaymentStatus.Completed && !p.IsDeleted)
+                .ToList();
+
+                availableBalance = completedPayments.Sum(p => p.TrainerPayout);
+            }
+            dto.AvailableBalance = availableBalance;
+
+            return dto;
         }
 
         public async Task<TrainerProfileDetailResponse?> GetProfileById(int id)
