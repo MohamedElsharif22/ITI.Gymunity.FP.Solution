@@ -4,42 +4,60 @@
 
 ![Gymunity](https://img.shields.io/badge/Platform-Fitness%20Management-FF6B6B?style=for-the-badge)
 ![.NET Version](https://img.shields.io/badge/.NET-9.0-512BD4?style=for-the-badge)
+![Angular Version](https://img.shields.io/badge/Angular-21%2B-DD0031?style=for-the-badge)
+![ITI Project](https://img.shields.io/badge/Project-ITI%20Graduation-9C27B0?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
 
 **Gymunity** is a cutting-edge, full-stack fitness management and training platform designed to connect trainers and clients in a seamless, integrated ecosystem.
 
-[Features](#-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started) • [API Documentation](#-api-documentation) • [Database Schema](#-database-schema)
+[🎯 Live Demo](#-live-demo) • [Features](#-features) • [Architecture](#-architecture) • [Getting Started](#-getting-started) • [API Documentation](#-api-documentation) • [Database Schema](#-database-schema)
 
 </div>
 
 ---
 
-## 📋 Table of Contents
-
-- [Overview](#overview)
-- [Features](#-features)
-- [Architecture](#-architecture)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Getting Started](#-getting-started)
-- [Core Modules](#-core-modules)
-- [API Documentation](#-api-documentation)
-- [Database Schema](#-database-schema)
-- [Key Workflows](#-key-workflows)
-- [Contributing](#-contributing)
-
----
-
 ## Overview
 
-Gymunity is an enterprise-grade fitness platform that revolutionizes how trainers and clients interact. Built with clean architecture principles and modern .NET technologies, the platform provides:
+Gymunity is an enterprise-grade fitness platform that revolutionizes how trainers and clients interact. Built with clean architecture principles and modern technologies (.NET 9.0 backend with Angular 21+ frontend), the platform provides:
 
 - **Complete Training Management**: Create, manage, and deliver personalized workout programs
 - **Subscription-Based Model**: Multiple payment gateways for flexible subscription handling
 - **Real-Time Communication**: Instant messaging and notifications using SignalR
 - **Advanced Analytics**: Comprehensive admin dashboards and performance tracking
 - **Multi-Role Support**: Dedicated experiences for Clients, Trainers, and Administrators
+- **Modern Web UI**: Responsive Angular 21+ single-page applications for Clients and Trainers
+
+---
+
+## 🎯 Live Demo
+
+Experience **Gymunity** right now! Choose your role and explore the platform:
+
+| Role | Link | Platform |
+|------|------|----------|
+| 👥 **Client App** | [🚀 Open Client Portal](https://gymunity-client.netlify.app) | ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white) |
+| 👨‍🏫 **Trainer App** | [🚀 Open Trainer Portal](https://gymunity.netlify.app) | ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat-square&logo=netlify&logoColor=white) |
+| 🛡️ **Admin Dashboard** | [🚀 Admin Panel](https://gymunity-admin.runasp.net) | ![MonsterASP](https://img.shields.io/badge/MonsterASP-FF6B6B?style=flat-square) |
+| 📚 **API Documentation** | [🚀 Swagger UI](https://gymunity-fp-apis.runasp.net/swagger) | ![MonsterASP](https://img.shields.io/badge/MonsterASP-FF6B6B?style=flat-square) |
+
+### 🧪 Test Credentials
+
+Use these credentials to explore different user roles:
+
+```
+👥 Client Account:
+   Email: client@example.com
+   Password: P@ssw0rd
+
+👨‍🏫 Trainer Account:
+   Email: trainer@example.com
+   Password: P@ssw0rd
+
+🛡️ Admin Account:
+   Email: admin@example.com
+   Password: Admin@123
+```
 
 ---
 
@@ -139,6 +157,14 @@ The solution follows a **Clean Architecture** pattern with clear separation of c
 - **Real-Time**: SignalR WebSockets
 - **Mapping**: AutoMapper for DTO transformations
 - **Validation**: FluentValidation, DataAnnotations
+
+### Frontend
+- **Framework**: Angular 21+
+- **HTTP Client**: Axios or Fetch API for REST calls
+- **Routing**: Angular Router for SPA navigation
+- **State Management**: NgRx or services for state management
+- **Forms**: Reactive Forms or Template-driven Forms
+- **UI Components**: Angular Material or custom components
 
 ### External Services
 - **Payment Processing**: Stripe, PayPal, Paymob
@@ -325,7 +351,8 @@ Admin dashboard built with Razor Pages
 │   ├── Reviews/                  (Review models)
 │   ├── Notifications/            (Notification models)
 │   ├── Analytics/                (Analytics models)
-│   └── Chat/                     (Chat models)
+│   ├── Chat/                     (Chat models)
+│   └── Shared/                   (Common view models)
 ├── Services/
 │   ├── DashboardStatisticsService.cs
 │   ├── AnalyticsService.cs
@@ -363,7 +390,10 @@ Admin dashboard built with Razor Pages
 
 ## 🚀 Getting Started
 
-### Prerequisites
+### 🌐 Quick Start - Live Demo
+Want to test the application without setup? **[Visit the Live Demo](#-live-demo)** above and explore using the test credentials provided.
+
+### Prerequisites (For Local Development)
 - **.NET 9.0 SDK** or later
 - **SQL Server** 2019 or later
 - **Visual Studio 2022** or VS Code with C# extension
@@ -442,6 +472,14 @@ Admin dashboard built with Razor Pages
    dotnet run
    ```
    - Admin will be available at `https://localhost:5002`
+
+10. **Run the Client App**
+    ```bash
+    cd ITI.Gymunity.FP.ClientApp
+    npm install
+    ng serve
+    ```
+    - Client app will be available at `http://localhost:4200`
 
 ---
 
@@ -778,19 +816,30 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📧 Support & Contact
 
+### 🌐 Hosted Applications
+- **Client App**: https://gymunity-client.netlify.app
+- **Trainer App**: https://gymunity.netlify.app
+- **Admin Dashboard**: https://gymunity-admin.runasp.net
+- **API Base URL**: https://gymunity-fp-apis.runasp.net/api
+- **API Swagger**: https://gymunity-fp-apis.runasp.net/swagger
+
+### Get Help
 For issues, questions, or suggestions:
 - **GitHub Issues**: [Create an issue](https://github.com/MohamedElsharif22/ITI.Gymunity.FP.Solution/issues)
 - **Email**: contact@gymunity.com
+- **API Documentation**: [View Swagger](https://api-gymunity.monsterasp.com/swagger)
 
 ---
 
 ## 🎉 Acknowledgments
 
-- Built with ❤️ using .NET 9.0
+- **Built with ❤️ using .NET 9.0**
+- **ITI Graduation Project** - Information Technology Institute
 - Clean Architecture principles
 - Clean Code practices
 - SOLID principles
 - Repository and Unit of Work patterns
+- **Hosted on** ![Netlify](https://img.shields.io/badge/Netlify-00C7B7?style=flat&logo=netlify) (Frontend) & ![MonsterASP](https://img.shields.io/badge/MonsterASP-FF6B6B?style=flat) (Backend)
 
 ---
 
