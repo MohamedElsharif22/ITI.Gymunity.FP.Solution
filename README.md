@@ -47,15 +47,15 @@ Use these credentials to explore different user roles:
 
 ```
 👥 Client Account:
-   Email: client@example.com
+   Email: client@gymunity.com
    Password: P@ssw0rd
 
 👨‍🏫 Trainer Account:
-   Email: trainer@example.com
+   Email: trainer@gymunity.com
    Password: P@ssw0rd
 
 🛡️ Admin Account:
-   Email: admin@example.com
+   Email: admin@gymunity.com
    Password: Admin@123
 ```
 
